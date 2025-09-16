@@ -1,15 +1,17 @@
+/*
+Author(s): Asger, Bjarke
+*/
+
+
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 
 export default function Board() {
   const navigate = useNavigate();
-  // number of squares per side (user input)
   const [sideInput, setSideInput] = useState(5);
 
-  // coerce to integer >= 1
   const n = Math.max(1, Math.floor(Number(sideInput) || 0));
 
-  // grid style returned by helper
   const gridStyle = calculateSize(n, n);
 
   return (
