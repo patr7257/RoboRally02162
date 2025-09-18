@@ -1,26 +1,37 @@
 /*
 Author(s): Asger, Bjarke, Patrick
 */
-let socket;
-const listeners = new Set();
+let socket = null;
+let listeners = new Set();
+let unsubscribe = null;
 
 export function getSocket() {
-  if (!socket) {
-    socket = new WebSocket("ws://localhost:8080/client?token=User"); // remove 'const'
+  const usernameInput = localStorage.getItem("username");
+  if (!socket || socket.readyState === WebSocket.CLOSED) {
+    socket = new WebSocket("ws://localhost:8080/client?token=" + usernameInput);
 
-    socket.onopen = () => {
-      console.log("Connected!");
-    };
-
+    socket.onopen = () => console.log("Connected!");
     socket.onmessage = (event) => {
-      console.log("Message:", event.data);
+      listeners.forEach((cb) => cb(event.data));
+    };
+    socket.onclose = () => {
+      console.log("WebSocket closed");
+      socket = null;
+      unsubscribe = null;
     };
   }
   return socket;
 }
 
-
 export function subscribe(cb) {
   listeners.add(cb);
-  return () => listeners.delete(cb);
+  unsubscribe = () => listeners.delete(cb);
+  return unsubscribe;
+}
+
+export function closeSocket() {
+  if (unsubscribe) unsubscribe();
+  if (socket) socket.close();
+  socket = null;
+  unsubscribe = null;
 }

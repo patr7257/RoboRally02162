@@ -3,12 +3,15 @@ Author(s): Asger
 */
 
 import React, { useState } from "react";
+import { getSocket, subscribe} from "./ws";
 
 function LoginComp({ onLogin }) {
   const [usernameInput, setUsernameInput] = useState("");
   const [error, setError] = useState("");
 
   const handleLogin = async () => {
+    
+
     setError("");
     try {
       const response = await fetch("http://localhost:8080/api/users/login", {
@@ -21,6 +24,13 @@ function LoginComp({ onLogin }) {
 
       if (response.ok) {
         localStorage.setItem("token", data.token);
+        localStorage.setItem("username", usernameInput);
+        console.log("pass: "+usernameInput)
+        await getSocket();
+        subscribe((message) => {
+          console.log("Received game message:", message);
+        });
+
         onLogin(data.token); // update Home state
       } else if (response.status === 401) {
         setError("Login failed. User does not exist.");

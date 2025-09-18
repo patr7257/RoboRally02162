@@ -37,9 +37,6 @@ public class ClientHandshakeInterceptor implements HandshakeInterceptor {
         if (query != null && query.startsWith("token=")) {
             String token = query.substring("token=".length());
 
-            //example default user
-            userDatabase.createUser("User");
-
             if (!userDatabase.existsName(token)) {
                 response.setStatusCode(HttpStatus.FORBIDDEN); // 403
                 return false;

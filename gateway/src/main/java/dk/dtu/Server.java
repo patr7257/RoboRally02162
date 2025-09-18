@@ -54,7 +54,7 @@ public class Server implements WebSocketConfigurer {
                 String jSonText = message.getPayload().toString();
 
                 JsonNode json = JsonUtil.parser(jSonText);
-                UUID lobbyID = UUID.fromString(json.get("lobbyID").asText());
+                String lobbyID = json.get("lobbyID").asText();
                 String userID = (String) session.getAttributes().get("userID");
                 Lobby lob = lobbies.get(lobbyID); //TODO: check for valid ID
                 lob.handleClientMessage(userID, json.get("payload")); //TODO: Check that toString() is correct
@@ -89,7 +89,7 @@ public class Server implements WebSocketConfigurer {
             public void handleMessage(WebSocketSession session, WebSocketMessage<?> message) throws Exception {
                 String jSonText = message.getPayload().toString();
                 JsonNode json = JsonUtil.parser(jSonText);
-                String gameID = json.get("gameID").asText();
+                String gameID = json.get("meta").get("game").get("gameID").asText();
 
                 String lobbyID = gameToLobby.get(gameID); //TODO: check for valid ID
                 Lobby lob = lobbies.get(lobbyID);
@@ -158,8 +158,10 @@ public class Server implements WebSocketConfigurer {
         String lobbyID = json.get("lobbyID").asText();
         //TODO: add valid ID checking
         Lobby lob = lobbies.get(lobbyID);
-        lob.startGame(gameId -> gameToLobby.put(gameId, lob.getLobbyID()));
-
+        //TODO: start game through lobby
+        UUID gameID = host.startGame(lob.getPlayers().size(), 10); //TODO: Change the boardsize to be decided by the client
+        gameToLobby.put(gameID.toString(), lob.getLobbyID());
+        lob.startGame(gameID.toString());
     }
 
     @GetMapping("/lobby/seeLobbies")

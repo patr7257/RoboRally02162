@@ -16,7 +16,7 @@ public class Lobby {
     private final String lobbyID;
     private final Map<String, Client> players = new HashMap<>();
     private final Host host;
-    private final String gameID= "not set";
+    private String gameID = "not set";
     private final Map<String, String> userToPlayer = new HashMap<>();
     private final Map<String, String> playerToUser = new HashMap<>();
     private int nextPlayerID = 1;
@@ -48,11 +48,17 @@ public class Lobby {
         players.remove(client);
     } //TODO: handle maps
 
-    public void startGame(Consumer<String> registerGameId) {
-        //TODO: REST call host
-        //TODO: set game ID
-        registerGameId.accept(gameID);
+    public void startGame(String gameID) {
+        this.gameID = gameID;
         //TODO: message clients. (type=game, action=start?)
+        ObjectNode root = JsonUtil.createObjectNode();
+        root.put("type", "game");
+
+        ObjectNode payload = JsonUtil.createObjectNode();
+        payload.put("action", "start");
+
+        root.set("payload", payload);
+        players.values().forEach(c -> c.handleMessage(root));
     }
 
     public void handleClientMessage(String userID, JsonNode payload) {
@@ -67,9 +73,9 @@ public class Lobby {
         ObjectNode root = JsonUtil.createObjectNode();
         root.put("type", "game");
         root.set("payload", json.get("payload"));
-        switch (json.get("type").asText()) {
+        switch (json.get("delivery").asText()) {
             case "direct":
-                Client client = players.get(json.get("playerID").asText());
+                Client client = players.get(json.get("meta").get("player").get("playerID").asText());
                 client.handleMessage(root);
                 break;
             case "broadcast":

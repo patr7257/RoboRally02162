@@ -12,6 +12,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.server.LocalServerPort;
+import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.web.servlet.MockMvc;
@@ -23,18 +24,20 @@ import org.springframework.web.socket.handler.AbstractWebSocketHandler;
 import java.net.URI;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
+import java.util.UUID;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.TimeUnit;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
-
+@Import(HostConfig.class)
 @AutoConfigureMockMvc
 public class LobbyRESTTests {
     @Autowired
@@ -145,7 +148,46 @@ public class LobbyRESTTests {
         assertThat(server.getGameToLobby().values())
                 .contains(lobbyID);
 
+        String expectedGameId = "123e4567-e89b-12d3-a456-426614174000";
+
+        assertThat(server.getGameToLobby())
+                .containsEntry(expectedGameId, lobbyID);
+
         hostSession.close();
+    }
+
+    @Test
+    public void seeLobbiesTest() throws Exception {
+        String username = "TestUser";
+        String token = createAndLoginUser(username);
+        WebSocketSession wsSession = connectWebSocket(token);
+
+        String lobbyID1 = mockMvc.perform(post("/api/lobby/create")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(mapper.writeValueAsString(Map.of("username", username))))
+                .andExpect(status().isCreated())
+                .andExpect(content().string(Matchers.notNullValue()))
+                .andReturn()
+                .getResponse()
+                .getContentAsString();
+
+        String lobbyID2 = mockMvc.perform(post("/api/lobby/create")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(mapper.writeValueAsString(Map.of("username", username))))
+                .andExpect(status().isCreated())
+                .andExpect(content().string(Matchers.notNullValue()))
+                .andReturn()
+                .getResponse()
+                .getContentAsString();
+
+        String expectedJson = "[{\"lobbyID\":\"" + lobbyID1 + "\"}, {\"lobbyID\":\"" + lobbyID2 + "\"}]";
+
+        mockMvc.perform(get("/api/lobby/seeLobbies")
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(content().json(expectedJson));
+
+        wsSession.close();
     }
 
     private String createAndLoginUser(String username) throws Exception {

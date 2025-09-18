@@ -89,12 +89,15 @@
 
 .button-container {
   display: flex;
-  gap: 20px;
+  flex-direction: column; /* stack vertically */
+  gap: 20px;              /* space between buttons */
   margin-top: 30px;
+  align-items: center;
 }
 
 .big-button {
   padding: 15px 30px;
+  width: 200px;
   font-size: 1.2rem;
   font-weight: bold;
   border: none;
@@ -112,4 +115,20 @@
 
 .big-button:active {
   transform: scale(0.98);
+}
+
+.logo {
+  width: 600px;
+  position: absolute;
+  top: 30px;            
+  left: 50%;            
+  transform: translateX(-50%);
+}
+
+.page-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;   /* center all page-specific content */
+  margin-top: 20px;      /* little space below logo */
+  width: 100%;
 }
