@@ -13,6 +13,7 @@ import junit.framework.TestCase;
 import junit.framework.TestSuite;
 
 import java.util.List;
+import java.util.UUID;
 
 import static dk.dtu.util.BoardTestUtils.initEmptyBoard;
 
@@ -32,10 +33,10 @@ public class GameManagerSubmitProgramsTest extends TestCase {
 
         BoardAPI api = new BoardApiImpl(board);
 
-        Robot r = new Robot("1", 1, 1, Direction.E);
+        Robot r = new Robot(1, 1, 1, Direction.E);
 
         GameManager manager = new GameManager();
-        GameID gid = manager.startGame(board, api, List.of(r));
+        UUID gid = manager.startGame(board, api, List.of(r));
 
         CommandResult submitResult = manager.apply(gid, new GameCommand.SubmitPrograms(new PlayerID(1), List.of(ProgramCard.move1())));
         assertEquals("OK", submitResult.reason());

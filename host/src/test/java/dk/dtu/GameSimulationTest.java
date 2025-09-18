@@ -33,7 +33,7 @@ public class GameSimulationTest extends TestCase {
 
         BoardAPI api = new BoardApiImpl(board);
 
-        Robot r = new Robot("1", 1, 1, Direction.E);
+        Robot r = new Robot(1, 1, 1, Direction.E);
         r.loadProgram(List.of(ProgramCard.move1()));
 
         Game game = new Game(board, api, List.of(r));

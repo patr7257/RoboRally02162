@@ -1,37 +1,33 @@
 package dk.dtu.domain.core;
 
 import dk.dtu.domain.model.Board;
-import dk.dtu.domain.model.Cell;
 import dk.dtu.domain.model.Robot;
 import dk.dtu.domain.rules.api.BoardAPI;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 // Author(s) Weihao Mo
 
 public class GameManager {
-    private final Map<GameID, Game> activeGames = new HashMap<>();
+    private final Map<UUID, Game> activeGames = new HashMap<>();
 
-    public GameID startGame(Board board, BoardAPI api, List<Robot> players) {
-        GameID id = GameID.newID();
+    public UUID startGame(Board board, BoardAPI api, List<Robot> players) {
+        UUID id = UUID.randomUUID();
 
         Game game = new Game(board, api, players);
         activeGames.put(id,game);
         return id;
     }
 
-    public void endGame(GameID id) {
+    public void endGame(UUID id) {
         activeGames.remove(id);
     }
 
-    public Set<GameID> getGame() {
-        return activeGames.keySet();
+    public Optional<Game> findByID(UUID gameID) {
+        return Optional.ofNullable(activeGames.get(gameID));
     }
 
-    public synchronized CommandResult apply(GameID id, GameCommand cmd) {
+    public synchronized CommandResult apply(UUID id, GameCommand cmd) {
         Game game = activeGames.get(id);
         if (game == null) {
             return CommandResult.fail("Game not found");

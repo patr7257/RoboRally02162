@@ -5,12 +5,12 @@ package dk.dtu.domain.model;
 public class Board {
     private final int width;
     private final int height;
-    private final Cell[][] cells;
+    private final Tile[][] tiles;
 
-    public Board(int width, int height, Cell[][] cells) {
+    public Board(int width, int height, Tile[][] tiles) {
         this.width = width;
         this.height = height;
-        this.cells = cells;
+        this.tiles = tiles;
     }
 
     public int getWidth() {
@@ -21,7 +21,9 @@ public class Board {
         return height;
     }
 
-    public Cell[][] getCells() {
-        return cells;
+    public Tile[][] getCells() {
+        return tiles;
     }
+
+    public Tile getTile(int x, int y) { return tiles[x][y]; };
 }

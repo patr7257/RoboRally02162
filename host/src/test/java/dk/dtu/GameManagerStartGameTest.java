@@ -12,6 +12,7 @@ import junit.framework.TestCase;
 import junit.framework.TestSuite;
 
 import java.util.List;
+import java.util.UUID;
 
 import static dk.dtu.util.BoardTestUtils.initEmptyBoard;
 
@@ -31,11 +32,11 @@ public class GameManagerStartGameTest extends TestCase {
         Board board = initEmptyBoard(3, 3);
         BoardAPI api = new BoardApiImpl(board);
 
-        Robot r = new Robot("1", 1, 1, Direction.E);
+        Robot r = new Robot(1, 1, 1, Direction.E);
         r.loadProgram(List.of(ProgramCard.move1()));
 
         GameManager manager = new GameManager();
-        GameID gid = manager.startGame(board, api, List.of(r));
+        UUID gid = manager.startGame(board, api, List.of(r));
 
         CommandResult result = manager.apply(gid, new GameCommand.StartRound());
 

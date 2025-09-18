@@ -1,7 +1,7 @@
 package dk.dtu.util;
 
 import dk.dtu.domain.model.Board;
-import dk.dtu.domain.model.Cell;
+import dk.dtu.domain.model.Tile;
 
 import java.util.Collections;
 
@@ -12,18 +12,18 @@ public final class BoardTestUtils {
     private BoardTestUtils() {
     }
 
-    public static Cell[][] initEmptyCells(int width, int height) {
-        Cell[][] cells = new Cell[height][width];
+    public static Tile[][] initEmptyCells(int width, int height) {
+        Tile[][] tiles = new Tile[height][width];
         for (int y = 0; y < height; y++) {
             for (int x = 0; x < width; x++) {
-                Cell c = new Cell();
+                Tile c = new Tile();
                 c.setX(x);
                 c.setY(y);
                 c.setEffects(Collections.emptyList());
-                cells[y][x] = c;
+                tiles[y][x] = c;
             }
         }
-        return cells;
+        return tiles;
     }
 
     public static Board initEmptyBoard(int width, int height) {

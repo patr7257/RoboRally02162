@@ -6,7 +6,7 @@ import java.util.List;
 
 // Author(s) Weihao Mo, William Pii Jæger
 
-public class Cell {
+public class Tile {
     private int x, y;
 
     private List<TileEffect> effects;

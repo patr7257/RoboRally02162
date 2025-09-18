@@ -1,9 +1,8 @@
 package dk.dtu.domain.core;
 
 import dk.dtu.domain.model.Board;
-import dk.dtu.domain.model.Cell;
+import dk.dtu.domain.model.Tile;
 import dk.dtu.domain.model.Robot;
-import dk.dtu.domain.program.ProgramCard;
 import dk.dtu.domain.program.ProgramOP;
 import dk.dtu.domain.rules.api.BoardAPI;
 import dk.dtu.domain.rules.api.MoveOutcome;
@@ -19,7 +18,7 @@ public class Game {
     private final Board board;
     private final BoardAPI api;
     // We iterate over these tile effects, added it so we don't forget
-    private final Map<Phase, List<Cell>> phaseIndex;
+    private final Map<Phase, List<Tile>> phaseIndex;
     private final List<Robot> robots;
     private final Map<PlayerID, Robot> robotMap = new HashMap<>();
 
@@ -35,15 +34,15 @@ public class Game {
         this.phaseIndex = buildPhaseIndex(board.getCells());
     }
 
-    private Map<Phase, List<Cell>> buildPhaseIndex(Cell[][] cells) {
-        Map<Phase, List<Cell>> phaseIndex = Collections.emptyMap();
+    private Map<Phase, List<Tile>> buildPhaseIndex(Tile[][] tiles) {
+        Map<Phase, List<Tile>> phaseIndex = Collections.emptyMap();
 
-        for (Cell[] value : cells) {
-            for (Cell cell : value) {
-                if (cell == null) continue;
-                for (TileEffect effect : cell.getEffects()) {
+        for (Tile[] value : tiles) {
+            for (Tile tile : value) {
+                if (tile == null) continue;
+                for (TileEffect effect : tile.getEffects()) {
                     for (Phase phase : effect.phases()) {
-                        phaseIndex.computeIfAbsent(phase, k -> new ArrayList<>()).add(cell);
+                        phaseIndex.computeIfAbsent(phase, k -> new ArrayList<>()).add(tile);
                     }
                 }
 
@@ -59,6 +58,10 @@ public class Game {
     public Robot getRobot(PlayerID playerID) {
         return robotMap.get(playerID);
     }
+
+    public List<Robot> getRobots() { return robots; }
+
+    public Board getBoard() { return board; }
 
     public void runPhase(Phase phase, Runnable body) {
         body.run();

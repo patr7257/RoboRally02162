@@ -10,13 +10,13 @@ import java.util.List;
 // Author(s) William Pii Jæger
 
 public class Robot {
-    private final String id;
+    private final int id;
     private int x, y;
     private Direction direction;
 
     private final Deque<ProgramOP> registers = new ArrayDeque<>();
 
-    public Robot(String id, int x, int y, Direction direction) {
+    public Robot(int id, int x, int y, Direction direction) {
         this.id = id;
         this.x = x;
         this.y = y;
@@ -31,7 +31,7 @@ public class Robot {
         return registers.pollFirst();
     }
 
-    public String getId() {
+    public int getId() {
         return id;
     }
 
