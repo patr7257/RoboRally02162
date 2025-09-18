@@ -64,7 +64,7 @@ public class Lobby {
     public void handleClientMessage(String userID, JsonNode payload) {
         ObjectNode root = JsonUtil.createObjectNode();
         root.put("gameID", this.gameID);
-        root.put("playerID", userToPlayer.get(userID));
+        root.put("playerID", Integer.parseInt(userToPlayer.get(userID)));
         root.set("payload", payload);
         host.handleMessage(root);
     }

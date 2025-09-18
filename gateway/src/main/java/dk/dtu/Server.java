@@ -5,14 +5,18 @@ Author(s): Niklas, Karl, Benjamin
  */
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.socket.*;
+import org.springframework.web.socket.client.standard.StandardWebSocketClient;
 import org.springframework.web.socket.config.annotation.*;
+import org.springframework.web.socket.handler.TextWebSocketHandler;
 
 import java.util.*;
 
@@ -20,7 +24,7 @@ import java.util.*;
 @EnableWebSocket
 @RestController
 @RequestMapping("/api")
-public class Server implements WebSocketConfigurer {
+public class Server implements WebSocketConfigurer, CommandLineRunner { //TODO: after host connects remove CommandLineRunner
 
     private final LobbyFactory lobFactory = new LobbyFactory();
     private final Map<String, Client> clients = new HashMap<>();//Currently username->client, in future might be unique identifier.
@@ -37,6 +41,36 @@ public class Server implements WebSocketConfigurer {
 
     public static void main(String[] args) {
         SpringApplication.run(Server.class, args);
+
+    }
+    //TODO: remove  this (run) method after host starts connecting to gateway instead of the other way.
+    @Override
+    public void run(String... args) throws Exception {
+        StandardWebSocketClient targetClient = new StandardWebSocketClient();
+        String hostUrl = "ws://localhost:2948/ws"; // change to your host's URL
+
+        try {
+            WebSocketSession session = targetClient.doHandshake(new TextWebSocketHandler() {
+                @Override
+                protected void handleTextMessage(WebSocketSession session, TextMessage message) throws Exception {
+                    String jSonText = message.getPayload();
+                    JsonNode json = JsonUtil.parser(jSonText);
+                    String gameID = json.get("meta").get("game").get("gameID").asText();
+
+                    String lobbyID = gameToLobby.get(gameID); //TODO: check for valid ID
+                    Lobby lob = lobbies.get(lobbyID);
+                    lob.handleHostMessage(json);
+
+                }
+            }, hostUrl).get();
+
+            // Store the session in the host object
+            host.setSession(session);
+            System.out.println("Connected to host!");
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     @Override
