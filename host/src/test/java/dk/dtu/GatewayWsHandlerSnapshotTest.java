@@ -57,9 +57,8 @@ public class GatewayWsHandlerSnapshotTest {
         String submitJson = """
                 {
                   "gameID": "%s",
-                  "type": "submitProgram",
                   "playerID": 1,
-                  "payload": { "cards": ["MOVE1"] }
+                  "payload": { "type": "submitProgram", "cards": ["MOVE1"] }
                 }
                 """.formatted(gameId);
         handler.handleMessage(session, new TextMessage(submitJson));
@@ -67,9 +66,8 @@ public class GatewayWsHandlerSnapshotTest {
         String startRoundJson = """
         {
           "gameID": "%s",
-          "type": "startRound",
           "playerID": 1,
-          "payload": {}
+          "payload": { "type": "startRound" }
         }
         """.formatted(gameId);
 

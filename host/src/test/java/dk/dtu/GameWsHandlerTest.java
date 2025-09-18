@@ -45,9 +45,8 @@ class GameWsHandlerTest {
         String json = """
                 {
                   "gameID": "%s",
-                  "type": "submitProgram",
                   "playerID": 42,
-                  "payload": { "cards": ["MOVE1","MOVE1"] }
+                  "payload": { "type": "submitProgram", "cards": ["MOVE1","MOVE1"] }
                 }
                 """.formatted(gameId);
 

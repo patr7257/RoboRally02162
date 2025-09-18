@@ -68,20 +68,30 @@ public class GatewayWsHandler extends TextWebSocketHandler {
     @JsonIgnoreProperties(ignoreUnknown = true)
     private record IncomingMessage(
             @JsonProperty("gameID") String gameId,
-            String type,
             @JsonProperty("playerID") int playerId,
             JsonNode payload
     ) {
         GameCommand toDomainCommand(ObjectMapper mapper) throws JsonProcessingException {
-            return switch (type) {
+            String t = payload != null && payload.hasNonNull("type")
+                    ? payload.get("type").asText()
+                    : null;
+            if (t == null || t.isBlank())
+                throw new IllegalArgumentException("payload.type is required");
+
+            return switch (t) {
                 case "startRound" -> new GameCommand.StartRound();
-                case "submitProgram" -> {
-                    SubmitProgramsPayload pl = mapper.treeToValue(payload, SubmitProgramsPayload.class);
-                    yield new GameCommand.SubmitPrograms(new PlayerID(playerId), pl.revertStringToCard(pl.cards()));
+
+                case "submitCards", "submitProgram" -> {
+                    SubmitCardsPayload pl = mapper.treeToValue(payload, SubmitCardsPayload.class);
+                    yield new GameCommand.SubmitPrograms(new PlayerID(playerId),
+                            pl.revertStringToCard(pl.cards()));
                 }
+
                 case "endGame" -> new GameCommand.EndGame();
-                default -> throw new IllegalArgumentException("Unknown command: " + type);
+
+                default -> throw new IllegalArgumentException("Unknown payload.type: " + t);
             };
         }
     }
+
 }
