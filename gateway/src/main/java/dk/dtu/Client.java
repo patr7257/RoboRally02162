@@ -24,6 +24,11 @@ public class Client {
 
     public void handleMessage(ObjectNode msg) {
         try {
+            String m = JsonUtil.toJson(msg); 
+            System.out.println("sending:"+m);
+            User user = (User) session.getAttributes().get("user");
+            String userID = user.getUserID();
+            System.out.println(userID);
             session.sendMessage(new TextMessage(JsonUtil.toJson(msg)));
         } catch (IOException e) {
             throw new RuntimeException(e);

@@ -43,7 +43,7 @@ public class Host { //TODO: maybe make singleton
         );
 
         String response = restTemplate.postForObject(
-                "http://localhost:2948/startgame", // TODO: agree on port
+                "http://localhost:2948/startGame", // TODO: agree on port
                 body,
                 String.class
         );

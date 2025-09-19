@@ -120,7 +120,7 @@ export default function JoinLobby() {
                         flex: 1,
                     }}
                 />
-                <button className="big-button" onClick={async () => {await joinLobby(lobbyId); navigate("/preGameScene")}}>
+                <button className="big-button" onClick={async () => {await joinLobby(lobbyId); navigate("/lobbyCreationScene")}}>
                 Join
             </button>
         </div>

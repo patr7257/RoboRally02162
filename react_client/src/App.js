@@ -6,13 +6,12 @@ import './App.css';
 import LoginComp from "./LoginComp";
 import RegisterComp from "./RegisterComp";
 import { BrowserRouter as Router, Routes, Route, useNavigate } from "react-router-dom";
-import Board from "./Board";
+import Board from "./board/Board";
 import Lobby from "./Lobby";
 import React, { useEffect, useState} from "react";
 import Layout from "./Layout";
 import { closeSocket } from "./ws";
 import JoinLobby from './JoinLobby';
-import PreGame from './PreGame';
 import LobbyCreation from './LobbyCreation';
 
 function Home() {
@@ -35,7 +34,7 @@ function Home() {
     <Layout>
       <h1>Welcome to the Robo Rally React Client</h1>
 
-      {/* Display username if logged in */}
+
       {username ? (
         <div style={{ marginBottom: 20 }}>
           <p style={{ fontSize: "1.2rem" }}>Logged in as: <strong>{username}</strong></p>
@@ -55,7 +54,7 @@ function Home() {
         </div>
 
       ) : (
-        // Show login and register forms if not logged in
+
         <div className="auth-container" style={{ display: "flex", gap: "40px", marginTop: 40 }}>
           <LoginComp onLogin={setUsername} />
           <RegisterComp onRegister={setUsername} />
@@ -72,7 +71,7 @@ function App() {
   localStorage.removeItem("username");
   localStorage.removeItem("id");
   localStorage.removeItem("lobbies")
-  window.__appStarted__ = true; // flag to prevent running again
+  window.__appStarted__ = true;
   }
 
 
@@ -84,7 +83,6 @@ function App() {
         <Route path="/lobbyScene" element={<Lobby />} />
         <Route path="/lobbyJoinScene" element={<JoinLobby />} />
         <Route path="/LobbyCreationScene" element={<LobbyCreation />} />
-        <Route path="/preGameScene" element={<PreGame />} />
       </Routes>
     </Router>
   );

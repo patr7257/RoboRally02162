@@ -74,15 +74,15 @@ public class Lobby {
         root.put("type", "game");
         root.set("payload", json.get("payload"));
         switch (json.get("delivery").asText()) {
-            case "direct":
+            case "DIRECT":
                 Client client = players.get(json.get("meta").get("player").get("playerID").asText());
                 client.handleMessage(root);
                 break;
-            case "broadcast":
-                players.values().forEach(c -> c.handleMessage(root));
-//                for (Client c : players.values()) {
-//                    c.handleMessage(root);
-//                }
+            case "BROADCAST":
+                //players.values().forEach(c -> c.handleMessage(root));
+                for (Client c : players.values()) {
+                    c.handleMessage(root);
+                }
                 break;
             default:
                 break;
