@@ -17,7 +17,8 @@ import LobbyCreation from './LobbyCreation';
 function Home() {
 
   const navigate = useNavigate();
-  const [username, setUsername] = useState(localStorage.getItem("token") || ""); // load from storage
+  const [username, setUsername] = useState(localStorage.getItem("username") || ""); // load from storage
+
 
   const handleLogout = () => {
     localStorage.removeItem("token");
@@ -28,6 +29,10 @@ function Home() {
 
   const handleLobby = () => {
     navigate("/lobbyScene");
+  };
+  const handleLoggedIn = (name) => {
+    setUsername(name);          // <- updating Home state
+  
   };
 
   return (
@@ -57,7 +62,7 @@ function Home() {
 
         <div className="auth-container" style={{ display: "flex", gap: "40px", marginTop: 40 }}>
           <LoginComp onLogin={setUsername} />
-          <RegisterComp onRegister={setUsername} />
+          <RegisterComp />
         </div>
       )}
     </Layout>

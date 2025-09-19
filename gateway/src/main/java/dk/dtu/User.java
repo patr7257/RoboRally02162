@@ -8,10 +8,14 @@ public class User {
 
     private String name;
     private String userID;
-    public User(String name) {
+    private String passwordHash; // the BCrypt of client SHA-256
+
+    public User(String userID, String name, String passwordHash) {
         this.name = name;
-        this.userID = name; //TODO: change to be a generated userID.
+        this.userID = userID; //TODO: change to be a generated userID.
+        this.passwordHash = passwordHash;
     }
     public String getName() {return this.name;}
     public String getUserID() {return this.userID;}
+    public String getPasswordHash() { return passwordHash; }
 }

@@ -64,7 +64,7 @@ public class AccountTests {
     @Test
     void loginUser_Successful_returns200AndToken() throws Exception {
         // arrange: create the user through the service so existsName(...) is true
-        userDatabase.createUser("loginuser");
+        userDatabase.createUser("loginuser", "passwordUser");
 
         String payload = mapper.writeValueAsString(
                 java.util.Collections.singletonMap("username", "loginuser")

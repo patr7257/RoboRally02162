@@ -27,9 +27,9 @@ public class ClientHandshakeInterceptor implements HandshakeInterceptor {
 
     @Override
     public boolean beforeHandshake(ServerHttpRequest request,
-                                   ServerHttpResponse response,
-                                   WebSocketHandler wsHandler,
-                                   Map<String, Object> attributes) throws Exception {
+                                    ServerHttpResponse response,
+                                    WebSocketHandler wsHandler,
+                                    Map<String, Object> attributes) throws Exception {
 
         URI uri = request.getURI();
         String query = uri.getQuery();
@@ -37,12 +37,19 @@ public class ClientHandshakeInterceptor implements HandshakeInterceptor {
         if (query != null && query.startsWith("token=")) {
             String token = query.substring("token=".length());
 
+            //example default user
+           // userDatabase.createUser("User", "password");
+
             if (!userDatabase.existsName(token)) {
                 response.setStatusCode(HttpStatus.FORBIDDEN); // 403
                 return false;
             }
 
             User us = userDatabase.findUserByName(token);
+            if (us == null) {
+                response.setStatusCode(HttpStatus.FORBIDDEN); // extra safety
+                return false;
+            }
             attributes.put("user", us);
             return true;
         }
@@ -53,9 +60,9 @@ public class ClientHandshakeInterceptor implements HandshakeInterceptor {
 
     @Override
     public void afterHandshake(ServerHttpRequest request,
-                               ServerHttpResponse response,
-                               WebSocketHandler wsHandler,
-                               Exception exception) {
+                                ServerHttpResponse response,
+                                WebSocketHandler wsHandler,
+                                Exception exception) {
 
     }
 }

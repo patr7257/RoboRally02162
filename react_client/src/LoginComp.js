@@ -1,24 +1,32 @@
 /*
-Author(s): Asger
+Author(s): Lizette, Asger
 */
 
 import React, { useState } from "react";
 import { getSocket, subscribe} from "./ws";
+import { sha256Hex } from "./hashPassword";
 
 function LoginComp({ onLogin }) {
   const [usernameInput, setUsernameInput] = useState("");
+  const [passwordInput, setPasswordInput] = useState("");
   const [error, setError] = useState("");
+  
+
 
   const handleLogin = async () => {
     
-
     setError("");
     try {
+      const clientHash = await sha256Hex(passwordInput);
+      
       const response = await fetch("http://localhost:8080/api/users/login", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ username: usernameInput }),
-      });
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      username: usernameInput,
+      passwordHash: clientHash
+    }),
+  });
 
       const data = await response.json();
 
@@ -31,9 +39,9 @@ function LoginComp({ onLogin }) {
           console.log("Received game message:", message);
         });
 
-        onLogin(data.token); // update Home state
+        onLogin(data.username ?? usernameInput);
       } else if (response.status === 401) {
-        setError("Login failed. User does not exist.");
+        setError("Login failed. Invalid username or password.");
       } else {
         setError("An error occurred. Try again.");
       }
@@ -45,16 +53,34 @@ function LoginComp({ onLogin }) {
 
   return (
     <div className="login-container">
-      <h2>Login</h2>
-      <input
-        type="text"
-        placeholder="Enter username"
-        value={usernameInput}
-        onChange={(e) => setUsernameInput(e.target.value)}
-      />
-      <button onClick={handleLogin}>Login</button>
-      {error && <p style={{ color: "red" }}>{error}</p>}
-    </div>
+  <h2>Login</h2>
+  
+  <div>
+    <input
+  type="text"
+  placeholder="Enter username"
+  value={usernameInput}
+  onChange={(e) => setUsernameInput(e.target.value)}
+  onKeyDown={(e) => e.key === "Enter" && handleLogin()}
+/>
+  </div>
+
+  <div>
+    <input
+  type="password"
+  placeholder="Enter password"
+  value={passwordInput}
+  onChange={(e) => setPasswordInput(e.target.value)}
+  onKeyDown={(e) => e.key === "Enter" && handleLogin()}
+/>
+  </div>
+
+  <button type="button" onClick={handleLogin}>
+  Login
+  </button>
+  {error && <p style={{ color: "red" }}>{error}</p>}
+  
+</div>
   );
 }
 

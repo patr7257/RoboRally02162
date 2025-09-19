@@ -1,52 +1,78 @@
 package dk.dtu;
 
 /*
-Author(s): Niklas
- */
+Author(s): Lizette, Kajsa, Niklas
+*/
 
-import com.fasterxml.jackson.databind.JsonNode;
+import dk.dtu.dto.AuthResponse;
+import dk.dtu.dto.LoginRequest;
+import dk.dtu.dto.RegisterRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.HashMap;
-import java.util.Map;
+import java.util.UUID;
 
 @RestController
 @RequestMapping("/api")
 public class AccountHandler {
 
-    private UserDatabase userDatabase;
+    private final UserDatabase userDatabase;
+    private final BCryptPasswordEncoder encoder = new BCryptPasswordEncoder();
 
-
-    public AccountHandler(UserDatabase userDatabase) {this.userDatabase = userDatabase;};
-
-    @PostMapping("/users/create")
-    public ResponseEntity<Map<String, String>> registerUser(@RequestBody JsonNode json) { //TODO: make include password most likely.
-        Map<String, String> response = new HashMap<>();
-        String username = json.get("username").asText();
-        if (userDatabase.existsName(username)){
-            response.put("status", "unsuccessful");
-            return ResponseEntity.status(HttpStatus.CONFLICT).body(response);
-        }
-        userDatabase.createUser(username);
-        response.put("status", "successful");
-        return ResponseEntity.status(HttpStatus.CREATED).body(response);
+    public AccountHandler(UserDatabase userDatabase) {
+        this.userDatabase = userDatabase;
     }
 
-    @PostMapping("/users/login") //TODO: change to use passwords as well
-    public ResponseEntity<Map<String, String>> loginUser(@RequestBody JsonNode json) {
-        Map<String, String> response = new HashMap<>();
-        String username = json.get("username").asText();
-        if (userDatabase.existsName(username)){
-            response.put("status", "successful");
-            response.put("token", username);//TODO: change to be actual token
-            return ResponseEntity.status(HttpStatus.OK).body(response);
-
-        } else {
-            response.put("status", "unsuccessful");
-            return ResponseEntity.status(HttpStatus.CONFLICT).body(response);
+    @PostMapping("/users/create")
+    public ResponseEntity<AuthResponse> register(@RequestBody RegisterRequest req) {
+        // Expect: { "username": "...", "passwordHash": "sha256hex..." }
+        if (req == null || req.username == null || req.username.isBlank()
+                || req.passwordHash == null || req.passwordHash.isBlank()) {
+            return ResponseEntity.badRequest()
+                    .body(new AuthResponse("unsuccessful", "username and password required", null, null));
+        }
+        if (userDatabase.existsName(req.username)) {
+            return ResponseEntity.status(HttpStatus.CONFLICT)
+                    .body(new AuthResponse("unsuccessful", "Username already exists", null, null));
         }
 
+        // Store bcrypt( sha256(password) )
+        String storedBcrypt = encoder.encode(req.passwordHash);
+        userDatabase.createUser(req.username, storedBcrypt);
+
+        String token = UUID.randomUUID().toString();
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(new AuthResponse("successful", "Registered", token, req.username));
+    }
+
+    @PostMapping("/users/login")
+    public ResponseEntity<AuthResponse> login(@RequestBody LoginRequest req) {
+        // Expect: { "username": "...", "passwordHash": "sha256hex..." }
+        if (req == null || req.username == null || req.username.isBlank()
+                || req.passwordHash == null || req.passwordHash.isBlank()) {
+            return ResponseEntity.badRequest()
+                    .body(new AuthResponse("unsuccessful", "username and password required", null, null));
+        }
+        if (!userDatabase.existsName(req.username)) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(new AuthResponse("unsuccessful", "User not found", null, null));
+        }
+
+        User user = userDatabase.findUserByName(req.username); // must return stored hash
+        if (user == null || user.getPasswordHash() == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(new AuthResponse("unsuccessful", "User not found", null, null));
+        }
+
+        boolean ok = encoder.matches(req.passwordHash, user.getPasswordHash());
+        if (!ok) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(new AuthResponse("unsuccessful", "Invalid credentials", null, null));
+        }
+
+        String token = UUID.randomUUID().toString(); // replace with JWT later
+        return ResponseEntity.ok(new AuthResponse("successful", "Logged in", token, req.username));
     }
 }
