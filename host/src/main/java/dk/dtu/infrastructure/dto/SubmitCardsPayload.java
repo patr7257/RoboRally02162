@@ -14,6 +14,12 @@ public record SubmitCardsPayload(String type, List<String> cards) {
         for(String c: cards) {
             switch (c) {
                 case "MOVE1" -> revertCards.add(ProgramCard.move1());
+                case "MOVE2" -> revertCards.add(ProgramCard.move2());
+                case "MOVE3" -> revertCards.add(ProgramCard.move3());
+                case "MOVEBACK" -> revertCards.add(ProgramCard.back1());
+                case "ROTATERIGHT" -> revertCards.add(ProgramCard.right());
+                case "ROTATELEFT" -> revertCards.add(ProgramCard.left());
+                case "UTURN" -> revertCards.add(ProgramCard.uturn());
             };
         }
         return revertCards;

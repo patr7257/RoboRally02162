@@ -14,22 +14,36 @@ public final class BoardApiImpl implements BoardAPI {
 
     @Override
     public MoveOutcome tryMove(int fromX, int fromY, Direction dir, int steps) {
-        int dx = switch (dir) {
+        if (steps == 0) return MoveOutcome.movedTo(fromX, fromY);
+
+        int baseDx = switch (dir) {
             case E -> 1;
             case W -> -1;
             default -> 0;
         };
-        int dy = switch (dir) {
+        int baseDy = switch (dir) {
             case S -> 1;
             case N -> -1;
             default -> 0;
         };
-        int nx = fromX + dx, ny = fromY + dy;
 
-        if (nx < 0 || ny < 0 || nx >= board.getWidth() || ny >= board.getHeight()) {
-            return MoveOutcome.blocked("oob");
+        int sign = (steps > 0) ? 1 : -1;
+        int stepDx = baseDx * sign;
+        int stepDy = baseDy * sign;
+
+        int x = fromX, y = fromY;
+        int todo = Math.abs(steps);
+
+        while (todo-- > 0) {
+            int nx = x + stepDx;
+            int ny = y + stepDy;
+
+            if (nx < 0 || ny < 0 || nx >= board.getWidth() || ny >= board.getHeight()) {
+                return MoveOutcome.blocked("oob");
+            }
+            x = nx; y = ny;
         }
 
-        return MoveOutcome.movedTo(nx, ny);
+        return MoveOutcome.movedTo(x, y);
     }
 }

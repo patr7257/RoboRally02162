@@ -59,9 +59,13 @@ public class Game {
         return robotMap.get(playerID);
     }
 
-    public List<Robot> getRobots() { return robots; }
+    public List<Robot> getRobots() {
+        return robots;
+    }
 
-    public Board getBoard() { return board; }
+    public Board getBoard() {
+        return board;
+    }
 
     public void runPhase(Phase phase, Runnable body) {
         body.run();
@@ -78,6 +82,9 @@ public class Game {
                     r.setX(out.toX());
                     r.setY(out.toY());
                 }
+            }
+            if (op instanceof ProgramOP.RotateLeft || op instanceof ProgramOP.RotateRight || op instanceof ProgramOP.UTurn) {
+                r.setDirection(op.apply(r.getDirection()));
             }
         }
     }

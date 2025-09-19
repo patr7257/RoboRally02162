@@ -30,7 +30,6 @@ public class GameSimulationTest extends TestCase {
 
     public void testMoveOneInProgramPhase() {
         Board board = initEmptyBoard(3, 3);
-
         BoardAPI api = new BoardApiImpl(board);
 
         Robot r = new Robot(1, 1, 1, Direction.E);
@@ -42,5 +41,95 @@ public class GameSimulationTest extends TestCase {
         assertEquals(2, r.getX());
         assertEquals(1, r.getY());
         assertEquals(Direction.E, r.getDirection());
+    }
+
+    public void testMoveTwoInProgramPhase() {
+        Board board = initEmptyBoard(5, 5);
+        BoardAPI api = new BoardApiImpl(board);
+
+        Robot r = new Robot(1, 1, 1, Direction.E);
+        r.loadProgram(List.of(new ProgramCard(ProgramCard.Action.MOVE, 2)));
+
+        Game game = new Game(board, api, List.of(r));
+        game.startRound();
+
+        assertEquals(3, r.getX());
+        assertEquals(1, r.getY());
+        assertEquals(Direction.E, r.getDirection());
+    }
+
+    public void testMoveThreeInProgramPhase() {
+        Board board = initEmptyBoard(5, 5);
+        BoardAPI api = new BoardApiImpl(board);
+
+        Robot r = new Robot(1, 1, 1, Direction.E);
+        r.loadProgram(List.of(new ProgramCard(ProgramCard.Action.MOVE, 3)));
+
+        Game game = new Game(board, api, List.of(r));
+        game.startRound();
+
+        assertEquals(4, r.getX());
+        assertEquals(1, r.getY());
+        assertEquals(Direction.E, r.getDirection());
+    }
+
+    public void testMoveBackInProgramPhase() {
+        Board board = initEmptyBoard(3, 3);
+        BoardAPI api = new BoardApiImpl(board);
+
+        Robot r = new Robot(1, 1, 1, Direction.E);
+        r.loadProgram(List.of(new ProgramCard(ProgramCard.Action.MOVE, -1)));
+
+        Game game = new Game(board, api, List.of(r));
+        game.startRound();
+
+        assertEquals(0, r.getX());
+        assertEquals(1, r.getY());
+        assertEquals(Direction.E, r.getDirection());
+    }
+
+    public void testRotateRightInProgramPhase() {
+        Board board = initEmptyBoard(3, 3);
+        BoardAPI api = new BoardApiImpl(board);
+
+        Robot r = new Robot(1, 1, 1, Direction.E);
+        r.loadProgram(List.of(new ProgramCard(ProgramCard.Action.ROTATERIGHT, 0)));
+
+        Game game = new Game(board, api, List.of(r));
+        game.startRound();
+
+        assertEquals(1, r.getX());
+        assertEquals(1, r.getY());
+        assertEquals(Direction.S, r.getDirection());
+    }
+
+    public void testRotateLeftInProgramPhase() {
+        Board board = initEmptyBoard(3, 3);
+        BoardAPI api = new BoardApiImpl(board);
+
+        Robot r = new Robot(1, 1, 1, Direction.E);
+        r.loadProgram(List.of(new ProgramCard(ProgramCard.Action.ROTATELEFT, 0)));
+
+        Game game = new Game(board, api, List.of(r));
+        game.startRound();
+
+        assertEquals(1, r.getX());
+        assertEquals(1, r.getY());
+        assertEquals(Direction.N, r.getDirection());
+    }
+
+    public void testUTurnInProgramPhase() {
+        Board board = initEmptyBoard(3, 3);
+        BoardAPI api = new BoardApiImpl(board);
+
+        Robot r = new Robot(1, 1, 1, Direction.E);
+        r.loadProgram(List.of(new ProgramCard(ProgramCard.Action.UTURN, 0)));
+
+        Game game = new Game(board, api, List.of(r));
+        game.startRound();
+
+        assertEquals(1, r.getX());
+        assertEquals(1, r.getY());
+        assertEquals(Direction.W, r.getDirection());
     }
 }

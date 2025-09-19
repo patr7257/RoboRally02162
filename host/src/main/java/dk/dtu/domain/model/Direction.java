@@ -4,7 +4,15 @@ package dk.dtu.domain.model;
 
 public enum Direction {
     N,
-    S,
     E,
-    W
+    S,
+    W;
+
+    public Direction turnRight() {
+        return values()[(this.ordinal() + 1) % values().length];
+    }
+
+    public Direction turnLeft() {
+        return values()[(this.ordinal() + values().length - 1) % values().length];
+    }
 }
