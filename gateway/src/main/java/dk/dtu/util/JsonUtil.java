@@ -1,4 +1,4 @@
-package dk.dtu;
+package dk.dtu.util;
 
 /*
 Author(s): Niklas, Karl

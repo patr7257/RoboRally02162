@@ -1,16 +1,14 @@
-package dk.dtu;
+package dk.dtu.model;
 
 /*
 Author(s): Niklas, Karl
  */
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import dk.dtu.util.JsonUtil;
 
 import java.util.*;
-import java.util.function.Consumer;
 
 public class Lobby {
     private final String lobbyID;

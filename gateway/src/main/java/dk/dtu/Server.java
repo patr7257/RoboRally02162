@@ -5,14 +5,16 @@ Author(s): Niklas, Karl, Benjamin
  */
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.node.ObjectNode;
+import dk.dtu.model.Client;
+import dk.dtu.model.Lobby;
+import dk.dtu.model.User;
+import dk.dtu.shared.ServerRegistry;
+import dk.dtu.util.JsonUtil;
+import dk.dtu.config.ClientHandshakeInterceptor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
 import org.springframework.web.socket.*;
 import org.springframework.web.socket.client.standard.StandardWebSocketClient;
 import org.springframework.web.socket.config.annotation.*;
@@ -22,22 +24,14 @@ import java.util.*;
 
 @SpringBootApplication
 @EnableWebSocket
-@RestController
-@RequestMapping("/api")
-public class Server implements WebSocketConfigurer, CommandLineRunner { // TODO: after host connects remove
+public class Server implements WebSocketConfigurer,CommandLineRunner { // TODO: after host connects remove
 
-    private final LobbyFactory lobFactory = new LobbyFactory();
-    private final Map<String, Client> clients = new HashMap<>();// Currently username->client, in future might be unique
-                                                                // identifier.
-    private final Host host;
-    private final Map<String, Lobby> lobbies = new HashMap<>();
-    private final Map<String, String> gameToLobby = new HashMap<>();
     private final ClientHandshakeInterceptor clientInterceptor;
-
+    private final ServerRegistry serverRegistry;
     @Autowired
-    public Server(ClientHandshakeInterceptor cliHandInt, Host host) {
+    public Server(ClientHandshakeInterceptor cliHandInt, ServerRegistry serverRegistry) {
         this.clientInterceptor = cliHandInt;
-        this.host = host;
+        this.serverRegistry = serverRegistry;
     }
 
     public static void main(String[] args) {
@@ -73,14 +67,14 @@ public class Server implements WebSocketConfigurer, CommandLineRunner { // TODO:
                     JsonNode json = JsonUtil.parser(jSonText);
                     String gameID = json.get("meta").get("game").get("gameID").asText();
 
-                    String lobbyID = gameToLobby.get(gameID); // TODO: check for valid ID
-                    Lobby lob = lobbies.get(lobbyID);
+                    String lobbyID = serverRegistry.getGameToLobby().get(gameID); // TODO: check for valid ID
+                    Lobby lob = serverRegistry.getLobbies().get(lobbyID);
                     lob.handleHostMessage(json);
 
                 }
             }, hostUrl).get();
 
-            host.setSession(session);
+            serverRegistry.getHost().setSession(session);
             System.out.println("Connected to host!");
 
         } catch (Exception e) {
@@ -101,7 +95,7 @@ public class Server implements WebSocketConfigurer, CommandLineRunner { // TODO:
                 System.out.println("========================");
                 User user = (User) session.getAttributes().get("user");
                 Client client = new Client(session.getId(), user, session);
-                clients.put(client.getUsername(), client); // TODO: change to ID
+                serverRegistry.getClients().put(client.getUsername(), client); // TODO: change to ID
             }
 
             @Override
@@ -115,7 +109,7 @@ public class Server implements WebSocketConfigurer, CommandLineRunner { // TODO:
                     User user = (User) session.getAttributes().get("user");
                     String userID = user.getUserID();
                     System.out.println(userID);
-                    Lobby lob = lobbies.get(lobbyID); // TODO: check for valid ID
+                    Lobby lob = serverRegistry.getLobbies().get(lobbyID); // TODO: check for valid ID
                     lob.handleClientMessage(userID, json.get("payload")); // TODO: Check that toString() is correct
                 } catch (Exception e) {
                     System.err.println("=== ERROR IN MESSAGE HANDLING ===");
@@ -166,7 +160,7 @@ public class Server implements WebSocketConfigurer, CommandLineRunner { // TODO:
                 System.out.println("User: " + token);
                 System.out.println("Session state: " + session.isOpen());
                 System.out.println("========================");
-                host.setSession(session);
+                serverRegistry.getHost().setSession(session);
             }
 
             @Override
@@ -175,8 +169,8 @@ public class Server implements WebSocketConfigurer, CommandLineRunner { // TODO:
                 JsonNode json = JsonUtil.parser(jSonText);
                 String gameID = json.get("meta").get("game").get("gameID").asText();
 
-                String lobbyID = gameToLobby.get(gameID); // TODO: check for valid ID
-                Lobby lob = lobbies.get(lobbyID);
+                String lobbyID = serverRegistry.getGameToLobby().get(gameID); // TODO: check for valid ID
+                Lobby lob = serverRegistry.getLobbies().get(lobbyID);
                 lob.handleHostMessage(json);
             }
 
@@ -199,72 +193,16 @@ public class Server implements WebSocketConfigurer, CommandLineRunner { // TODO:
     }
 
     public Map<String, Lobby> getLobbies() {
-        return lobbies;
+        return serverRegistry.getLobbies();
     }
 
     public Map<String, String> getGameToLobby() {
-        return gameToLobby;
+        return serverRegistry.getGameToLobby();
     }
 
     public Map<String, Client> getClients() {
-        return clients;
+        return serverRegistry.getClients();
     }
 
-    /*
-     * TODO: lobby endpoints should be moved to own file
-     * For this the used maps should be turned into beans in a class that is passed
-     * to the constructor of both the server and the created class.
-     */
-    @PostMapping("/lobby/create") // returns lobbyID.
-    public ResponseEntity<String> createLobby(@RequestBody JsonNode json) { // TODO: add authorization
-        String username = json.get("username").asText();
-        Client creator = clients.get(username); // TODO: make check that person is connected to websocket (essentially
-                                                // check if in clients)
-        Lobby lob = lobFactory.createLobby(creator, this.host);
-        lobbies.put(lob.getLobbyID(), lob);
-        return ResponseEntity.status(HttpStatus.CREATED).body(lob.getLobbyID().toString());
-        // TODO: add error checking
-    }
 
-    @PostMapping("/lobby/join")
-    public ResponseEntity<String> joinLobby(@RequestBody JsonNode json) {
-        String username = json.get("username").asText();
-        // TODO: add error handling
-        String lobbyID = json.get("lobbyID").asText();
-        // UUID lobbyID = UUID.fromString(json.get("lobbyID").asText());
-        Client client = clients.get(username);
-        Lobby lob = lobbies.get(lobbyID);
-        lob.addPlayer(client);
-        // TODO: add check if lobby is full and return success/failure message
-        // success message
-        return ResponseEntity.status(HttpStatus.CREATED).body(lob.getLobbyID().toString());
-    }
-
-    @PostMapping("/lobby/start") // TODO: add check that websocket connection is running
-    public void startLobby(@RequestBody JsonNode json) {
-        // UUID lobbyID = UUID.fromString(json.get("lobbyID").asText());
-        String lobbyID = json.get("lobbyID").asText();
-        // TODO: add valid ID checking
-        Lobby lob = lobbies.get(lobbyID);
-        // TODO: start game through lobby
-        UUID gameID = host.startGame(lob.getPlayers().size(), 10); // TODO: Change the boardsize to be decided by the
-                                                                   // client
-        gameToLobby.put(gameID.toString(), lob.getLobbyID());
-        lob.startGame(gameID.toString());
-    }
-
-    @GetMapping("/lobby/seeLobbies")
-    public ResponseEntity<String> seeLobbies() {
-        List<Map<String, Object>> result = new ArrayList<>();
-
-        for (Lobby lobby : lobbies.values()) { // TODO: Do this in Lobby
-            Map<String, Object> lobbyInfo = new HashMap<>();
-            lobbyInfo.put("lobbyID", lobby.getLobbyID());
-            result.add(lobbyInfo);
-        }
-
-        String json = JsonUtil.toJson(result);
-
-        return ResponseEntity.ok(json);
-    }
 }

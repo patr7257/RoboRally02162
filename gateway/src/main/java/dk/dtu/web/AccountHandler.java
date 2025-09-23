@@ -1,9 +1,11 @@
-package dk.dtu;
+package dk.dtu.web;
 
 /*
 Author(s): Lizette, Kajsa, Niklas
 */
 
+import dk.dtu.model.User;
+import dk.dtu.interfaces.UserDatabase;
 import dk.dtu.dto.AuthResponse;
 import dk.dtu.dto.LoginRequest;
 import dk.dtu.dto.RegisterRequest;

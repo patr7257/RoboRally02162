@@ -1,9 +1,11 @@
-package dk.dtu;
+package dk.dtu.interfaces;
 
 /*
 Author(s): Niklas
  */
 
+
+import dk.dtu.model.User;
 
 public interface UserDatabase {
     public User createUser(String name, String passwordHash);
@@ -12,5 +14,6 @@ public interface UserDatabase {
     public boolean existsName (String name);
     public User findUserByName(String name);
     public boolean deleteUser(String id);
+    public boolean wipeUserDatabase(); //Resets entire user database
 }
 

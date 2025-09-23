@@ -1,21 +1,21 @@
-package dk.dtu;
+package dk.dtu.model;
 
 /*
 Author(s): Niklas
  */
 
+import dk.dtu.interfaces.UserDatabase;
 import org.springframework.stereotype.Service;
 
 import java.util.HashMap;
 import java.util.Map;
-import java.util.NoSuchElementException;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
 @Service
 public class Database implements UserDatabase {
     // id -> user (all user data)
-    private final Map<String,User> usersById = new HashMap<>(); //TODO: change to be ID based.
+    private final Map<String, User> usersById = new ConcurrentHashMap<>(); //TODO: change to be ID based.
     // name -> id (secondary index giving us user id from name)
     private final Map<String, String> idByName  = new ConcurrentHashMap<>();
 
@@ -69,6 +69,19 @@ public class Database implements UserDatabase {
         if (usersById.containsKey(id)) {usersById.remove(id); return true;}
 
         return false; //user doesnt exist.
+    }
+
+    @Override
+    public synchronized boolean wipeUserDatabase() { //clears user database
+        try {
+            this.usersById.clear();
+            this.idByName.clear();
+            //this might need a backup in case one fails and the other doesn't, such that it can be rolled back.
+            return true;
+        } catch (Exception e) {
+            return false;
+        }
+
     }
 
 }

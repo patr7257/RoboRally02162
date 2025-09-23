@@ -5,6 +5,7 @@ Author(s): Niklas, Karl
  */
 
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import dk.dtu.model.Host;
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Primary;

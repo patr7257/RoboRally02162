@@ -1,9 +1,11 @@
-package dk.dtu;
+package dk.dtu.config;
 
 /*
 Author(s): Niklas, Bjarke
  */
 
+import dk.dtu.model.User;
+import dk.dtu.interfaces.UserDatabase;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.server.ServerHttpRequest;

@@ -26,6 +26,8 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.timeout;
 import static org.mockito.ArgumentMatchers.any;
 import java.net.URI;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.TimeUnit;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -90,23 +92,24 @@ public class ConnectionEstablishmentTests {
         //create user
         mockMvc.perform(post("/api/users/create")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content("{\"username\":\"newuser\"}"))
+                .content("{\"username\":\"newuser\", \"passwordHash\":\"password\"}"))
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.status").value("successful"));
 
-        String payload = mapper.writeValueAsString(
-                java.util.Collections.singletonMap("username", "newuser")
-        );
+        Map<String, String> map = new HashMap<>();
+        map.put("username", "newuser");
+        map.put("passwordHash", "password");
+        String payload = mapper.writeValueAsString(map);
         //login user
         MvcResult result = mockMvc.perform(post("/api/users/login")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(payload))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.status").value("successful"))
-                .andExpect(jsonPath("$.token").value("newuser")).andReturn();
+                .andExpect(jsonPath("$.username").value("newuser")).andReturn();
         String responseBody = result.getResponse().getContentAsString();
         JsonNode json = mapper.readTree(responseBody);
-        String token = json.get("token").asText();
+        String token = json.get("username").asText();
         //Establish and test connection
         ArrayBlockingQueue<WebSocketSession> sessions = new ArrayBlockingQueue<>(1);
 

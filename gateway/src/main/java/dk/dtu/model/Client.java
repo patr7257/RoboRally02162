@@ -1,11 +1,11 @@
-package dk.dtu;
+package dk.dtu.model;
 
 /*
 Author(s): Karl
  */
 
-import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import dk.dtu.util.JsonUtil;
 import org.springframework.web.socket.TextMessage;
 import org.springframework.web.socket.WebSocketSession;
 
@@ -24,7 +24,7 @@ public class Client {
 
     public void handleMessage(ObjectNode msg) {
         try {
-            String m = JsonUtil.toJson(msg); 
+            String m = JsonUtil.toJson(msg);
             System.out.println("sending:"+m);
             User user = (User) session.getAttributes().get("user");
             String userID = user.getUserID();

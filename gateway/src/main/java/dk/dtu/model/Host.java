@@ -1,10 +1,11 @@
-package dk.dtu;
+package dk.dtu.model;
 
 /*
 Author(s): Niklas, Karl
  */
 
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import dk.dtu.util.JsonUtil;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.socket.TextMessage;

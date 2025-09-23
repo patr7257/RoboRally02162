@@ -6,6 +6,7 @@ Author(s): Karl
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import dk.dtu.interfaces.UserDatabase;
 import org.hamcrest.Matchers;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -24,8 +25,6 @@ import org.springframework.web.socket.handler.AbstractWebSocketHandler;
 import java.net.URI;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Objects;
-import java.util.UUID;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.TimeUnit;
 
@@ -193,16 +192,16 @@ public class LobbyRESTTests {
     private String createAndLoginUser(String username) throws Exception {
         mockMvc.perform(post("/api/users/create")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(mapper.writeValueAsString(Map.of("username", username))))
+                .content(mapper.writeValueAsString(Map.of("username", username, "passwordHash", "password"))))
                 .andExpect(status().isCreated());
 
         MvcResult loginResult = mockMvc.perform(post("/api/users/login")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(mapper.writeValueAsString(Map.of("username", username))))
+                        .content(mapper.writeValueAsString(Map.of("username", username, "passwordHash", "password"))))
                 .andExpect(status().isOk())
                 .andReturn();
 
-        return mapper.readTree(loginResult.getResponse().getContentAsString()).get("token").asText();
+        return mapper.readTree(loginResult.getResponse().getContentAsString()).get("username").asText(); //TODO: change to token when the clientHandshake actually checks tokens instead of usernames.
     }
 
     private WebSocketSession connectWebSocket(String token) throws Exception {
