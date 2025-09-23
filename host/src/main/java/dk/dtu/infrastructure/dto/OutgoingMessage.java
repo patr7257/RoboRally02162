@@ -5,6 +5,6 @@ package dk.dtu.infrastructure.dto;
 public record OutgoingMessage<T>(
         String type,
         Delivery delivery,
-        EventMeta meta,
+        EventMetaDTO meta,
         T payload) {
 }

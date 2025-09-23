@@ -5,7 +5,7 @@ import dk.dtu.domain.core.CommandResult;
 import dk.dtu.domain.core.GameCommand;
 import dk.dtu.domain.core.GameManager;
 import dk.dtu.domain.program.ProgramCard;
-import dk.dtu.infrastructure.websocket.GatewayWsHandler;
+import dk.dtu.infrastructure.websocket.GatewaysWsHandler;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
@@ -23,14 +23,14 @@ class GameWsHandlerTest {
 
     private ObjectMapper mapper;
     private GameManager gameManager;
-    private GatewayWsHandler handler;
+    private GatewaysWsHandler handler;
     private WebSocketSession session;
 
     @BeforeEach
     void setup() {
         mapper = new ObjectMapper();
         gameManager = mock(GameManager.class);
-        handler = new GatewayWsHandler(gameManager);
+        handler = new GatewaysWsHandler(gameManager);
         session = mock(WebSocketSession.class);
 
         when(session.isOpen()).thenReturn(true);

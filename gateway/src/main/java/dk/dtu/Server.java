@@ -24,7 +24,7 @@ import java.util.*;
 
 @SpringBootApplication
 @EnableWebSocket
-public class Server implements WebSocketConfigurer,CommandLineRunner { // TODO: after host connects remove
+public class Server implements WebSocketConfigurer { // TODO: after host connects remove
 
     private final ClientHandshakeInterceptor clientInterceptor;
     private final ServerRegistry serverRegistry;
@@ -51,36 +51,7 @@ public class Server implements WebSocketConfigurer,CommandLineRunner { // TODO: 
         return getTokenFromSession(session);
     }
 
-    // TODO: remove this (run) method after host starts connecting to gateway
-    // instead of the other way.
-    @Override
-    public void run(String... args) throws Exception {
-        StandardWebSocketClient targetClient = new StandardWebSocketClient();
-        String hostUrl = "ws://localhost:2948/ws"; // change to your host's URL
 
-        try {
-            WebSocketSession session = targetClient.doHandshake(new TextWebSocketHandler() {
-                @Override
-                protected void handleTextMessage(WebSocketSession session, TextMessage message) throws Exception {
-                    String jSonText = message.getPayload();
-                    System.out.println(jSonText);
-                    JsonNode json = JsonUtil.parser(jSonText);
-                    String gameID = json.get("meta").get("game").get("gameID").asText();
-
-                    String lobbyID = serverRegistry.getGameToLobby().get(gameID); // TODO: check for valid ID
-                    Lobby lob = serverRegistry.getLobbies().get(lobbyID);
-                    lob.handleHostMessage(json);
-
-                }
-            }, hostUrl).get();
-
-            serverRegistry.getHost().setSession(session);
-            System.out.println("Connected to host!");
-
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
 
     @Override
     public void registerWebSocketHandlers(WebSocketHandlerRegistry registry) {

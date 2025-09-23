@@ -8,7 +8,7 @@ import dk.dtu.domain.model.Direction;
 import dk.dtu.domain.model.Robot;
 import dk.dtu.domain.rules.api.BoardAPI;
 import dk.dtu.domain.rules.api.BoardApiImpl;
-import dk.dtu.infrastructure.websocket.GatewayWsHandler;
+import dk.dtu.infrastructure.websocket.GatewaysWsHandler;
 import dk.dtu.util.BoardTestUtils;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -30,7 +30,7 @@ public class GatewayWsHandlerSnapshotTest {
 
     private WebSocketSession session;
     private GameManager manager;
-    private GatewayWsHandler handler;
+    private GatewaysWsHandler handler;
 
     private UUID gameId;
 
@@ -46,7 +46,7 @@ public class GatewayWsHandlerSnapshotTest {
         manager = new GameManager();
         gameId = manager.startGame(board, api, List.of(r));
 
-        handler = new GatewayWsHandler(manager);
+        handler = new GatewaysWsHandler(manager);
     }
 
     @Test
