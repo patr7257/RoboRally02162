@@ -19,8 +19,8 @@ import org.springframework.web.socket.WebSocketSession;
 import java.util.List;
 import java.util.UUID;
 
-import static junit.framework.Assert.assertEquals;
-import static junit.framework.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.*;
 
 // Author(s) William Pii Jæger

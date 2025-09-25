@@ -1,9 +1,5 @@
 package dk.dtu;
 
-import junit.framework.Test;
-import junit.framework.TestCase;
-import junit.framework.TestSuite;
-
 import dk.dtu.domain.core.Game;
 import dk.dtu.domain.model.Board;
 import dk.dtu.domain.model.Direction;
@@ -11,24 +7,18 @@ import dk.dtu.domain.model.Robot;
 import dk.dtu.domain.program.ProgramCard;
 import dk.dtu.domain.rules.api.BoardAPI;
 import dk.dtu.domain.rules.api.BoardApiImpl;
+import org.junit.jupiter.api.Test;
 
 import java.util.List;
 
 import static dk.dtu.util.BoardTestUtils.initEmptyBoard;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 // Author(s) William Pii Jæger
 
-public class GameSimulationTest extends TestCase {
-
-    public GameSimulationTest(String testName) {
-        super(testName);
-    }
-
-    public static Test suite() {
-        return new TestSuite(GameSimulationTest.class);
-    }
-
-    public void testMoveOneInProgramPhase() {
+class GameSimulationTest {
+    @Test
+    void testMoveOneInProgramPhase() {
         Board board = initEmptyBoard(3, 3);
         BoardAPI api = new BoardApiImpl(board);
 
@@ -43,7 +33,8 @@ public class GameSimulationTest extends TestCase {
         assertEquals(Direction.E, r.getDirection());
     }
 
-    public void testMoveTwoInProgramPhase() {
+    @Test
+    void testMoveTwoInProgramPhase() {
         Board board = initEmptyBoard(5, 5);
         BoardAPI api = new BoardApiImpl(board);
 
@@ -58,7 +49,8 @@ public class GameSimulationTest extends TestCase {
         assertEquals(Direction.E, r.getDirection());
     }
 
-    public void testMoveThreeInProgramPhase() {
+    @Test
+    void testMoveThreeInProgramPhase() {
         Board board = initEmptyBoard(5, 5);
         BoardAPI api = new BoardApiImpl(board);
 
@@ -73,7 +65,8 @@ public class GameSimulationTest extends TestCase {
         assertEquals(Direction.E, r.getDirection());
     }
 
-    public void testMoveBackInProgramPhase() {
+    @Test
+    void testMoveBackInProgramPhase() {
         Board board = initEmptyBoard(3, 3);
         BoardAPI api = new BoardApiImpl(board);
 
@@ -88,7 +81,8 @@ public class GameSimulationTest extends TestCase {
         assertEquals(Direction.E, r.getDirection());
     }
 
-    public void testRotateRightInProgramPhase() {
+    @Test
+    void testRotateRightInProgramPhase() {
         Board board = initEmptyBoard(3, 3);
         BoardAPI api = new BoardApiImpl(board);
 
@@ -103,7 +97,8 @@ public class GameSimulationTest extends TestCase {
         assertEquals(Direction.S, r.getDirection());
     }
 
-    public void testRotateLeftInProgramPhase() {
+    @Test
+    void testRotateLeftInProgramPhase() {
         Board board = initEmptyBoard(3, 3);
         BoardAPI api = new BoardApiImpl(board);
 
@@ -118,7 +113,8 @@ public class GameSimulationTest extends TestCase {
         assertEquals(Direction.N, r.getDirection());
     }
 
-    public void testUTurnInProgramPhase() {
+    @Test
+    void testUTurnInProgramPhase() {
         Board board = initEmptyBoard(3, 3);
         BoardAPI api = new BoardApiImpl(board);
 

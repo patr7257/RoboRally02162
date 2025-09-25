@@ -12,7 +12,7 @@ import org.springframework.web.socket.client.WebSocketClient;
 import java.net.URI;
 import java.util.concurrent.CompletableFuture;
 
-import static junit.framework.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.*;
 
 // Author(s) Weihao Mo

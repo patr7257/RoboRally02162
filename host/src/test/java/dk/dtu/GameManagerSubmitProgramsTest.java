@@ -1,6 +1,9 @@
 package dk.dtu;
 
-import dk.dtu.domain.core.*;
+import dk.dtu.domain.core.CommandResult;
+import dk.dtu.domain.core.GameCommand;
+import dk.dtu.domain.core.GameManager;
+import dk.dtu.domain.core.PlayerID;
 import dk.dtu.domain.model.Board;
 import dk.dtu.domain.model.Direction;
 import dk.dtu.domain.model.Robot;
@@ -8,29 +11,21 @@ import dk.dtu.domain.program.ProgramCard;
 import dk.dtu.domain.program.ProgramOP;
 import dk.dtu.domain.rules.api.BoardAPI;
 import dk.dtu.domain.rules.api.BoardApiImpl;
-import junit.framework.Test;
-import junit.framework.TestCase;
-import junit.framework.TestSuite;
+import org.junit.jupiter.api.Test;
 
 import java.util.List;
 import java.util.UUID;
 
 import static dk.dtu.util.BoardTestUtils.initEmptyBoard;
+import static org.junit.jupiter.api.Assertions.*;
 
 // Author(s) Weihao Mo
 
-public class GameManagerSubmitProgramsTest extends TestCase {
-    public GameManagerSubmitProgramsTest(String testName) {
-        super(testName);
-    }
+class GameManagerSubmitProgramsTest {
 
-    public static Test suite() {
-        return new TestSuite(GameManagerSubmitProgramsTest.class);
-    }
-
-    public void testSubmitProgramsAndRunRound() {
+    @Test
+    void testSubmitProgramsAndRunRound() {
         Board board = initEmptyBoard(3, 3);
-
         BoardAPI api = new BoardApiImpl(board);
 
         Robot r = new Robot(1, 1, 1, Direction.E);
@@ -45,5 +40,4 @@ public class GameManagerSubmitProgramsTest extends TestCase {
         assertTrue(op instanceof ProgramOP.Move);
         assertEquals(1, ((ProgramOP.Move) op).steps());
     }
-
 }

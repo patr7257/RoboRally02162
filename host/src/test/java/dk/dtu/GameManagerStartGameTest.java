@@ -1,34 +1,28 @@
 package dk.dtu;
 
-import dk.dtu.domain.core.*;
+import dk.dtu.domain.core.CommandResult;
+import dk.dtu.domain.core.GameCommand;
+import dk.dtu.domain.core.GameManager;
 import dk.dtu.domain.model.Board;
 import dk.dtu.domain.model.Direction;
 import dk.dtu.domain.model.Robot;
 import dk.dtu.domain.program.ProgramCard;
 import dk.dtu.domain.rules.api.BoardAPI;
 import dk.dtu.domain.rules.api.BoardApiImpl;
-import junit.framework.Test;
-import junit.framework.TestCase;
-import junit.framework.TestSuite;
+import org.junit.jupiter.api.Test;
 
 import java.util.List;
 import java.util.UUID;
 
 import static dk.dtu.util.BoardTestUtils.initEmptyBoard;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 // Author(s) Weihao Mo
 
-public class GameManagerStartGameTest extends TestCase {
-    public GameManagerStartGameTest(String testName) {
-        super(testName);
-    }
+class GameManagerStartGameTest {
 
-    public static Test suite() {
-        return new TestSuite(GameManagerStartGameTest.class);
-    }
-
-    public void testStartRoundCommand() {
-
+    @Test
+    void testStartRoundCommand() {
         Board board = initEmptyBoard(3, 3);
         BoardAPI api = new BoardApiImpl(board);
 
@@ -42,5 +36,4 @@ public class GameManagerStartGameTest extends TestCase {
 
         assertEquals("OK", result.reason());
     }
-
 }

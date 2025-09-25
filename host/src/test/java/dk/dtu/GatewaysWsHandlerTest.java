@@ -16,7 +16,7 @@ import org.springframework.web.socket.WebSocketSession;
 import java.util.Map;
 import java.util.UUID;
 
-import static junit.framework.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
