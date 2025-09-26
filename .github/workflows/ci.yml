@@ -1,0 +1,46 @@
+name: backend-tests
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, ready_for_review]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+  checks: write
+  pull-requests: write
+
+jobs:
+  unit-tests:
+    runs-on: ubuntu-24.04
+    if: github.event.pull_request.draft == false
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: cachix/install-nix-action@v27
+        with:
+          extra_nix_config: |
+            experimental-features = nix-command flakes
+
+      - name: Cache Maven repo
+        uses: actions/cache@v4
+        with:
+          path: ~/.m2/repository
+          key: m2-${{ runner.os }}-jdk23-${{ hashFiles('**/pom.xml', '**/.mvn/wrapper/maven-wrapper.properties', '**/settings.xml') }}
+          restore-keys: |
+            m2-${{ runner.os }}-jdk23-
+            m2-${{ runner.os }}-
+
+      - name: Run unit tests (host + gateway)
+        run: nix run .#test
+
+      - name: Report tests
+        if: always()
+        uses: dorny/test-reporter@v1
+        with:
+          name: JUnit
+          reporter: java-junit
+          path: "**/target/surefire-reports/*.xml"
