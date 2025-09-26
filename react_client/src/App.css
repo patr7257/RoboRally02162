@@ -132,3 +132,9 @@
   margin-top: 20px;      /* little space below logo */
   width: 100%;
 }
+
+.lobbyContainer {
+  display: flex;
+  justify-content: space-between;
+  align-content: center;
+}

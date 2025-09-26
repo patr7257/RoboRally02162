@@ -36,28 +36,30 @@ export default function JoinLobby() {
 
 
 
-    const joinLobby = async () => {
+    const joinLobby = async (id) => {
         setError("");
         try {
             const response = await fetch("http://localhost:8080/api/lobby/join", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ username: usernameInput, lobbyID: lobbyId }),
+                body: JSON.stringify({ username: usernameInput, lobbyID: id }),
             });
 
             const data = await response.text();
-            console.log("data recived: " + data)
+            console.log("data received: " + data);
+
             if (response.status === 201) {
                 localStorage.setItem("id", data);
-                setLobbyId(data);
+                setLobbyId(id); // <-- store the correct lobby id
             } else {
                 setError("An error occurred. Try again.");
             }
         } catch (err) {
-            console.error("Login error:", err);
+            console.error("Join error:", err);
             setError("Network error. Try again.");
         }
     };
+
 
 
     return (
@@ -67,7 +69,8 @@ export default function JoinLobby() {
                 display: "flex",
                 flexDirection: "column",
                 alignItems: "center",
-                gap: "12px"
+                gap: "12px",
+
             }}>
                 <button className="big-button" onClick={findLobby}>
                     See lobbies
@@ -84,7 +87,7 @@ export default function JoinLobby() {
                     padding: "0px",
                     border: "1px solid #ffffffff",
                     borderRadius: "8px",
-                    width: "250px",
+                    width: "350px",
                 }}>
                     <ul style={{ listStyle: "none", padding: 0, margin: 0 }}>
                         {lobbies.map((lobby, index) => (
@@ -98,7 +101,11 @@ export default function JoinLobby() {
                                     textAlign: "center",
                                 }}
                             >
-                                Lobby ID: {lobby.lobbyID}
+                                <div className="lobbyContainer">
+                                    Lobby ID: {lobby.lobbyID}
+                                    <button style={{ padding: 10 }} onClick={async () => { await joinLobby(lobby.lobbyID); navigate("/lobbyCreationScene") }}>Join</button>
+                                </div>
+
                             </li>
                         ))}
                     </ul>
@@ -106,24 +113,6 @@ export default function JoinLobby() {
             )}
 
             {error && <p style={{ color: "red" }}>{error}</p>}
-            {/* Input + Join button */}
-            <div style={{ display: "flex", gap: "10px", marginTop: "20px" }}>
-                <input
-                    type="text"
-                    placeholder="Enter lobby ID"
-                    value={lobbyId}
-                    onChange={(e) => setLobbyId(e.target.value)}
-                    style={{
-                        padding: "10px",
-                        borderRadius: "6px",
-                        border: "1px solid #ccc",
-                        flex: 1,
-                    }}
-                />
-                <button className="big-button" onClick={async () => {await joinLobby(lobbyId); navigate("/lobbyCreationScene")}}>
-                Join
-            </button>
-        </div>
         </Layout >
     );
 }
