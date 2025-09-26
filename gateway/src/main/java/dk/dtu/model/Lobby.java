@@ -7,7 +7,7 @@ Author(s): Niklas, Karl
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import dk.dtu.util.JsonUtil;
-
+import dk.dtu.dto.OperationResult;
 import java.util.*;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -16,6 +16,9 @@ public class Lobby {
     private final String lobbyID;
     private final Map<String, Client> players = new HashMap<>();
     private final Host host;
+
+    private boolean locked;
+
     private UUID gameID;
     private final Map<String, String> userToPlayer = new HashMap<>();
     private final Map<String, String> playerToUser = new HashMap<>();
@@ -30,12 +33,18 @@ public class Lobby {
         //TODO: Make playerIDs and reverse
     }
 
-    public void addPlayer(Client client) {
-        players.put(nextPlayerID + "", client);
-        userToPlayer.put(client.getUserID(), nextPlayerID + "");
-        playerToUser.put(nextPlayerID + "", client.getUserID());
-        nextPlayerID++;
+    public OperationResult addPlayer(Client client) {
+        if (locked) {
+            return new OperationResult("lobby_locked");
+        } else {
+            players.put(nextPlayerID + "", client);
+            userToPlayer.put(client.getUserID(), nextPlayerID + "");
+            playerToUser.put(nextPlayerID + "", client.getUserID());
+            nextPlayerID++;
+            return  new OperationResult("success");
+        }
     }
+
 
     public void removePlayer(Client client) {
         players.values().remove(client);
@@ -43,6 +52,7 @@ public class Lobby {
 
     public void startGame() {
         this.gameID = host.startGame(players.size(), 10); // TODO: Change the boardsize to be decided by the client
+        this.locked = true;
         ObjectNode root = JsonUtil.createObjectNode();
         root.put("type", "game");
 
@@ -95,6 +105,10 @@ public class Lobby {
 
     public Map<String, Client> getPlayers() {
         return players;
+    }
+
+    public boolean isLocked() {
+        return locked;
     }
 
 }

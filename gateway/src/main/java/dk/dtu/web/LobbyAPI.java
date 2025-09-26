@@ -1,6 +1,7 @@
 package dk.dtu.web;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import dk.dtu.dto.OperationResult;
 import dk.dtu.model.Client;
 import dk.dtu.model.Lobby;
 import dk.dtu.shared.ServerRegistry;
@@ -31,16 +32,30 @@ public class LobbyAPI {
 
     @PostMapping("/lobby/join")
     public ResponseEntity<String> joinLobby(@RequestBody JsonNode json) {
-        String username = json.get("username").asText();
-        // TODO: add error handling
         String lobbyID = json.get("lobbyID").asText();
         // UUID lobbyID = UUID.fromString(json.get("lobbyID").asText());
-        Client client = serverRegistry.getClients().get(username);
         Lobby lob = serverRegistry.getLobbies().get(lobbyID);
-        lob.addPlayer(client);
+        if (lob == null) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("LOBBY_NOT_FOUND");
+        }
+        String username = json.get("username").asText();
+        // TODO: add error handling
+
+
+        Client client = serverRegistry.getClients().get(username);
+        if (client == null) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("USER_NOT_CONNECTED");
+        }
+        OperationResult result = lob.addPlayer(client);
+        if ("success".equals(result.getStatus())) {
+            return ResponseEntity.status(HttpStatus.CREATED).body(lob.getLobbyID().toString());
+        } else if ("lobby_locked".equals(result.getStatus())) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body("LOBBY_LOCKED");
+        } else {
+            return ResponseEntity.status(HttpStatus.CONFLICT).body("UNKNOWN_ERROR");
+        }
         // TODO: add check if lobby is full and return success/failure message
         // success message
-        return ResponseEntity.status(HttpStatus.CREATED).body(lob.getLobbyID().toString());
     }
 
     @PostMapping("/lobby/start") // TODO: add check that websocket connection is running
@@ -54,13 +69,14 @@ public class LobbyAPI {
     }
 
     @GetMapping("/lobby/seeLobbies")
-    public ResponseEntity<String> seeLobbies() {
+    public ResponseEntity<String> seeLobbies() { //only re
         List<Map<String, Object>> result = new ArrayList<>();
-
-        for (Lobby lobby : serverRegistry.getLobbies().values()) { // TODO: Do this in Lobby
-            Map<String, Object> lobbyInfo = new HashMap<>();
-            lobbyInfo.put("lobbyID", lobby.getLobbyID());
-            result.add(lobbyInfo);
+        for (Lobby lobby : serverRegistry.getLobbies().values()) {
+            if (!lobby.isLocked()) {
+                Map<String, Object> lobbyInfo = new HashMap<>();
+                lobbyInfo.put("lobbyID", lobby.getLobbyID());
+                result.add(lobbyInfo);   // TODO: Do this in Lobby
+            }
         }
 
         String json = JsonUtil.toJson(result);

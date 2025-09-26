@@ -84,7 +84,7 @@ public class LobbyRESTTests {
 
 
     @Test
-    public void testJoinLobby() throws Exception {
+    public void testJoinLobbySuccess() throws Exception {
         String hostUser = "HostUser";
         String hostToken = createAndLoginUser(hostUser);
         WebSocketSession hostSession = connectWebSocket(hostToken);
@@ -123,6 +123,123 @@ public class LobbyRESTTests {
 
     }
 
+    @Test
+    public void testJoinLobbyLockedLobby() throws Exception {
+        String hostUser = "HostUser";
+        String hostToken = createAndLoginUser(hostUser);
+        WebSocketSession hostSession = connectWebSocket(hostToken);
+
+        String lobbyID = mockMvc.perform(post("/api/lobby/create")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(mapper.writeValueAsString(Map.of("username", hostUser))))
+                .andExpect(status().isCreated())
+                .andReturn()
+                .getResponse()
+                .getContentAsString();
+
+        //UUID lobbyUUID = UUID.fromString(lobbyID);
+
+        String clientUser = "ClientUser";
+        String clientToken = createAndLoginUser(clientUser);
+        WebSocketSession clientSession = connectWebSocket(clientToken);
+
+        mockMvc.perform(post("/api/lobby/start")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(mapper.writeValueAsString(Map.of("lobbyID", lobbyID))))
+                .andExpect(status().isOk());
+
+
+        Map<String, Object> joinBody = new HashMap<>();
+        joinBody.put("username", clientUser);
+        joinBody.put("lobbyID", lobbyID);
+
+        mockMvc.perform(post("/api/lobby/join")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(mapper.writeValueAsString(joinBody)))
+                .andExpect(status().isForbidden())
+                .andExpect(content().string("LOBBY_LOCKED"));
+
+
+
+
+
+    }
+
+    @Test
+    public void testJoinLobbyUserNotConnected() throws Exception {
+        String hostUser = "HostUser";
+        String hostToken = createAndLoginUser(hostUser);
+        WebSocketSession hostSession = connectWebSocket(hostToken);
+
+        String lobbyID = mockMvc.perform(post("/api/lobby/create")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(mapper.writeValueAsString(Map.of("username", hostUser))))
+                .andExpect(status().isCreated())
+                .andReturn()
+                .getResponse()
+                .getContentAsString();
+
+        //UUID lobbyUUID = UUID.fromString(lobbyID);
+
+        String clientUser = "ClientUser";
+        String clientToken = createAndLoginUser(clientUser);
+        //Intentional missing login
+
+
+        Map<String, Object> joinBody = new HashMap<>();
+        joinBody.put("username", clientUser);
+        joinBody.put("lobbyID", lobbyID);
+
+        mockMvc.perform(post("/api/lobby/join")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(mapper.writeValueAsString(joinBody)))
+                .andExpect(status().isNotFound())
+                .andExpect(content().string("USER_NOT_CONNECTED"));
+
+
+
+
+
+    }
+    @Test
+    public void testJoinLobbyLobbyNotFound() throws Exception {
+        String hostUser = "HostUser";
+        String hostToken = createAndLoginUser(hostUser);
+        WebSocketSession hostSession = connectWebSocket(hostToken);
+
+        String lobbyID = mockMvc.perform(post("/api/lobby/create")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(mapper.writeValueAsString(Map.of("username", hostUser))))
+                .andExpect(status().isCreated())
+                .andReturn()
+                .getResponse()
+                .getContentAsString();
+
+        //UUID lobbyUUID = UUID.fromString(lobbyID);
+
+        String clientUser = "ClientUser";
+        String clientToken = createAndLoginUser(clientUser);
+        WebSocketSession clientSession = connectWebSocket(clientToken);
+
+        Map<String, Object> joinBody = new HashMap<>();
+        joinBody.put("username", clientUser);
+        joinBody.put("lobbyID", "");
+
+        mockMvc.perform(post("/api/lobby/join")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(mapper.writeValueAsString(joinBody)))
+                .andExpect(status().isNotFound())
+                .andExpect(content().string("LOBBY_NOT_FOUND"));
+
+
+        hostSession.close();
+        clientSession.close();
+
+
+
+
+
+    }
     @Test
     public void testStartLobby() throws Exception {
         String hostUser = "HostUser";
@@ -179,7 +296,22 @@ public class LobbyRESTTests {
                 .getResponse()
                 .getContentAsString();
 
-        String expectedJson = "[{\"lobbyID\":\"" + lobbyID1 + "\"}, {\"lobbyID\":\"" + lobbyID2 + "\"}]";
+        mockMvc.perform(post("/api/lobby/start")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(mapper.writeValueAsString(Map.of("lobbyID", lobbyID2))))
+                .andExpect(status().isOk());
+
+        String lobbyID3 = mockMvc.perform(post("/api/lobby/create")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(mapper.writeValueAsString(Map.of("username", username))))
+                .andExpect(status().isCreated())
+                .andExpect(content().string(Matchers.notNullValue()))
+                .andReturn()
+                .getResponse()
+                .getContentAsString();
+
+
+        String expectedJson = "[{\"lobbyID\":\"" + lobbyID1 + "\"}, {\"lobbyID\":\"" + lobbyID3 + "\"}]";
 
         mockMvc.perform(get("/api/lobby/seeLobbies")
                         .contentType(MediaType.APPLICATION_JSON))
