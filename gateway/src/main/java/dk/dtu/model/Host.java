@@ -18,22 +18,17 @@ import java.util.UUID;
 @Component
 public class Host { //TODO: maybe make singleton
 
-    private  WebSocketSession session;
-
-    public Host() {
-
-    }
+    private WebSocketSession session;
+    private MessageQueue queue;
 
     public void setSession(WebSocketSession session) {
-        this.session=session;
+        this.session = session;
+        this.queue = new MessageQueue(session);
     }
 
     public void handleMessage(ObjectNode msg) {
-        try {
-            session.sendMessage(new TextMessage(JsonUtil.toJson(msg)));
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
+        queue.enqueue(msg);
+        queue.flush();
     }
 
     public UUID startGame(int amountPlayers, int boardSize) {

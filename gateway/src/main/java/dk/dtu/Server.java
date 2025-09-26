@@ -12,13 +12,10 @@ import dk.dtu.shared.ServerRegistry;
 import dk.dtu.util.JsonUtil;
 import dk.dtu.config.ClientHandshakeInterceptor;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.web.socket.*;
-import org.springframework.web.socket.client.standard.StandardWebSocketClient;
 import org.springframework.web.socket.config.annotation.*;
-import org.springframework.web.socket.handler.TextWebSocketHandler;
 
 import java.util.*;
 
@@ -50,8 +47,6 @@ public class Server implements WebSocketConfigurer { // TODO: after host connect
     private String getUserFromSession(WebSocketSession session) {
         return getTokenFromSession(session);
     }
-
-
 
     @Override
     public void registerWebSocketHandlers(WebSocketHandlerRegistry registry) {
@@ -128,7 +123,7 @@ public class Server implements WebSocketConfigurer { // TODO: after host connect
                 String token = getTokenFromSession(session);
                 System.out.println("=== WebSocket CONNECTED ===");
                 System.out.println("Session ID: " + session.getId());
-                System.out.println("User: " + token);
+                System.out.println("Host");
                 System.out.println("Session state: " + session.isOpen());
                 System.out.println("========================");
                 serverRegistry.getHost().setSession(session);

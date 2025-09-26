@@ -15,24 +15,18 @@ public class Client {
     private final String sessionID;
     private final User user;
     private final WebSocketSession session;
+    private final MessageQueue queue;
 
     public Client(String sessionId, User user, WebSocketSession session) {
         this.sessionID = sessionId;
         this.user = user;
         this.session = session;
+        this.queue = new MessageQueue(session);
     }
 
     public void handleMessage(ObjectNode msg) {
-        try {
-            String m = JsonUtil.toJson(msg);
-            System.out.println("sending:"+m);
-            User user = (User) session.getAttributes().get("user");
-            String userID = user.getUserID();
-            System.out.println(userID);
-            session.sendMessage(new TextMessage(JsonUtil.toJson(msg)));
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
+        queue.enqueue(msg);
+        queue.flush();
     }
 
     public String getSessionID() {

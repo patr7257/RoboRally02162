@@ -9,30 +9,25 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import dk.dtu.util.JsonUtil;
 
 import java.util.*;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 public class Lobby {
     private final String lobbyID;
     private final Map<String, Client> players = new HashMap<>();
     private final Host host;
-    private String gameID = "not set";
+    private UUID gameID;
     private final Map<String, String> userToPlayer = new HashMap<>();
     private final Map<String, String> playerToUser = new HashMap<>();
     private int nextPlayerID = 1;
 
+    ExecutorService broadcastPool = Executors.newCachedThreadPool();
 
     public Lobby(String lobbyID, Client creator, Host host) {
         this.lobbyID = lobbyID;
         this.host = host;
         addPlayer(creator);
         //TODO: Make playerIDs and reverse
-    }
-
-    public String getLobbyID() {
-        return lobbyID;
-    }
-
-    public Map<String, Client> getPlayers() {
-        return players;
     }
 
     public void addPlayer(Client client) {
@@ -43,12 +38,11 @@ public class Lobby {
     }
 
     public void removePlayer(Client client) {
-        players.remove(client);
+        players.values().remove(client);
     } //TODO: handle maps
 
-    public void startGame(String gameID) {
-        this.gameID = gameID;
-        //TODO: message clients. (type=game, action=start?)
+    public void startGame() {
+        this.gameID = host.startGame(players.size(), 10); // TODO: Change the boardsize to be decided by the client
         ObjectNode root = JsonUtil.createObjectNode();
         root.put("type", "game");
 
@@ -56,12 +50,12 @@ public class Lobby {
         payload.put("action", "start");
 
         root.set("payload", payload);
-        players.values().forEach(c -> c.handleMessage(root));
+        broadcastToClients(root);
     }
 
     public void handleClientMessage(String userID, JsonNode payload) {
         ObjectNode root = JsonUtil.createObjectNode();
-        root.put("gameID", this.gameID);
+        root.put("gameID", this.gameID.toString());
         root.put("playerID", Integer.parseInt(userToPlayer.get(userID)));
         root.set("payload", payload);
         host.handleMessage(root);
@@ -71,19 +65,36 @@ public class Lobby {
         ObjectNode root = JsonUtil.createObjectNode();
         root.put("type", "game");
         root.set("payload", json.get("payload"));
+
         switch (json.get("delivery").asText()) {
             case "DIRECT":
                 Client client = players.get(json.get("meta").get("player").get("playerID").asText());
                 client.handleMessage(root);
                 break;
             case "BROADCAST":
-                //players.values().forEach(c -> c.handleMessage(root));
-                for (Client c : players.values()) {
-                    c.handleMessage(root);
-                }
+                broadcastToClients(root);
                 break;
             default:
                 break;
         }
     }
+
+    private void broadcastToClients(ObjectNode msg) {
+        for (Client c : players.values()) {
+            broadcastPool.submit(() -> c.handleMessage(msg));
+        }
+    }
+
+    public UUID getGameID() {
+        return gameID;
+    }
+
+    public String getLobbyID() {
+        return lobbyID;
+    }
+
+    public Map<String, Client> getPlayers() {
+        return players;
+    }
+
 }

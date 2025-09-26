@@ -49,11 +49,8 @@ public class LobbyAPI {
         String lobbyID = json.get("lobbyID").asText();
         // TODO: add valid ID checking
         Lobby lob = serverRegistry.getLobbies().get(lobbyID);
-        // TODO: start game through lobby
-        UUID gameID = serverRegistry.getHost().startGame(lob.getPlayers().size(), 10); // TODO: Change the boardsize to be decided by the
-        // client
-        serverRegistry.getGameToLobby().put(gameID.toString(), lob.getLobbyID());
-        lob.startGame(gameID.toString());
+        lob.startGame();
+        serverRegistry.getGameToLobby().put(lob.getGameID().toString(), lob.getLobbyID());
     }
 
     @GetMapping("/lobby/seeLobbies")
