@@ -11,15 +11,26 @@ import { getRobotColor, getFacingArrow } from "./boardUtils";
 import BoardRenderer from "./BoardRenderer";
 import ConfirmTurnComp from "./ConfirmTurnComp";
 import StartRoundComp from "./StartRoundComp";
+import { GameData } from "./Types";
+
+interface MovePayload {
+  lobbyID: string;
+  payload: { type: string; cards?: string[] };
+}
+
+interface StartRoundPayload {
+  lobbyID: string;
+  payload: { type: string };
+}
 
 export default function Board() {
   const navigate = useNavigate();
-  const [lobbyId, setLobbyId] = useState(localStorage.getItem("id") || "");
-  const [gameData, setGameData] = useState(null);
-  const [chosenItem, setChosenItem] = useState("");
+  const [lobbyId, setLobbyId] = useState<string>(localStorage.getItem("id") || "");
+  const [gameData, setGameData] = useState<GameData | null>(null);
+  const [chosenItem, setChosenItem] = useState<string>("");
 
   useEffect(() => {
-    const unsubscribe = subscribe((message) => {
+    const unsubscribe = subscribe((message: string) => {
       try {
         const data = JSON.parse(message);
         console.log("Parsed data:", data);
@@ -42,12 +53,12 @@ export default function Board() {
     };
   }, [lobbyId]);
 
-  const movePayload = {
+  const movePayload: MovePayload = {
     lobbyID: lobbyId,
-    payload: { type: "submitProgram", cards: [chosenItem] }, // <-- use chosenItem here
+    payload: { type: "submitProgram", cards: [chosenItem] },
   };
 
-  const startRoundPayload = {
+  const startRoundPayload: StartRoundPayload = {
     lobbyID: lobbyId,
     payload: { type: "startRound" },
   };

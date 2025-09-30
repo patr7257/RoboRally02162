@@ -1,8 +1,9 @@
-// Web Crypto API - SHA-256 -> hex
 /*
 Author(s): Lizette, Kajsa
 */
-export async function sha256Hex(text) {
+
+// Web Crypto API - SHA-256 -> hex
+export async function sha256Hex(text: string): Promise<string> {
     const data = new TextEncoder().encode(text);
     const digest = await crypto.subtle.digest("SHA-256", data);
     return [...new Uint8Array(digest)]

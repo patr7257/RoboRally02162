@@ -1,4 +1,4 @@
-export const getFacingArrow = (facing) =>
+export const getFacingArrow = (facing: string): string =>
   ({
     N: "↑",
     E: "→",
@@ -6,7 +6,7 @@ export const getFacingArrow = (facing) =>
     W: "←",
   }[facing] || "●");
 
-export const getRobotColor = (id) => {
+export const getRobotColor = (id: number): string => {
   const colors = [
     "#ff4444",
     "#44ff44",

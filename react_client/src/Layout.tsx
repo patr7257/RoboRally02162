@@ -2,9 +2,13 @@
 Author(s): Bjarke, Asger, Patrick
 */
 
-import React from "react";
+import React, { ReactNode } from "react";
 
-export default function Layout({ children }) {
+interface LayoutProps {
+  children: ReactNode;
+}
+
+export default function Layout({ children }: LayoutProps) {
   return (
     <div className="App">
       <header className="App-header">
@@ -13,7 +17,6 @@ export default function Layout({ children }) {
           alt="RoboRally Logo"
           className="logo"
         />
-
         <div className="page-content">
           {children}
         </div>
@@ -21,4 +24,3 @@ export default function Layout({ children }) {
     </div>
   );
 }
-

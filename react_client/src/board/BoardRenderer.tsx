@@ -1,8 +1,13 @@
 import { getRobotColor, getFacingArrow } from "./boardUtils";
+import { GameData, Robot } from "./Types";
 
-export default function BoardRenderer({ gameData }) {
+interface BoardRendererProps {
+  gameData: GameData | null;
+}
+
+export default function BoardRenderer({ gameData }: BoardRendererProps) {
   const calculateBoardSize = () => {
-    if (!gameData) return { cellSize: 0, boardSize: 0 };
+    if (!gameData) return { cellSize: 0, boardWidth: 0, boardHeight: 0 };
 
     const viewportWidth = window.innerWidth;
     const viewportHeight = window.innerHeight;
@@ -23,9 +28,9 @@ export default function BoardRenderer({ gameData }) {
     };
   };
 
-  const getRobotAtPosition = (x, y) => {
+  const getRobotAtPosition = (x: number, y: number): Robot | null => {
     if (!gameData?.robots) return null;
-    return gameData.robots.find((robot) => robot.x === x && robot.y === y);
+    return gameData.robots.find((robot) => robot.x === x && robot.y === y) || null;
   };
 
   if (!gameData) {
@@ -60,9 +65,8 @@ export default function BoardRenderer({ gameData }) {
           gridTemplateColumns: `repeat(${gameData.board.width}, ${cellSize}px)`,
           gridTemplateRows: `repeat(${gameData.board.height}, ${cellSize}px)`,
           border: "2px solid #333",
-          backgroundColor: "white",
-          gap: "1px",
           backgroundColor: "#ccc",
+          gap: "1px",
         }}
       >
         {gameData.board.tiles.map((row, y) =>

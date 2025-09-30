@@ -1,7 +1,24 @@
 import React from "react";
 import Tile from "./Tile";
+import {Robot} from "./Types"
 
-export default function BoardGrid({ board, robots, cellSize }) {
+interface TileType {
+  [key: string]: any;
+}
+
+interface Board {
+  width: number;
+  height: number;
+  tiles: TileType[][];
+}
+
+interface BoardGridProps {
+  board: Board;
+  robots?: Robot[];
+  cellSize: number;
+}
+
+export default function BoardGrid({ board, robots, cellSize }: BoardGridProps) {
   return (
     <div
       style={{
