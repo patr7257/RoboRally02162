@@ -11,7 +11,6 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.SpyBean;
 import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.http.MediaType;
 import org.springframework.test.annotation.DirtiesContext;
@@ -29,6 +28,7 @@ import java.net.URI;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.timeout;
@@ -74,7 +74,10 @@ public class ConnectionEstablishmentTests {
         URI uri = URI.create("ws://localhost:" + port + "/host");
         WebSocketHttpHeaders headers = new WebSocketHttpHeaders();
 
-        WebSocketSession clientSession = hostSocket.doHandshake(handler, headers, uri).get(5, TimeUnit.SECONDS);
+        CompletableFuture<WebSocketSession> future = hostSocket.execute(handler, headers, uri);
+        WebSocketSession clientSession = future.get(5, TimeUnit.SECONDS);
+
+
         try {
             WebSocketSession established = sessions.poll(5, TimeUnit.SECONDS);
             assertThat(established).isNotNull();
@@ -126,7 +129,8 @@ public class ConnectionEstablishmentTests {
         WebSocketHttpHeaders headers = new WebSocketHttpHeaders();
 
         URI uri = URI.create("ws://localhost:" + port + "/client?token=" + token);
-        WebSocketSession clientSession = clientSocket.doHandshake(handler, null, uri).get(5, TimeUnit.SECONDS);
+        CompletableFuture<WebSocketSession> future = hostSocket.execute(handler, null, uri);
+        WebSocketSession clientSession = future.get(5, TimeUnit.SECONDS);
 
         try {
             WebSocketSession established = sessions.poll(5, TimeUnit.SECONDS);
@@ -162,7 +166,8 @@ public class ConnectionEstablishmentTests {
 
 
         try {
-            WebSocketSession clientSession = hostSocket.doHandshake(handler, null, uri).get(5, TimeUnit.SECONDS);
+            CompletableFuture<WebSocketSession> future = hostSocket.execute(handler, null, uri);
+            WebSocketSession clientSession = future.get(5, TimeUnit.SECONDS);
             WebSocketSession established = sessions.poll(5, TimeUnit.SECONDS);
             assertThat(established).isNull();
             assertThat(clientSession.isOpen()).isFalse();
@@ -192,7 +197,8 @@ public class ConnectionEstablishmentTests {
         URI uri = URI.create("ws://localhost:" + port + "/client?token=someUserWithoutAccess");
 
         try {
-            WebSocketSession clientSession = hostSocket.doHandshake(handler, null, uri).get(5, TimeUnit.SECONDS);
+            CompletableFuture<WebSocketSession> future = hostSocket.execute(handler, null, uri);
+            WebSocketSession clientSession = future.get(5, TimeUnit.SECONDS);
             WebSocketSession established = sessions.poll(5, TimeUnit.SECONDS);
             assertThat(established).isNull();
             assertThat(clientSession.isOpen()).isFalse();

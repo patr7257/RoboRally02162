@@ -45,7 +45,6 @@ public class Lobby {
         }
     }
 
-
     public void removePlayer(Client client) {
         players.values().remove(client);
     } //TODO: handle maps
@@ -63,11 +62,11 @@ public class Lobby {
         broadcastToClients(root);
     }
 
-    public void handleClientMessage(String userID, JsonNode payload) {
+    public void handleClientMessage(String userID, JsonNode json) {
         ObjectNode root = JsonUtil.createObjectNode();
         root.put("gameID", this.gameID.toString());
         root.put("playerID", Integer.parseInt(userToPlayer.get(userID)));
-        root.set("payload", payload);
+        root.set("payload", json.get("payload"));
         host.handleMessage(root);
     }
 
@@ -105,6 +104,14 @@ public class Lobby {
 
     public Map<String, Client> getPlayers() {
         return players;
+    }
+
+    public Map<String, String> getUserToPlayer() {
+        return userToPlayer;
+    }
+
+    public void setGameID(UUID gameID) {
+        this.gameID = gameID;
     }
 
     public boolean isLocked() {

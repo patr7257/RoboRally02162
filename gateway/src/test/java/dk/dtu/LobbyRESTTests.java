@@ -347,11 +347,10 @@ public class LobbyRESTTests {
         };
 
         URI uri = URI.create("ws://localhost:" + port + "/client?token=" + token);
-        WebSocketSession wsSession = new StandardWebSocketClient()
-                .doHandshake(handler, null, uri)
-                .get(5, TimeUnit.SECONDS);
+        new StandardWebSocketClient().execute(handler, uri.toString());
+        WebSocketSession wsSession = sessions.poll(2, TimeUnit.SECONDS);
 
-        assertThat(sessions.poll(5, TimeUnit.SECONDS)).isNotNull();
+        assertThat(wsSession).isNotNull();
         return wsSession;
     }
 

@@ -4,17 +4,52 @@
                              http://maven.apache.org/maven-v4_0_0.xsd">
   <modelVersion>4.0.0</modelVersion>
 
+  <parent>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-parent</artifactId>
+      <version>3.5.5</version>
+      <relativePath/>
+  </parent>
+
   <groupId>dk.dtu</groupId>
   <artifactId>gateway</artifactId>
   <version>1.0-SNAPSHOT</version>
 
+  <name>gateway</name>
+  <url>http://maven.apache.org</url>
+
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <java.version>23</java.version>
-    <spring.boot.version>3.3.2</spring.boot.version>
   </properties>
 
   <dependencies>
+
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-web</artifactId>
+    </dependency>
+
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-test</artifactId>
+      <scope>test</scope>
+    </dependency>
+
+    <!-- Spring WebSocket support -->
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-websocket</artifactId>
+    </dependency>
+
+    <!-- JSON parsing med eksplicit version -->
+    <dependency>
+      <groupId>com.fasterxml.jackson.core</groupId>
+      <artifactId>jackson-databind</artifactId>
+      <version>2.16.2</version>
+    </dependency>
+
+
     <!-- Java WebSocket client -->
     <dependency>
       <groupId>org.java-websocket</groupId>
@@ -26,23 +61,8 @@
     <dependency>
       <groupId>org.springframework.boot</groupId>
       <artifactId>spring-boot-starter</artifactId>
-      <version>${spring.boot.version}</version>
     </dependency>
 
-    <!-- Spring WebSocket support -->
-    <dependency>
-      <groupId>org.springframework.boot</groupId>
-      <artifactId>spring-boot-starter-websocket</artifactId>
-      <version>${spring.boot.version}</version>
-    </dependency>
-
-
-    <!-- JSON parsing med eksplicit version -->
-    <dependency>
-      <groupId>com.fasterxml.jackson.core</groupId>
-      <artifactId>jackson-databind</artifactId>
-      <version>2.16.2</version>
-    </dependency>
 
     <dependency>
   <groupId>org.springframework.security</groupId>
@@ -60,7 +80,6 @@
     <dependency>
       <groupId>org.springframework.boot</groupId>
       <artifactId>spring-boot-starter-web</artifactId>
-      <version>${spring.boot.version}</version>
     </dependency>
     <dependency>
       <groupId>org.springframework.boot</groupId>
@@ -88,7 +107,6 @@
         <plugin>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-maven-plugin</artifactId>
-            <version>${spring.boot.version}</version>
             <executions>
                 <execution>
                     <goals>

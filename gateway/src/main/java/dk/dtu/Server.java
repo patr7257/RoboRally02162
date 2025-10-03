@@ -25,10 +25,15 @@ public class Server implements WebSocketConfigurer { // TODO: after host connect
 
     private final ClientHandshakeInterceptor clientInterceptor;
     private final ServerRegistry serverRegistry;
+    private WebSocketHandler clientHandler;
+    private WebSocketHandler hostHandler;
+
     @Autowired
     public Server(ClientHandshakeInterceptor cliHandInt, ServerRegistry serverRegistry) {
         this.clientInterceptor = cliHandInt;
         this.serverRegistry = serverRegistry;
+        initClientHandler();
+        initHostHandler();
     }
 
     public static void main(String[] args) {
@@ -50,7 +55,13 @@ public class Server implements WebSocketConfigurer { // TODO: after host connect
 
     @Override
     public void registerWebSocketHandlers(WebSocketHandlerRegistry registry) {
-        registry.addHandler(new WebSocketHandler() { // Client
+        registry.addHandler(clientHandler, "/client").addInterceptors(clientInterceptor).setAllowedOrigins("*");
+
+        registry.addHandler(hostHandler, "/host").setAllowedOrigins("*");
+    }
+
+    private void initClientHandler() {
+        clientHandler = new WebSocketHandler() { // Client
             @Override
             public void afterConnectionEstablished(WebSocketSession session) throws Exception {
                 String token = getTokenFromSession(session);
@@ -60,7 +71,7 @@ public class Server implements WebSocketConfigurer { // TODO: after host connect
                 System.out.println("Session state: " + session.isOpen());
                 System.out.println("========================");
                 User user = (User) session.getAttributes().get("user");
-                Client client = new Client(session.getId(), user, session);
+                Client client = new Client(user, session);
                 serverRegistry.getClients().put(client.getUsername(), client); // TODO: change to ID
             }
 
@@ -76,7 +87,7 @@ public class Server implements WebSocketConfigurer { // TODO: after host connect
                     String userID = user.getUserID();
                     System.out.println(userID);
                     Lobby lob = serverRegistry.getLobbies().get(lobbyID); // TODO: check for valid ID
-                    lob.handleClientMessage(userID, json.get("payload")); // TODO: Check that toString() is correct
+                    lob.handleClientMessage(userID, json); // TODO: Check that toString() is correct
                 } catch (Exception e) {
                     System.err.println("=== ERROR IN MESSAGE HANDLING ===");
                     System.err.println("Session ID: " + session.getId());
@@ -115,9 +126,11 @@ public class Server implements WebSocketConfigurer { // TODO: after host connect
                 return false;
             }
 
-        }, "/client").addInterceptors(clientInterceptor).setAllowedOrigins("*");
+        };
+    }
 
-        registry.addHandler(new WebSocketHandler() { // host
+    private void initHostHandler() {
+        hostHandler = new WebSocketHandler() { // host
             @Override
             public void afterConnectionEstablished(WebSocketSession session) throws Exception {
                 String token = getTokenFromSession(session);
@@ -155,7 +168,7 @@ public class Server implements WebSocketConfigurer { // TODO: after host connect
             public boolean supportsPartialMessages() {
                 return false;
             }
-        }, "/host").setAllowedOrigins("*");
+        };
     }
 
     public Map<String, Lobby> getLobbies() {
@@ -170,5 +183,12 @@ public class Server implements WebSocketConfigurer { // TODO: after host connect
         return serverRegistry.getClients();
     }
 
+    public WebSocketHandler getClientHandler() {
+        return clientHandler;
+    }
+
+    public WebSocketHandler getHostHandler() {
+        return hostHandler;
+    }
 
 }
