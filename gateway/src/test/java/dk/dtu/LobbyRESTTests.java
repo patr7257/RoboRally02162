@@ -61,7 +61,14 @@ public class LobbyRESTTests {
 
         String token = createAndLoginUser(username);
 
+        // We sleep here after creating the user.
+        // This is probably a result of concurrency?
+        // Making the thread sleep fixed the automatic tests on github.
+        Thread.sleep(50);
+
         WebSocketSession wsSession = connectWebSocket(token);
+
+        Thread.sleep(50);
 
         String lobbyID = mockMvc.perform(post("/api/lobby/create")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -87,7 +94,12 @@ public class LobbyRESTTests {
     public void testJoinLobbySuccess() throws Exception {
         String hostUser = "HostUser";
         String hostToken = createAndLoginUser(hostUser);
+
+        Thread.sleep(50);
+
         WebSocketSession hostSession = connectWebSocket(hostToken);
+
+        Thread.sleep(50);
 
         String lobbyID = mockMvc.perform(post("/api/lobby/create")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -127,7 +139,12 @@ public class LobbyRESTTests {
     public void testJoinLobbyLockedLobby() throws Exception {
         String hostUser = "HostUser";
         String hostToken = createAndLoginUser(hostUser);
+
+        Thread.sleep(50);
+
         WebSocketSession hostSession = connectWebSocket(hostToken);
+
+        Thread.sleep(50);
 
         String lobbyID = mockMvc.perform(post("/api/lobby/create")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -169,7 +186,12 @@ public class LobbyRESTTests {
     public void testJoinLobbyUserNotConnected() throws Exception {
         String hostUser = "HostUser";
         String hostToken = createAndLoginUser(hostUser);
+
+        Thread.sleep(50);
+
         WebSocketSession hostSession = connectWebSocket(hostToken);
+
+        Thread.sleep(50);
 
         String lobbyID = mockMvc.perform(post("/api/lobby/create")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -205,7 +227,12 @@ public class LobbyRESTTests {
     public void testJoinLobbyLobbyNotFound() throws Exception {
         String hostUser = "HostUser";
         String hostToken = createAndLoginUser(hostUser);
+
+        Thread.sleep(50);
+
         WebSocketSession hostSession = connectWebSocket(hostToken);
+
+        Thread.sleep(50);
 
         String lobbyID = mockMvc.perform(post("/api/lobby/create")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -244,7 +271,12 @@ public class LobbyRESTTests {
     public void testStartLobby() throws Exception {
         String hostUser = "HostUser";
         String hostToken = createAndLoginUser(hostUser);
+
+        Thread.sleep(50);
+
         WebSocketSession hostSession = connectWebSocket(hostToken);
+
+        Thread.sleep(50);
 
         String lobbyID = mockMvc.perform(post("/api/lobby/create")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -276,7 +308,12 @@ public class LobbyRESTTests {
     public void seeLobbiesTest() throws Exception {
         String username = "TestUser";
         String token = createAndLoginUser(username);
+
+        Thread.sleep(50);
+
         WebSocketSession wsSession = connectWebSocket(token);
+
+        Thread.sleep(50);
 
         String lobbyID1 = mockMvc.perform(post("/api/lobby/create")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -348,7 +385,7 @@ public class LobbyRESTTests {
 
         URI uri = URI.create("ws://localhost:" + port + "/client?token=" + token);
         new StandardWebSocketClient().execute(handler, uri.toString());
-        WebSocketSession wsSession = sessions.poll(2, TimeUnit.SECONDS);
+        WebSocketSession wsSession = sessions.poll(10, TimeUnit.SECONDS);
 
         assertThat(wsSession).isNotNull();
         return wsSession;

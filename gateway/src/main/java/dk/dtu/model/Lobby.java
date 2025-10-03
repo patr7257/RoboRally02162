@@ -27,6 +27,8 @@ public class Lobby {
     ExecutorService broadcastPool = Executors.newCachedThreadPool();
 
     public Lobby(String lobbyID, Client creator, Host host) {
+        Objects.requireNonNull(creator, "creator must not be null");
+        Objects.requireNonNull(host, "host must not be null");
         this.lobbyID = lobbyID;
         this.host = host;
         addPlayer(creator);

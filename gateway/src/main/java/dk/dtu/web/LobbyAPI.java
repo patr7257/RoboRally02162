@@ -24,6 +24,7 @@ public class LobbyAPI {
         String username = json.get("username").asText();
         Client creator = serverRegistry.getClients().get(username); // TODO: make check that person is connected to websocket (essentially
         // check if in clients
+
         Lobby lob = LobbyFactory.createLobby(creator, serverRegistry.getHost());
         serverRegistry.getLobbies().put(lob.getLobbyID(), lob);
         return ResponseEntity.status(HttpStatus.CREATED).body(lob.getLobbyID().toString());
