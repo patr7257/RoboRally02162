@@ -1,5 +1,5 @@
 /*
-Author(s): Bjarke, Patrick
+Author(s): Bjarke, Patrick, Niklas
 */
 
 import { useNavigate } from "react-router-dom";
@@ -43,6 +43,21 @@ export default function LobbyCreation() {
     }
   };
 
+  const leaveLobby = async () => {
+    setError("");
+    try
+     {
+      const response = await fetch("http://localhost:8080/api/lobby/leave", {
+        method: "POST",
+        headers: {"Content-Type":"application/json"},
+        body: JSON.stringify({lobbyID: lobbyId, username:usernameInput}),
+      });
+     } catch (err) {
+      console.error("leave lobby error:",err);
+      setError("Network error. Try Again.");
+     }
+  }
+
   return (
     <Layout>
       <h1>Lobby Creation</h1>
@@ -60,8 +75,8 @@ export default function LobbyCreation() {
           Start Game
         </button>
 
-        <button className="big-button" onClick={() => navigate("/lobbyScene")}>
-          Go back to lobby menu
+        <button className="big-button" onClick={() => {leaveLobby(); navigate("/lobbyScene")}}>
+          Leave Lobby
         </button>
       </div>
     </Layout>

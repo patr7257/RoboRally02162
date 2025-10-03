@@ -1,5 +1,5 @@
 /*
-Author(s): Karl, Benjamin
+Author(s): Karl, Benjamin, Niklas
  */
 
 package dk.dtu;
@@ -110,7 +110,7 @@ public class WebSocketTests {
         when(mockSession.getId()).thenReturn("session123");
         when(mockSession.getUri()).thenReturn(new URI("ws://localhost/host"));
 
-        ObjectNode json = createJsonHost(true, "1");
+        ObjectNode json = createJsonHost(true, "1","1");
         WebSocketMessage<String> message = new TextMessage(json.toString());
 
         server.getHostHandler().handleMessage(mockSession, message);
@@ -197,14 +197,22 @@ public class WebSocketTests {
 
     @Test
     void hostToClientDirectTest() throws Exception {
+        System.out.println("Lobbies before test: " + server.getLobbies().keySet());
+        System.out.println("Games before test: " + server.getGameToLobby().keySet());
         Host mockHost = mock(Host.class);
+        when(mockHost.startGame(anyInt(),anyInt())).thenReturn(UUID.fromString("123e4567-e89b-12d3-a456-426614174000"));
         Client mockClient1 = mock(Client.class);
+        when(mockClient1.getUserID()).thenReturn("testUser1");
+
         Client mockClient2 = mock(Client.class);
+        when(mockClient2.getUserID()).thenReturn("testUser2");
         Lobby lobby = new Lobby("1", mockClient1, mockHost);
+
         lobby.addPlayer(mockClient2);
 
-        UUID gameID = UUID.randomUUID();
-        lobby.setGameID(gameID);
+        lobby.startGame();
+        UUID  gameID = lobby.getGameID();
+
 
         server.getLobbies().put("1", lobby);
         server.getGameToLobby().put(gameID.toString(), "1");
@@ -212,15 +220,18 @@ public class WebSocketTests {
         WebSocketSession mockSession = mock(WebSocketSession.class);
         when(mockSession.getId()).thenReturn("hostSession123");
         when(mockSession.getUri()).thenReturn(new URI("ws://localhost/host"));
+        Map<String, String> userToPlayer = lobby.getUserToPlayer();
+        String u1PlayerID =  userToPlayer.get("testUser1");
+        ObjectNode json = createJsonHost(false, lobby.getGameID().toString(),u1PlayerID);
 
-        ObjectNode json = createJsonHost(false, gameID.toString());
         WebSocketMessage<String> message = new TextMessage(json.toString());
 
         server.getHostHandler().handleMessage(mockSession, message);
 
+
         ArgumentCaptor<ObjectNode> captor = ArgumentCaptor.forClass(ObjectNode.class);
-        verify(mockClient1).handleMessage(captor.capture());
-        verify(mockClient2, never()).handleMessage(any(ObjectNode.class));
+        verify(mockClient1,times(2)).handleMessage(captor.capture());
+        verify(mockClient2, times(1)).handleMessage(any(ObjectNode.class));
 
         ObjectNode actualMsg = captor.getValue();
         assertThat(actualMsg.get("type").asText()).isEqualTo("game");
@@ -232,13 +243,19 @@ public class WebSocketTests {
         System.out.println("Lobbies before test: " + server.getLobbies().keySet());
         System.out.println("Games before test: " + server.getGameToLobby().keySet());
         Host mockHost = mock(Host.class);
+        when(mockHost.startGame(anyInt(),anyInt())).thenReturn(UUID.fromString("123e4567-e89b-12d3-a456-426614174000"));
         Client mockClient1 = mock(Client.class);
+        when(mockClient1.getUserID()).thenReturn("testUser1");
+
         Client mockClient2 = mock(Client.class);
+        when(mockClient2.getUserID()).thenReturn("testUser2");
         Lobby lobby = new Lobby("1", mockClient1, mockHost);
+
         lobby.addPlayer(mockClient2);
 
-        UUID gameID = UUID.randomUUID();
-        lobby.setGameID(gameID);
+        lobby.startGame();
+        UUID  gameID = lobby.getGameID();
+
 
         server.getLobbies().put("1", lobby);
         server.getGameToLobby().put(gameID.toString(), "1");
@@ -247,16 +264,17 @@ public class WebSocketTests {
         when(mockSession.getId()).thenReturn("hostSession123");
         when(mockSession.getUri()).thenReturn(new URI("ws://localhost/host"));
 
-        ObjectNode json = createJsonHost(true, lobby.getGameID().toString());
+        ObjectNode json = createJsonHost(true, lobby.getGameID().toString(),"1");
         WebSocketMessage<String> message = new TextMessage(json.toString());
 
         server.getHostHandler().handleMessage(mockSession, message);
 
         ArgumentCaptor<ObjectNode> captor1 = ArgumentCaptor.forClass(ObjectNode.class);
-        verify(mockClient1).handleMessage(captor1.capture());
+        verify(mockClient1,times(2)).handleMessage(captor1.capture());
 
         ArgumentCaptor<ObjectNode> captor2 = ArgumentCaptor.forClass(ObjectNode.class);
-        verify(mockClient2).handleMessage(captor2.capture());
+        verify(mockClient2,times(2)).handleMessage(captor2.capture());
+
 
         ObjectNode actualMsg1 = captor1.getValue();
         assertThat(actualMsg1.get("type").asText()).isEqualTo("game");
@@ -267,7 +285,7 @@ public class WebSocketTests {
         assertThat(actualMsg2.get("payload").asText()).isEqualTo("");
     }
 
-    private ObjectNode createJsonHost(boolean broadCast, String gameID) {
+    private ObjectNode createJsonHost(boolean broadCast, String gameID,String playerID) {
         ObjectNode root = JsonUtil.createObjectNode();
         root.put("type", "stateSnapshot");
         root.put("delivery", broadCast ? "BROADCAST" : "DIRECT");
@@ -279,7 +297,7 @@ public class WebSocketTests {
         meta.set("game", game);
 
         ObjectNode player = JsonUtil.createObjectNode();
-        player.put("playerID", 1);
+        player.put("playerID", playerID);
         meta.set("player", player);
 
         root.set("meta", meta);

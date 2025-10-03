@@ -76,12 +76,45 @@ public class LobbyAPI {
             if (!lobby.isLocked()) {
                 Map<String, Object> lobbyInfo = new HashMap<>();
                 lobbyInfo.put("lobbyID", lobby.getLobbyID());
-                result.add(lobbyInfo);   // TODO: Do this in Lobby
+                result.add(lobbyInfo);   // TODO: create "asJson" in lobby class.
             }
         }
 
         String json = JsonUtil.toJson(result);
 
         return ResponseEntity.ok(json);
+    }
+
+    @PostMapping("lobby/leave")
+    public ResponseEntity<String> leaveLobby(@RequestBody JsonNode json) {
+        String username = json.get("username").asText(); //TODO: change to userID
+        Client client = serverRegistry.getClients().get(username);
+        if (client == null) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("USER_NOT_CONNECTED");
+        }
+        String lobbyID = json.get("lobbyID").asText();
+        Lobby lob = serverRegistry.getLobbies().get(lobbyID);
+        if (lob == null) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("LOBBY_NOT_FOUND");
+        }
+        OperationResult operationResult = lob.removeClientByUID(client.getUserID());
+        String status = operationResult.getStatus();
+        switch (status) {
+            case "success": {
+                return ResponseEntity.status(HttpStatus.NO_CONTENT).body("");
+            }
+            case "lobby_empty": {
+                serverRegistry.getLobbies().remove(lob.getLobbyID());
+                return ResponseEntity.status(HttpStatus.NO_CONTENT).body("");
+            }
+            case "user_not_in_lobby": {
+                return ResponseEntity.status(HttpStatus.CONFLICT).body("USER_NOT_IN_LOBBY");
+            }
+
+            default: return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("UNKNOWN_ERROR");
+        }
+
+
+
     }
 }
