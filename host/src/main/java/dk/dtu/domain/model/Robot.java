@@ -7,12 +7,13 @@ import java.util.ArrayDeque;
 import java.util.Deque;
 import java.util.List;
 
-// Author(s) William Pii Jæger
+// Author(s) William Pii Jæger, Weihao Mo
 
 public class Robot {
     private final int id;
     private int x, y;
     private Direction direction;
+    private int nextCheckpoint = 1;
 
     private final Deque<ProgramOP> registers = new ArrayDeque<>();
 
@@ -29,6 +30,25 @@ public class Robot {
     }
     public ProgramOP pollNextOp() {
         return registers.pollFirst();
+    }
+
+    public boolean hasPendingOps() {
+        return !registers.isEmpty();
+    }
+
+
+    public int getNextCheckpoint() {
+        return nextCheckpoint;
+    }
+
+    public void advanceCheckpointIfMatches(int checkpointNumber) {
+        if (checkpointNumber == nextCheckpoint) {
+            nextCheckpoint++;
+        }
+    }
+
+    public boolean hasWon(int totalCheckpoints) {
+        return nextCheckpoint > totalCheckpoints;
     }
 
     public int getId() {

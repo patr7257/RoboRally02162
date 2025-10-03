@@ -72,6 +72,10 @@ export default function BoardRenderer({ gameData }: BoardRendererProps) {
         {gameData.board.tiles.map((row, y) =>
           row.map((tile, x) => {
             const robot = getRobotAtPosition(x, y);
+            const checkpoint = tile.effects.find(
+              (e: any): e is { kind: "CHECKPOINT"; number: number } =>
+                e.kind === "CHECKPOINT"
+            );
 
             return (
               <div
@@ -114,6 +118,25 @@ export default function BoardRenderer({ gameData }: BoardRendererProps) {
                     <div style={{ fontSize: Math.max(8, cellSize * 0.2) }}>
                       R{robot.id}
                     </div>
+                  </div>
+                )}
+
+                {checkpoint && (
+                  <div
+                    style={{
+                      position: "absolute",
+                      bottom: "2px",
+                      right: "2px",
+                      backgroundColor: "gold",
+                      color: "black",
+                      fontWeight: "bold",
+                      padding: "2px 4px",
+                      borderRadius: "50%",
+                      fontSize: Math.max(10, cellSize * 0.25),
+                      zIndex: 10,
+                    }}
+                  >
+                    {checkpoint.number}
                   </div>
                 )}
               </div>

@@ -43,7 +43,7 @@ public class GatewaysWsHandlerTest {
     @Test
     void testSendOutgoingMessageContent() throws Exception {
         UUID gameID = UUID.randomUUID();
-        EventMetaDTO meta = new EventMetaDTO(new GameDto(gameID), new PlayerDto(1));
+        EventMetaDTO meta = new EventMetaDTO(new GameDto(gameID,null), new PlayerDto(1));
         OutgoingMessage<Object> msg = new OutgoingMessage<>(
                 "stateSnapshot",
                 Delivery.BROADCAST,

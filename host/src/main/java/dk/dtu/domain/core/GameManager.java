@@ -8,13 +8,14 @@ import java.util.*;
 
 // Author(s) Weihao Mo
 
-public class GameManager {
+public class GameManager implements GameObserver{
     private final Map<UUID, Game> activeGames = new HashMap<>();
 
     public UUID startGame(Board board, BoardAPI api, List<Robot> players) {
         UUID id = UUID.randomUUID();
 
         Game game = new Game(board, api, players);
+        game.addObserver(this);
         activeGames.put(id,game);
         return id;
     }
@@ -61,5 +62,14 @@ public class GameManager {
         };
     }
 
+
+    @Override
+    public void onWinnerDeclared(PlayerID winner) {
+  //      activeGames.entrySet().removeIf(entry -> {
+    //        Game game = entry.getValue();
+      //      return game.getWinner().isPresent()
+       //             && game.getWinner().get().equals(winner);
+       // });
+    }
 
 }

@@ -16,6 +16,7 @@ import org.mockito.ArgumentCaptor;
 import org.springframework.web.socket.TextMessage;
 import org.springframework.web.socket.WebSocketSession;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
@@ -40,8 +41,10 @@ public class GatewayWsHandlerSnapshotTest {
         when(session.isOpen()).thenReturn(true);
 
         Board board = BoardTestUtils.initEmptyBoard(3, 3);
-        BoardAPI api = new BoardApiImpl(board);
+
         Robot r = new Robot(1, 1, 1, Direction.E);
+        List<Robot> robots = new ArrayList<>();
+        BoardAPI api = new BoardApiImpl(board,robots);
 
         manager = new GameManager();
         gameId = manager.startGame(board, api, List.of(r));

@@ -2,6 +2,7 @@ package dk.dtu.domain.model;
 
 import dk.dtu.domain.rules.effects.TileEffect;
 
+import java.util.ArrayList;
 import java.util.List;
 
 // Author(s) Weihao Mo, William Pii Jæger
@@ -11,7 +12,11 @@ public class Tile {
 
     private List<TileEffect> effects;
 
-
+    public Tile(int y, int x) {
+        this.x = x;
+        this.y = y;
+        this.effects = new ArrayList<>();
+    }
     public void setX(int x) {
         this.x = x;
     }

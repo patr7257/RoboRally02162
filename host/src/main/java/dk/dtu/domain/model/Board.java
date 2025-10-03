@@ -2,6 +2,9 @@ package dk.dtu.domain.model;
 
 // Author(s): William Pii Jæger
 
+import dk.dtu.domain.rules.effects.Checkpoint;
+import dk.dtu.domain.rules.effects.TileEffect;
+
 public class Board {
     private final int width;
     private final int height;
@@ -26,4 +29,5 @@ public class Board {
     }
 
     public Tile getTile(int x, int y) { return tiles[x][y]; };
+
 }

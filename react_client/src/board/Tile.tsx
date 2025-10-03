@@ -1,5 +1,6 @@
 import React from "react";
 import Robot from "./Robot";
+import { Tile as TileType, EffectDto } from "./Types";
 
 interface RobotType {
   id: number;
@@ -12,12 +13,19 @@ interface RobotType {
 interface TileProps {
   x: number;
   y: number;
-  tile: any; // Replace 'any' with a proper type if you know the tile structure
+  tile: TileType;
   robot?: RobotType | null;
   cellSize: number;
 }
 
 export default function Tile({ x, y, tile, robot, cellSize }: TileProps) {
+    console.log(`Tile at (${x},${y}):`, tile.effects);
+
+    const checkpoint = tile.effects.find(
+      (e): e is { kind: "CHECKPOINT"; number: number } => e.kind === "CHECKPOINT"
+    );
+
+
   return (
     <div
       style={{
@@ -45,6 +53,26 @@ export default function Tile({ x, y, tile, robot, cellSize }: TileProps) {
       </span>
 
       {robot && <Robot robot={robot} cellSize={cellSize} />}
+
+
+      {checkpoint && (
+        <div
+          style={{
+            position: "absolute",
+            bottom: "2px",
+            right: "2px",
+            backgroundColor: "gold",
+            color: "black",
+            fontWeight: "bold",
+            padding: "2px 4px",
+            borderRadius: "50%",
+            fontSize: Math.max(10, cellSize * 0.25),
+            zIndex: 10,
+          }}
+        >
+          {checkpoint.number}
+        </div>
+      )}
     </div>
   );
 }

@@ -38,6 +38,7 @@ public class GatewaysWsHandler extends TextWebSocketHandler {
     public void send(OutgoingMessage outgoingMessage) throws IOException {
         if (session != null && session.isOpen()) {
             String json = mapper.writeValueAsString(outgoingMessage);
+            System.out.println("Outgoing snapshot: " + json);
             session.sendMessage(new TextMessage(json));
         } else {
             throw new IllegalArgumentException("No open WebSocket session to gateway");
@@ -49,8 +50,6 @@ public class GatewaysWsHandler extends TextWebSocketHandler {
         GatewaysWsHandler.IncomingMessage msg = mapper.readValue(message.getPayload(), GatewaysWsHandler.IncomingMessage.class);
         UUID gameID = UUID.fromString(msg.gameId);
         PlayerDto player = new PlayerDto(msg.playerId);
-        GameDto game = new GameDto(gameID);
-        EventMetaDTO meta = new EventMetaDTO(game, player);
 
         GameCommand cmd = msg.toDomainCommand(mapper);
         CommandResult result = gameManager.apply(UUID.fromString(msg.gameId), cmd);
@@ -58,14 +57,19 @@ public class GatewaysWsHandler extends TextWebSocketHandler {
         Optional<Game> maybeGame = gameManager.findByID(gameID);
         if (maybeGame.isPresent()) {
             Game g = maybeGame.get();
+
+            GameDto gameDto = SnapshotMapper.mapGame(gameID,g);
+            EventMetaDTO meta = new EventMetaDTO(gameDto, player);
             BoardDto board = SnapshotMapper.toBoardDto(g.getBoard());
             List<RobotDto> robots = SnapshotMapper.mapRobots(g.getRobots());
 
-            SnapshotPayload payload = new SnapshotPayload(board, robots);
+            SnapshotPayload payload = new SnapshotPayload(gameDto,board, robots);
             OutgoingMessage out = new OutgoingMessage<>("stateSnapshot", Delivery.BROADCAST, meta, payload);
 
             session.sendMessage(new TextMessage(mapper.writeValueAsString(out)));
         } else {
+            GameDto game = new GameDto(gameID,null);
+            EventMetaDTO meta = new EventMetaDTO(game,player);
             OutgoingMessage out = new OutgoingMessage<>(
                     "error",
                     dk.dtu.infrastructure.dto.Delivery.DIRECT,

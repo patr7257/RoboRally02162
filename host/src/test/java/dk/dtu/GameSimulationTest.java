@@ -9,6 +9,7 @@ import dk.dtu.domain.rules.api.BoardAPI;
 import dk.dtu.domain.rules.api.BoardApiImpl;
 import org.junit.jupiter.api.Test;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import static dk.dtu.util.BoardTestUtils.initEmptyBoard;
@@ -20,10 +21,13 @@ class GameSimulationTest {
     @Test
     void testMoveOneInProgramPhase() {
         Board board = initEmptyBoard(3, 3);
-        BoardAPI api = new BoardApiImpl(board);
+
 
         Robot r = new Robot(1, 1, 1, Direction.E);
         r.loadProgram(List.of(ProgramCard.move1()));
+        List<Robot> robots = new ArrayList<>();
+        robots.add(r);
+        BoardAPI api = new BoardApiImpl(board,robots);
 
         Game game = new Game(board, api, List.of(r));
         game.startRound();
@@ -36,10 +40,13 @@ class GameSimulationTest {
     @Test
     void testMoveTwoInProgramPhase() {
         Board board = initEmptyBoard(5, 5);
-        BoardAPI api = new BoardApiImpl(board);
+
 
         Robot r = new Robot(1, 1, 1, Direction.E);
         r.loadProgram(List.of(new ProgramCard(ProgramCard.Action.MOVE, 2)));
+        List<Robot> robots = new ArrayList<>();
+        robots.add(r);
+        BoardAPI api = new BoardApiImpl(board,robots);
 
         Game game = new Game(board, api, List.of(r));
         game.startRound();
@@ -52,10 +59,12 @@ class GameSimulationTest {
     @Test
     void testMoveThreeInProgramPhase() {
         Board board = initEmptyBoard(5, 5);
-        BoardAPI api = new BoardApiImpl(board);
 
         Robot r = new Robot(1, 1, 1, Direction.E);
         r.loadProgram(List.of(new ProgramCard(ProgramCard.Action.MOVE, 3)));
+        List<Robot> robots = new ArrayList<>();
+        robots.add(r);
+        BoardAPI api = new BoardApiImpl(board,robots);
 
         Game game = new Game(board, api, List.of(r));
         game.startRound();
@@ -68,10 +77,12 @@ class GameSimulationTest {
     @Test
     void testMoveBackInProgramPhase() {
         Board board = initEmptyBoard(3, 3);
-        BoardAPI api = new BoardApiImpl(board);
 
         Robot r = new Robot(1, 1, 1, Direction.E);
         r.loadProgram(List.of(new ProgramCard(ProgramCard.Action.MOVE, -1)));
+        List<Robot> robots = new ArrayList<>();
+        robots.add(r);
+        BoardAPI api = new BoardApiImpl(board,robots);
 
         Game game = new Game(board, api, List.of(r));
         game.startRound();
@@ -84,10 +95,12 @@ class GameSimulationTest {
     @Test
     void testRotateRightInProgramPhase() {
         Board board = initEmptyBoard(3, 3);
-        BoardAPI api = new BoardApiImpl(board);
 
         Robot r = new Robot(1, 1, 1, Direction.E);
         r.loadProgram(List.of(new ProgramCard(ProgramCard.Action.ROTATERIGHT, 0)));
+        List<Robot> robots = new ArrayList<>();
+        robots.add(r);
+        BoardAPI api = new BoardApiImpl(board,robots);
 
         Game game = new Game(board, api, List.of(r));
         game.startRound();
@@ -100,10 +113,12 @@ class GameSimulationTest {
     @Test
     void testRotateLeftInProgramPhase() {
         Board board = initEmptyBoard(3, 3);
-        BoardAPI api = new BoardApiImpl(board);
 
         Robot r = new Robot(1, 1, 1, Direction.E);
         r.loadProgram(List.of(new ProgramCard(ProgramCard.Action.ROTATELEFT, 0)));
+        List<Robot> robots = new ArrayList<>();
+        robots.add(r);
+        BoardAPI api = new BoardApiImpl(board,robots);
 
         Game game = new Game(board, api, List.of(r));
         game.startRound();
@@ -116,10 +131,12 @@ class GameSimulationTest {
     @Test
     void testUTurnInProgramPhase() {
         Board board = initEmptyBoard(3, 3);
-        BoardAPI api = new BoardApiImpl(board);
 
         Robot r = new Robot(1, 1, 1, Direction.E);
         r.loadProgram(List.of(new ProgramCard(ProgramCard.Action.UTURN, 0)));
+        List<Robot> robots = new ArrayList<>();
+        robots.add(r);
+        BoardAPI api = new BoardApiImpl(board,robots);
 
         Game game = new Game(board, api, List.of(r));
         game.startRound();

@@ -7,6 +7,7 @@ import dk.dtu.domain.model.Direction;
 import dk.dtu.domain.model.Robot;
 import dk.dtu.domain.rules.api.BoardAPI;
 import dk.dtu.domain.rules.api.BoardApiImpl;
+import dk.dtu.domain.rules.effects.Checkpoint;
 import dk.dtu.infrastructure.SnapshotMapper;
 import dk.dtu.infrastructure.dto.BoardDto;
 import dk.dtu.infrastructure.dto.RobotDto;
@@ -38,12 +39,16 @@ public class GameController {
     @PostMapping("/startGame")
     public StartGameResponse start(@RequestBody StartGameRequest req) {
         Tile[][] tiles = new Tile[req.boardSize()][req.boardSize()];
+        for (int x = 0; x < req.boardSize(); x++) {
+            for (int y = 0; y < req.boardSize(); y++) {
+                tiles[y][x] = new Tile(y,x);
+            }
+        }
 
         Board board = new Board(req.boardSize(), req.boardSize(), tiles);
         List<Robot> robots = new ArrayList<>(5);
 
         Random rnd = new Random();
-
         for (int i = 0; i < req.amountPlayers(); i++) {
             int x = rnd.nextInt(req.boardSize());
             int y = rnd.nextInt(req.boardSize());
@@ -55,7 +60,17 @@ public class GameController {
             robots.add(new Robot(id, x, y, dir));
         }
 
-        BoardAPI boardApi = new BoardApiImpl(board);
+        for (int i = 1; i <= 3; i++) {
+            int x, y;
+            do {
+                x = rnd.nextInt(req.boardSize());
+                y = rnd.nextInt(req.boardSize());
+            } while (!tiles[x][y].getEffects().isEmpty());
+
+            tiles[x][y].addEffect(new Checkpoint(i));
+        }
+
+        BoardAPI boardApi = new BoardApiImpl(board,robots);
         UUID gameID = gameManager.startGame(board, boardApi, robots);
 
         return new StartGameResponse(gameID);

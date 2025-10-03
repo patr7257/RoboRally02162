@@ -11,6 +11,7 @@ import dk.dtu.domain.rules.api.BoardAPI;
 import dk.dtu.domain.rules.api.BoardApiImpl;
 import org.junit.jupiter.api.Test;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
@@ -24,10 +25,12 @@ class GameManagerStartGameTest {
     @Test
     void testStartRoundCommand() {
         Board board = initEmptyBoard(3, 3);
-        BoardAPI api = new BoardApiImpl(board);
+        List<Robot> robots = new ArrayList<>();
 
         Robot r = new Robot(1, 1, 1, Direction.E);
+        robots.add(r);
         r.loadProgram(List.of(ProgramCard.move1()));
+        BoardAPI api = new BoardApiImpl(board,robots);
 
         GameManager manager = new GameManager();
         UUID gid = manager.startGame(board, api, List.of(r));

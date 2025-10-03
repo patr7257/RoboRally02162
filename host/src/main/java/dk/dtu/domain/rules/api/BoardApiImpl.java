@@ -2,14 +2,19 @@ package dk.dtu.domain.rules.api;
 
 import dk.dtu.domain.model.Board;
 import dk.dtu.domain.model.Direction;
+import dk.dtu.domain.model.Robot;
+
+import java.util.List;
 
 // Author(s) William Pii Jæger
 
 public final class BoardApiImpl implements BoardAPI {
     private final Board board;
+    private final List<Robot> robots;
 
-    public BoardApiImpl(Board board) {
+    public BoardApiImpl(Board board, List<Robot> robots) {
         this.board = board;
+        this.robots = robots;
     }
 
     @Override
@@ -45,5 +50,10 @@ public final class BoardApiImpl implements BoardAPI {
         }
 
         return MoveOutcome.movedTo(x, y);
+    }
+
+    @Override
+    public List<Robot> getRobotsOnTile(int x, int y) {
+        return robots.stream().filter(r -> r.getX() == x && r.getY() == y).toList();
     }
 }

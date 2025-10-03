@@ -1,17 +1,18 @@
 package dk.dtu.infrastructure;
 
+import dk.dtu.domain.core.Game;
+import dk.dtu.domain.core.PlayerID;
 import dk.dtu.domain.model.Board;
 import dk.dtu.domain.model.Robot;
 import dk.dtu.domain.model.Tile;
-import dk.dtu.infrastructure.dto.BoardDto;
-import dk.dtu.infrastructure.dto.EffectDto;
-import dk.dtu.infrastructure.dto.RobotDto;
-import dk.dtu.infrastructure.dto.TileDto;
+import dk.dtu.domain.rules.effects.Checkpoint;
+import dk.dtu.infrastructure.dto.*;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
-// Author(s) William Pii Jæger
+// Author(s) William Pii Jæger, Weihao Mo
 
 public final class SnapshotMapper {
 
@@ -36,6 +37,15 @@ public final class SnapshotMapper {
         //for (var effect: t.getEffects()) {
         //    // We will add effects here like laser, gear ect.
         //}
+        if (t != null && t.getEffects() != null) {
+    //        System.out.println("Tile effects at snapshot: " + t.getEffects());
+            for (var effect : t.getEffects()) {
+                if (effect instanceof Checkpoint cp) {
+                    effects.add(new CheckpointDto(cp.number()));
+                }
+            }
+        }
+
         return new TileDto(List.copyOf(effects));
     }
 
@@ -45,5 +55,10 @@ public final class SnapshotMapper {
 
     public static RobotDto mapRobot(Robot r) {
         return new RobotDto(r.getId(), r.getX(), r.getY(), r.getDirection().name());
+    }
+
+    public static GameDto mapGame(UUID gameID, Game game) {
+        Integer winner = game.getWinner().map(PlayerID::value).orElse(null);
+        return new GameDto(gameID,winner);
     }
 }

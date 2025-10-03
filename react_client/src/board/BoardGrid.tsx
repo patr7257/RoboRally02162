@@ -1,16 +1,7 @@
 import React from "react";
 import Tile from "./Tile";
-import {Robot} from "./Types"
+import { Robot, Board, Tile as TileType } from "./Types";
 
-interface TileType {
-  [key: string]: any;
-}
-
-interface Board {
-  width: number;
-  height: number;
-  tiles: TileType[][];
-}
 
 interface BoardGridProps {
   board: Board;

@@ -70,6 +70,23 @@ export default function Board() {
         <button onClick={() => navigate("/")}>Go to homepage</button>
       </div>
 
+      {gameData?.game?.winner != null && (
+        <div
+          className="winner-banner"
+          style={{
+            backgroundColor: "gold",
+            padding: "12px",
+            margin: "8px 0",
+            borderRadius: "8px",
+            fontWeight: "bold",
+            fontSize: "1.2rem",
+            textAlign: "center",
+          }}
+        >
+          Player {gameData.game.winner} has won the game!
+        </div>
+      )}
+
       <BoardRenderer gameData={gameData} />
 
       <div className="controls">
