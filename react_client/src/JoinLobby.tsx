@@ -16,11 +16,13 @@ export default function JoinLobby() {
   const [lobbyId, setLobbyId] = useState<string>("");
   const [lobbies, setLobbies] = useState<Lobby[]>([]);
   const [error, setError] = useState<string>("");
+  const API_BASE_URL = process.env.REACT_APP_API_BASE_URL;
+
 
   const findLobby = async () => {
     setError("");
     try {
-      const response = await fetch("http://localhost:8080/api/lobby/seeLobbies", {
+      const response = await fetch(API_BASE_URL+"/api/lobby/seeLobbies", {
         method: "GET",
         headers: { "Content-Type": "application/json" },
       });
@@ -41,7 +43,7 @@ export default function JoinLobby() {
   const joinLobby = async (id: string):Promise<boolean>=> {
     setError("");
     try {
-      const response = await fetch("http://localhost:8080/api/lobby/join", {
+      const response = await fetch(API_BASE_URL+"/api/lobby/join", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ username: usernameInput, lobbyID: id }),

@@ -12,6 +12,8 @@ export default function RegisterComp({}: RegisterCompProps) {
   const [password, setPassword] = useState<string>("");
   const [error, setError] = useState<string>("");
   const [success, setSuccess] = useState<string>("");
+  const API_BASE_URL = process.env.REACT_APP_API_BASE_URL;
+
 
   const handleRegister = async () => {
     setError("");
@@ -20,7 +22,7 @@ export default function RegisterComp({}: RegisterCompProps) {
     try {
       const clientHash = await sha256Hex(password);
 
-      const response = await fetch("http://localhost:8080/api/users/create", {
+      const response = await fetch(API_BASE_URL+"/api/users/create", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({

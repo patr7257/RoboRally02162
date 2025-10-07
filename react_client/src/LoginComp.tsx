@@ -14,13 +14,15 @@ export default function LoginComp({ onLogin }: LoginCompProps) {
   const [usernameInput, setUsernameInput] = useState<string>("");
   const [passwordInput, setPasswordInput] = useState<string>("");
   const [error, setError] = useState<string>("");
+  const API_BASE_URL = process.env.REACT_APP_API_BASE_URL;
+
 
   const handleLogin = async () => {
     setError("");
     try {
       const clientHash = await sha256Hex(passwordInput);
 
-      const response = await fetch("http://localhost:8080/api/users/login", {
+      const response = await fetch(API_BASE_URL+"/api/users/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({

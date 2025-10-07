@@ -11,6 +11,9 @@ export default function Lobby() {
   const usernameInput: string | null = localStorage.getItem("username");
   const [lobbyId, setLobbyId] = useState<string>(localStorage.getItem("id") || "");
   const [error, setError] = useState<string>("");
+  const API_BASE_URL = process.env.REACT_APP_API_BASE_URL;
+
+  
 
   useEffect(() => {
     setLobbyId("");
@@ -20,7 +23,7 @@ export default function Lobby() {
   const createLobby = async () => {
     setError("");
     try {
-      const response = await fetch("http://localhost:8080/api/lobby/create", {
+      const response = await fetch(API_BASE_URL+"/api/lobby/create", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ username: usernameInput }),

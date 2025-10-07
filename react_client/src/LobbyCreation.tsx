@@ -7,11 +7,13 @@ import Layout from "./Layout";
 import React, { useState } from "react";
 import { subscribe } from "./ws";
 
+
 export default function LobbyCreation() {
   const navigate = useNavigate();
   const usernameInput: string | null = localStorage.getItem("username");
   const [lobbyId, setLobbyId] = useState<string>(localStorage.getItem("id") || "");
   const [error, setError] = useState<string>("");
+  const API_BASE_URL = process.env.REACT_APP_API_BASE_URL;
 
   const unsubscribe = subscribe((message: string) => {
     console.log("Received message:", message);
@@ -32,7 +34,7 @@ export default function LobbyCreation() {
   const startGame = async () => {
     setError("");
     try {
-      const response = await fetch("http://localhost:8080/api/lobby/start", {
+      const response = await fetch(API_BASE_URL+'/api/lobby/start', {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ lobbyID: lobbyId }),
@@ -47,7 +49,7 @@ export default function LobbyCreation() {
     setError("");
     try
      {
-      const response = await fetch("http://localhost:8080/api/lobby/leave", {
+      const response = await fetch(API_BASE_URL+"/api/lobby/leave", {
         method: "POST",
         headers: {"Content-Type":"application/json"},
         body: JSON.stringify({lobbyID: lobbyId, username:usernameInput}),
