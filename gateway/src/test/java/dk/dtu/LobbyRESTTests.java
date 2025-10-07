@@ -1,7 +1,7 @@
 package dk.dtu;
 
 /*
-Author(s): Karl
+Author(s): Karl, Benjamin
  */
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -559,6 +559,48 @@ public class LobbyRESTTests {
         //check that ID's are 1 and 2
         assertThat(ids).containsOnly("1","2");
 
+    }
+
+    @Test
+    public void usernameIsEmptyTest() throws Exception {
+        //create and login user
+        String username1 = "TestUser1";
+        String token1 = createAndLoginUser(username1);
+        Thread.sleep(50);
+        WebSocketSession wsSession1 = connectWebSocket(token1);
+        Thread.sleep(50);
+
+        String lobbyID = mockMvc.perform(post("/api/lobby/create")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(mapper.writeValueAsString(Map.of("username",""))))
+                .andExpect(status().isForbidden())
+                .andExpect(content().string(Matchers.notNullValue()))
+                .andReturn()
+                .getResponse()
+                .getContentAsString();
+
+        assertThat(lobbyID).isEqualTo("USERNAME_IS_NULL");
+    }
+
+    @Test
+    public void clientIsNullTest() throws Exception {
+        //create and login user
+        String username1 = "TestUser1";
+        String token1 = createAndLoginUser(username1);
+        Thread.sleep(50);
+        WebSocketSession wsSession1 = connectWebSocket(token1);
+        Thread.sleep(50);
+
+        String lobbyID = mockMvc.perform(post("/api/lobby/create")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(mapper.writeValueAsString(Map.of("username","testUser2"))))
+                .andExpect(status().isForbidden())
+                .andExpect(content().string(Matchers.notNullValue()))
+                .andReturn()
+                .getResponse()
+                .getContentAsString();
+
+        assertThat(lobbyID).isEqualTo("CLIENT_IS_NULL");
     }
 
     private String createAndLoginUser(String username) throws Exception {

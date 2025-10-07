@@ -1,5 +1,9 @@
 package dk.dtu.web;
 
+/*
+Author(s): Karl, Benjamin, Niklas
+ */
+
 import com.fasterxml.jackson.databind.JsonNode;
 import dk.dtu.dto.OperationResult;
 import dk.dtu.model.Client;
@@ -22,13 +26,18 @@ public class LobbyAPI {
     @PostMapping("/lobby/create") // returns lobbyID.
     public ResponseEntity<String> createLobby(@RequestBody JsonNode json) { // TODO: add authorization
         String username = json.get("username").asText();
+        if(username.isEmpty()){
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body("USERNAME_IS_NULL");
+        }
         Client creator = serverRegistry.getClients().get(username); // TODO: make check that person is connected to websocket (essentially
+        if(creator == null){
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body("CLIENT_IS_NULL");
+        }
         // check if in clients
 
         Lobby lob = LobbyFactory.createLobby(creator, serverRegistry.getHost());
         serverRegistry.getLobbies().put(lob.getLobbyID(), lob);
-        return ResponseEntity.status(HttpStatus.CREATED).body(lob.getLobbyID().toString());
-        // TODO: add error checking
+        return ResponseEntity.status(HttpStatus.CREATED).body(lob.getLobbyID());
     }
 
     @PostMapping("/lobby/join")
