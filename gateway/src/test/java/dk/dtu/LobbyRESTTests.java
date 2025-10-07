@@ -10,7 +10,9 @@ import dk.dtu.interfaces.UserDatabase;
 import dk.dtu.model.Lobby;
 import dk.dtu.shared.ServerRegistry;
 import org.hamcrest.Matchers;
+import org.junit.Before;
 import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
@@ -45,6 +47,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @Import(HostConfig.class)
 @AutoConfigureMockMvc
 public class LobbyRESTTests {
+
     @Autowired
     private MockMvc mockMvc;
 
@@ -62,7 +65,6 @@ public class LobbyRESTTests {
 
     @LocalServerPort
     int port;
-
 
     @Test
     public void testCreateLobby() throws Exception {
@@ -259,7 +261,7 @@ public class LobbyRESTTests {
 
         Map<String, Object> joinBody = new HashMap<>();
         joinBody.put("username", clientUser);
-        joinBody.put("lobbyID", "");
+        joinBody.put("lobbyID", "-1");
 
         mockMvc.perform(post("/api/lobby/join")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -484,6 +486,7 @@ public class LobbyRESTTests {
         Assertions.assertNull(lob);
     }
 
+
     @Test
     public void leaveLobbyPlayerIDTests() throws Exception {
         //create and login user
@@ -562,7 +565,7 @@ public class LobbyRESTTests {
     }
 
     @Test
-    public void usernameIsEmptyTest() throws Exception {
+    public void createUsernameIsEmptyTest() throws Exception {
         //create and login user
         String username1 = "TestUser1";
         String token1 = createAndLoginUser(username1);
@@ -579,12 +582,11 @@ public class LobbyRESTTests {
                 .getResponse()
                 .getContentAsString();
 
-        assertThat(lobbyID).isEqualTo("USERNAME_IS_NULL");
+        assertThat(lobbyID).isEqualTo("USERNAME_IS_EMPTY");
     }
 
     @Test
-    public void clientIsNullTest() throws Exception {
-        //create and login user
+    public void createClientIsNullTest() throws Exception {
         String username1 = "TestUser1";
         String token1 = createAndLoginUser(username1);
         Thread.sleep(50);
@@ -601,6 +603,133 @@ public class LobbyRESTTests {
                 .getContentAsString();
 
         assertThat(lobbyID).isEqualTo("CLIENT_IS_NULL");
+    }
+
+    @Test
+    public void joinLobbyIDIsEmptyTest() throws Exception{
+        String username1 = "TestUser1";
+        String token1 = createAndLoginUser(username1);
+        Thread.sleep(50);
+        WebSocketSession wsSession1 = connectWebSocket(token1);
+        Thread.sleep(50);
+
+        String lobbyID = mockMvc.perform(post("/api/lobby/create")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(mapper.writeValueAsString(Map.of("username",username1))))
+                .andExpect(status().isCreated())
+                .andExpect(content().string(Matchers.notNullValue()))
+                .andReturn()
+                .getResponse()
+                .getContentAsString();
+
+        Map<String, Object> joinBody = new HashMap<>();
+        joinBody.put("username", username1);
+        joinBody.put("lobbyID", "");
+        String msg = mockMvc.perform(post("/api/lobby/join")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(mapper.writeValueAsString(joinBody)))
+                .andExpect(status().isForbidden()).andReturn().getResponse().getContentAsString();
+
+        assertThat(msg).isEqualTo("LOBBY_ID_IS_EMPTY");
+
+    }
+
+    @Test
+    public void joinLobbyUsernameIsEmptyTest() throws Exception{
+        String username1 = "TestUser1";
+        String token1 = createAndLoginUser(username1);
+        Thread.sleep(50);
+        WebSocketSession wsSession1 = connectWebSocket(token1);
+        Thread.sleep(50);
+
+        String lobbyID = mockMvc.perform(post("/api/lobby/create")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(mapper.writeValueAsString(Map.of("username", username1))))
+                .andExpect(status().isCreated())
+                .andExpect(content().string(Matchers.notNullValue()))
+                .andReturn()
+                .getResponse()
+                .getContentAsString();
+
+        Map<String, Object> joinBody = new HashMap<>();
+        joinBody.put("username", "");
+        joinBody.put("lobbyID", lobbyID);
+        String msg = mockMvc.perform(post("/api/lobby/join")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(mapper.writeValueAsString(joinBody)))
+                .andExpect(status().isForbidden()).andReturn().getResponse().getContentAsString();
+
+        assertThat(msg).isEqualTo("USERNAME_IS_EMPTY");
+
+    }
+
+    @Test
+    public void joinLobbyIsFull() throws Exception{
+
+        int maxPlayers = 6;
+        String usernamePrefix = "TestUser";
+        List<WebSocketSession> sessions = new ArrayList<>();
+
+
+        //create and login user
+
+        String token1 = createAndLoginUser(usernamePrefix + "1");
+        Thread.sleep(50);
+        WebSocketSession wsSession1 = connectWebSocket(token1);
+        Thread.sleep(50);
+        sessions.add((wsSession1));
+
+        //create lobby
+        String lobbyID = mockMvc.perform(post("/api/lobby/create")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(mapper.writeValueAsString(Map.of("username", usernamePrefix + "1"))))
+                .andExpect(status().isCreated())
+                .andExpect(content().string(Matchers.notNullValue()))
+                .andReturn()
+                .getResponse()
+                .getContentAsString();
+
+        for (int i = 2; i <= maxPlayers; i++){
+            String username = usernamePrefix + i;
+            String token = createAndLoginUser(username);
+            Thread.sleep(50);
+            WebSocketSession wsSession = connectWebSocket(token);
+            Thread.sleep(50);
+            sessions.add(wsSession);
+
+            Map<String, Object> joinBody = new HashMap<>();
+            joinBody.put("username", username);
+            joinBody.put("lobbyID", lobbyID);
+            mockMvc.perform(post("/api/lobby/join")
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(mapper.writeValueAsString(joinBody)))
+                    .andExpect(status().isCreated())
+                    .andExpect(content().string(lobbyID));
+        }
+
+        String token7 = createAndLoginUser(usernamePrefix + "7");
+        WebSocketSession wsSession7 = connectWebSocket(token7);
+
+        Map<String, Object> joinBody7 = new HashMap<>();
+        joinBody7.put("username", usernamePrefix + "7");
+        joinBody7.put("lobbyID", lobbyID);
+
+        String msg7 = mockMvc.perform(post("/api/lobby/join")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(mapper.writeValueAsString(joinBody7)))
+                .andExpect(status().isForbidden())
+                .andReturn()
+                .getResponse()
+                .getContentAsString();
+
+        assertThat(msg7).isEqualTo("LOBBY_IS_FULL");
+
+        for (WebSocketSession session : sessions) {
+            session.close();
+        }
+        wsSession7.close();
+
+
     }
 
     private String createAndLoginUser(String username) throws Exception {

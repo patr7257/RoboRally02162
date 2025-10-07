@@ -27,7 +27,7 @@ public class LobbyAPI {
     public ResponseEntity<String> createLobby(@RequestBody JsonNode json) { // TODO: add authorization
         String username = json.get("username").asText();
         if(username.isEmpty()){
-            return ResponseEntity.status(HttpStatus.FORBIDDEN).body("USERNAME_IS_NULL");
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body("USERNAME_IS_EMPTY");
         }
         Client creator = serverRegistry.getClients().get(username); // TODO: make check that person is connected to websocket (essentially
         if(creator == null){
@@ -43,19 +43,28 @@ public class LobbyAPI {
     @PostMapping("/lobby/join")
     public ResponseEntity<String> joinLobby(@RequestBody JsonNode json) {
         String lobbyID = json.get("lobbyID").asText();
+        if(lobbyID.isEmpty()){
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body("LOBBY_ID_IS_EMPTY");
+        }
         // UUID lobbyID = UUID.fromString(json.get("lobbyID").asText());
         Lobby lob = serverRegistry.getLobbies().get(lobbyID);
         if (lob == null) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body("LOBBY_NOT_FOUND");
         }
         String username = json.get("username").asText();
-        // TODO: add error handling
-
+        if(username.isEmpty()){
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body("USERNAME_IS_EMPTY");
+        }
 
         Client client = serverRegistry.getClients().get(username);
         if (client == null) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body("USER_NOT_CONNECTED");
         }
+
+        if(lob.isOccupied()){
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body("LOBBY_IS_FULL");
+        }
+
         OperationResult result = lob.addPlayer(client);
         if ("success".equals(result.getStatus())) {
             return ResponseEntity.status(HttpStatus.CREATED).body(lob.getLobbyID().toString());
@@ -64,8 +73,6 @@ public class LobbyAPI {
         } else {
             return ResponseEntity.status(HttpStatus.CONFLICT).body("UNKNOWN_ERROR");
         }
-        // TODO: add check if lobby is full and return success/failure message
-        // success message
     }
 
     @PostMapping("/lobby/start") // TODO: add check that websocket connection is running

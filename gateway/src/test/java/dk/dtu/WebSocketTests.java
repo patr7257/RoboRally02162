@@ -226,8 +226,9 @@ public class WebSocketTests {
 
         WebSocketMessage<String> message = new TextMessage(json.toString());
 
+        Thread.sleep(50);
         server.getHostHandler().handleMessage(mockSession, message);
-
+        Thread.sleep(50);
 
         ArgumentCaptor<ObjectNode> captor = ArgumentCaptor.forClass(ObjectNode.class);
         verify(mockClient1,times(2)).handleMessage(captor.capture());

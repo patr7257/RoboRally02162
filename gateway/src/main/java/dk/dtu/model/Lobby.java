@@ -1,7 +1,7 @@
 package dk.dtu.model;
 
 /*
-Author(s): Niklas, Karl
+Author(s): Niklas, Karl, Benjamin
  */
 
 import com.fasterxml.jackson.databind.JsonNode;
@@ -160,5 +160,8 @@ public class Lobby {
         return new ArrayList<> (userToPlayer.values());
     }
 
+    public boolean isOccupied(){
+        return players.size() >= 6; // TODO: We need to ask the host for this number
+    }
 
 }
