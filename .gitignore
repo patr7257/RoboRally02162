@@ -5,3 +5,4 @@
 .idea
 .vscode
 node_modules
+gateway/src/main/java/dk/dtu/config/CorsConfig.java
