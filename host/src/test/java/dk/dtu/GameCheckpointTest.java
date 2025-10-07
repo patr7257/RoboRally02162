@@ -126,7 +126,7 @@ class GameCheckpointTest {
         assertEquals(2, r1.getY());
         assertEquals(2,r2.getX());
         assertEquals(2, r2.getY());
-        assertEquals(2, r1.getNextCheckpoint());
+        assertEquals(3, r1.getNextCheckpoint());
         assertEquals(1, r2.getNextCheckpoint());
         assertTrue(game.getWinner().isEmpty());
         assertNull(observedWinner.get());

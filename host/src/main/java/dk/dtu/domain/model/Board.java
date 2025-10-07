@@ -28,6 +28,10 @@ public class Board {
         return tiles;
     }
 
+    public boolean isInBounds(int x, int y) {
+        return x >= 0 && y >= 0 && x < width && y < height;
+    }
+
     public Tile getTile(int x, int y) { return tiles[x][y]; };
 
 }

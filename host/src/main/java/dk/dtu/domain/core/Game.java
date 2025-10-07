@@ -1,9 +1,13 @@
 package dk.dtu.domain.core;
 
 import dk.dtu.domain.model.Board;
+import dk.dtu.domain.model.Direction;
 import dk.dtu.domain.model.Tile;
 import dk.dtu.domain.model.Robot;
 import dk.dtu.domain.program.ProgramOP;
+import dk.dtu.domain.rules.DestroyEvent;
+import dk.dtu.domain.rules.MoveEvent;
+import dk.dtu.domain.rules.Outcome;
 import dk.dtu.domain.rules.api.BoardAPI;
 import dk.dtu.domain.rules.api.MoveOutcome;
 import dk.dtu.domain.rules.effects.Checkpoint;
@@ -21,6 +25,7 @@ public class Game {
     // We iterate over these tile effects, added it so we don't forget
     private final Map<Phase, List<Tile>> phaseIndex;
     private final List<Robot> robots;
+    private final Map<Integer, Robot> robotsMap;
     private final Map<PlayerID, Robot> robotMap = new HashMap<>();
 
     private PlayerID winner;
@@ -37,6 +42,10 @@ public class Game {
             this.robotMap.put(new PlayerID(playerCounter), r);
             playerCounter++;
         }
+        this.robotsMap = new HashMap<>();
+        for (Robot robot : robots) {
+            this.robotsMap.put(robot.getId(), robot);
+        }
         this.phaseIndex = buildPhaseIndex(board.getCells());
     }
 
@@ -47,6 +56,7 @@ public class Game {
             for (Tile tile : value) {
                 if (tile == null) continue;
                 for (TileEffect effect : tile.getEffects()) {
+                    if (effect.phases() == null) continue;
                     for (Phase phase : effect.phases()) {
                         phaseIndex.computeIfAbsent(phase, k -> new ArrayList<>()).add(tile);
                     }
@@ -112,28 +122,48 @@ public class Game {
         return count;
     }
 
+    private boolean applyOneStep(BoardAPI api, Robot r, Direction dir) {
+        Outcome out = api.tryMoveOneStep(r.getId(), dir);
+        if (out instanceof Outcome.Moved moved) {
+            for (MoveEvent e : moved.moves()) {
+                robotsMap.get(e.robotId()).setPosition(e.to().x(), e.to().y());
+            }
+            for (DestroyEvent d : moved.destroys()) {
+                // we should mark dead here, for now I just set pos.
+                robotsMap.get(d.robotId()).setPosition(d.at().x(), d.at().y());
+            }
+            return true;
+        }
+        if (out instanceof Outcome.Blocked b) {
+            return false;
+        }
+        return false;
+    }
+
     private void executeProgramCards() {
         boolean anyOpsLeft;
         do {
             anyOpsLeft = false;
             for (Robot r : robots) {
                 ProgramOP op = r.pollNextOp();
-                if (op != null) {
-                    anyOpsLeft = true;
-                    if (op instanceof ProgramOP.Move m) {
-                        MoveOutcome out = api.tryMove(r.getX(), r.getY(), r.getDirection(), m.steps());
-                        if (out.moved()) {
-                            r.setX(out.toX());
-                            r.setY(out.toY());
-                        }
+                if (op == null) continue;
+
+                anyOpsLeft = true;
+
+                if (op instanceof ProgramOP.Move(int steps)) {
+                    Direction dir = r.getDirection();
+                    if (steps < 0) { dir = dir.opposite(); steps = -steps; }
+                    while (steps-- > 0) {
+                        boolean ok = applyOneStep(api, r, dir);
+                        if (!ok) break;
                     }
-                    if (op instanceof ProgramOP.RotateLeft || op instanceof ProgramOP.RotateRight || op instanceof ProgramOP.UTurn) {
-                        r.setDirection(op.apply(r.getDirection()));
-                    }
+                } else {
+                    r.setDirection(op.apply(r.getDirection()));
                 }
             }
         } while (anyOpsLeft);
     }
+
 
     public void addObserver(GameObserver observer) {
         observers.add(observer);

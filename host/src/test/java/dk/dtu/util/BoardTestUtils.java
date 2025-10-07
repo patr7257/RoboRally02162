@@ -15,18 +15,19 @@ public final class BoardTestUtils {
     }
 
     public static Tile[][] initEmptyCells(int width, int height) {
-        Tile[][] tiles = new Tile[height][width];
-        for (int y = 0; y < height; y++) {
-            for (int x = 0; x < width; x++) {
-                Tile c = new Tile(y,x);
+        Tile[][] tiles = new Tile[width][height];
+        for (int x = 0; x < width; x++) {
+            for (int y = 0; y < height; y++) {
+                Tile c = new Tile(y, x);
                 c.setX(x);
                 c.setY(y);
                 c.setEffects(Collections.emptyList());
-                tiles[y][x] = c;
+                tiles[x][y] = c;
             }
         }
         return tiles;
     }
+
 
     public static Board initEmptyBoard(int width, int height) {
         return new Board(width, height, initEmptyCells(width, height));

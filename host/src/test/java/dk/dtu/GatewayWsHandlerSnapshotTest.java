@@ -43,8 +43,8 @@ public class GatewayWsHandlerSnapshotTest {
         Board board = BoardTestUtils.initEmptyBoard(3, 3);
 
         Robot r = new Robot(1, 1, 1, Direction.E);
-        List<Robot> robots = new ArrayList<>();
-        BoardAPI api = new BoardApiImpl(board,robots);
+
+        BoardAPI api = new BoardApiImpl(board,List.of(r));
 
         manager = new GameManager();
         gameId = manager.startGame(board, api, List.of(r));
