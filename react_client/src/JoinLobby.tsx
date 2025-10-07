@@ -1,5 +1,5 @@
 /*
-Author(s): Bjarke
+Author(s): Bjarke, Niklas
 */
 import { useNavigate } from "react-router-dom";
 import Layout from "./Layout";
@@ -38,7 +38,7 @@ export default function JoinLobby() {
     }
   };
 
-  const joinLobby = async (id: string) => {
+  const joinLobby = async (id: string):Promise<boolean>=> {
     setError("");
     try {
       const response = await fetch("http://localhost:8080/api/lobby/join", {
@@ -49,16 +49,23 @@ export default function JoinLobby() {
 
       const data = await response.text();
       console.log("data received: " + data);
-
+      
       if (response.status === 201) {
         localStorage.setItem("id", data);
         setLobbyId(id);
-      } else {
+        return true;
+      } else  if (response.status === 403) { //FORBIDDEN
+          setError("Lobby is locked, unable to join.");
+          return false;
+      }
+      else{
         setError("An error occurred. Try again.");
+        return false;
       }
     } catch (err) {
       console.error("Join error:", err);
       setError("Network error. Try again.");
+      return false;
     }
   };
 
@@ -110,8 +117,9 @@ export default function JoinLobby() {
                   <button
                     style={{ padding: 10 }}
                     onClick={async () => {
-                      await joinLobby(lobby.lobbyID);
+                      if (await joinLobby(lobby.lobbyID)) {
                       navigate("/lobbyCreationScene");
+                      }
                     }}
                   >
                     Join
