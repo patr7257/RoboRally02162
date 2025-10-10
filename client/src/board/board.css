@@ -1,0 +1,116 @@
+.board-empty {
+  text-align: center;
+  padding: 20px;
+}
+
+:root {
+  --tile-font-ratio: 0.3;
+}
+
+.board-wrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin: 20px 0;
+}
+
+.board-info {
+  margin-bottom: 10px;
+}
+
+.board-grid {
+  border: 2px solid #333;
+  background-color: #ccc;
+  gap: 1px;
+  display: grid;
+}
+
+.tile {
+  background-color: #f9f9f9;
+  border: 1px solid #ddd;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  box-sizing: border-box;
+  font-size: calc(var(--tile-size) * var(--tile-font-ratio));
+}
+
+.tile-coords {
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  font-size: calc(var(--tile-size) * 0.15);
+  color: #666;
+}
+
+.robot {
+  text-align: center;
+  color: white;
+  font-weight: bold;
+  width: calc(var(--tile-size) * 0.8);
+  height: calc(var(--tile-size) * 0.8);
+  border-radius: 50%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.robot-arrow {
+  font-size: calc(var(--tile-size) * 0.4);
+}
+
+.robot-id {
+  font-size: calc(var(--tile-size) * 0.2);
+}
+
+.tile-effect {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.checkpoint {
+  position: absolute;
+  bottom: 2px;
+  right: 2px;
+  background-color: gold;
+  color: black;
+  font-weight: bold;
+  padding: 2px 4px;
+  border-radius: 50%;
+  font-size: calc(var(--tile-size) * 0.25);
+  z-index: 10;
+}
+.wall {
+  /*TODO*/
+}
+.wall-up {
+  /*TODO*/
+}
+.wall-down {
+  /*TODO*/
+}
+.wall-left {
+  /*TODO*/
+} 
+.wall-right {
+  /*TODO*/
+}
+.conveyor {
+  /*TODO*/
+}
+.more-effects {
+  /*TODO*/
+}
+
+.winner-banner {
+  background-color: gold;
+  padding: 12px;
+  margin: 8px 0;
+  border-radius: 8px;
+  font-weight: bold;
+  font-size: 1.2rem;
+  text-align: center;
+}

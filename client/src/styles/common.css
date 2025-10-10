@@ -1,0 +1,81 @@
+:root {
+  --bg: #282c34;
+  --accent: #61dafb;
+  --accent-strong: #21a1f1;
+  --muted: #666;
+  --card-bg: #f9f9f9;
+  --border: #ddd;
+  --gold: gold;
+
+  --space-xs: 4px;
+  --space-sm: 8px;
+  --space-md: 12px;
+  --space-lg: 20px;
+  --radius-md: 8px;
+
+  --base-font: 16px;
+  --font-family: -apple-system, system-ui, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+}
+
+html, body, #root { height: 100%; }
+body {
+  margin: 0;
+  font-family: var(--font-family);
+  font-size: var(--base-font);
+  color: white;
+  background: var(--bg);
+}
+
+.container { width: 100%; max-width: 1200px; margin: 0 auto; padding: 0 var(--space-md); }
+
+.btn { padding: 0.6rem 1rem; border-radius: var(--radius-md); border: none; cursor: pointer; font-weight: 600; }
+.btn-primary { background: var(--accent); color: var(--bg); }
+.btn-primary:hover { background: var(--accent-strong); }
+
+.big-button {
+  padding: 15px 30px;
+  width: 200px;
+  font-size: 1.2rem;
+  font-weight: bold;
+  border: none;
+  border-radius: 8px;
+  background-color: var(--accent);
+  color: var(--bg);
+  cursor: pointer;
+  transition: transform 0.2s, background-color 0.2s;
+}
+.big-button:hover { background-color: var(--accent-strong); transform: scale(1.05); }
+.big-button:active { transform: scale(0.98); }
+
+.button-container { display:flex; flex-direction:column; gap:20px; margin-top:30px; align-items:center; }
+
+.wide-button { width: 200px; }
+
+.flex-col-center { display:flex; flex-direction:column; align-items:center; gap:var(--space-md); }
+.text-center { text-align:center; }
+.m-b-lg { margin-bottom: var(--space-lg); }
+
+.auth-container { display:flex; gap:40px; margin-top:40px; }
+
+.sr-only { position:absolute !important; height:1px; width:1px; overflow:hidden; clip:rect(1px,1px,1px,1px); white-space:nowrap; }
+
+.cell { position: relative; }
+.effect-wrapper { position: absolute; inset: 0; }
+
+.effect-wrapper.kind-checkpoint { pointer-events: none; }
+.checkpoint-badge {
+  position: absolute;
+  bottom: var(--space-xs);
+  left: var(--space-xs);
+  z-index: 2;
+
+  min-width: calc(var(--cell-size) * 0.3);
+  min-height: calc(var(--cell-size) * 0.3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border-radius: 10%;
+  font-weight: 700;
+  background: orange;
+}

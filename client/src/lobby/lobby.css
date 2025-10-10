@@ -1,0 +1,60 @@
+/* Styles specific to lobby area components */
+
+.lobby-actions {
+	margin-top: 50px;
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	gap: 12px;
+}
+
+.lobbies-list {
+	max-height: 200px;
+	overflow-y: auto;
+	margin-top: 20px;
+	padding: 0px;
+	border: 1px solid rgba(255,255,255,0.08);
+	border-radius: 8px;
+	width: 350px;
+}
+
+.lobbies-list ul {
+	list-style: none;
+	padding: 0;
+	margin: 0;
+}
+
+.lobbies-list li {
+	padding: 8px;
+	margin-bottom: 0px;
+	background: #282c34;
+	border-radius: 6px;
+	text-align: center;
+}
+
+.join-button {
+	padding: 10px;
+	margin-left: 8px;
+}
+
+.lobbyContainer {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+}
+
+.error-text {
+	color: red;
+}
+
+.success-text {
+	color: green;
+}
+
+.login-container, .register-container {
+	display: flex;
+	flex-direction: column;
+	gap: 8px;
+	align-items: center;
+}
+

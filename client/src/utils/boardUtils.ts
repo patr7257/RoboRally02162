@@ -1,0 +1,38 @@
+/*
+Author(s): Bjarke, Asger, Patrick
+*/
+
+
+import { Direction, Robot, DIRECTION_ARROWS, ROBOT_COLORS } from "../types/boardTypes"
+
+export const getFacingArrow = (facing: Direction): string =>
+  DIRECTION_ARROWS[facing] || "●";
+
+export const getRobotColor = (id: number): string =>
+  ROBOT_COLORS[(id - 1) % ROBOT_COLORS.length];
+
+export const getRobotAtPosition = (
+  robots: Robot[],
+  x: number,
+  y: number
+): Robot | null => robots.find((robot) => robot.x === x && robot.y === y) || null;
+
+export const calculateBoardSize = (
+  boardWidth: number,
+  boardHeight: number
+): { tileSize: number; boardWidth: number; boardHeight: number } => {
+  const viewportWidth = window.innerWidth;
+  const viewportHeight = window.innerHeight;
+  const availableWidth = viewportWidth * 0.7;
+  const availableHeight = viewportHeight * 0.7;
+
+  const tileSizeByWidth = availableWidth / boardWidth;
+  const tileSizeByHeight = availableHeight / boardHeight;
+  const tileSize = Math.min(tileSizeByWidth, tileSizeByHeight, 60);
+
+  return {
+    tileSize: Math.floor(tileSize),
+    boardWidth: boardWidth * Math.floor(tileSize),
+    boardHeight: boardHeight * Math.floor(tileSize),
+  };
+};
