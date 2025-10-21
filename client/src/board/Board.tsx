@@ -9,6 +9,7 @@ import { MoveType, GameData } from "../types";
 import { WinnerBanner } from "./WinnerBanner";
 import { BoardRenderer } from "./BoardRenderer";
 import { MoveSelector } from "./MoveSelector";
+import { leaveLobby } from '../lobby/LeaveLobby';
 
 export default function Board() {
     const navigate = useNavigate();
@@ -60,7 +61,7 @@ export default function Board() {
         <div className="board-root">
             <div className="navigation">
                 <h1>Board Scene</h1>
-                <button onClick={() => navigate("/")}>Go to homepage</button>
+                <button onClick={() => {leaveLobby(lobbyId,localStorage.getItem("username"),null);navigate("/")}}>Go to homepage</button>
             </div>
 
             {gameData?.game?.winner != null && (

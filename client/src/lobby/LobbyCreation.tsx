@@ -6,7 +6,7 @@ import { useNavigate } from "react-router-dom";
 import Layout from "./Layout";
 import React, { useState } from "react";
 import { subscribe } from "../utils/ws";
-
+import { leaveLobby } from './LeaveLobby';
 export default function LobbyCreation() {
   const navigate = useNavigate();
   const usernameInput: string | null = localStorage.getItem("username");
@@ -44,22 +44,7 @@ export default function LobbyCreation() {
     }
   };
 
-  const leaveLobby = async () => {
-    setError("");
-    try 
-    {
-      // TODO: ensure server verifies caller is the lobby owner before deleting
-      // Right now anyone can delete any lobby 
-      const response = await fetch(API_BASE_URL+"/api/lobby/leave", {
-        method: "POST",
-        headers: {"Content-Type":"application/json"},
-        body: JSON.stringify({lobbyID: lobbyId, username:usernameInput}),
-      });
-     } catch (err) {
-      console.error("leave lobby error:",err);
-      setError("Network error. Try Again.");
-     }
-  }
+ 
 
   return (
     <Layout>
@@ -74,7 +59,7 @@ export default function LobbyCreation() {
           Back to lobbies
         </button>
         
-        <button className="big-button" onClick={async () => { await leaveLobby(); navigate("/lobbyScene"); }}>
+        <button className="big-button" onClick={async () => { await leaveLobby(lobbyId,usernameInput,setError); navigate("/lobbyScene"); }}>
           Leave Lobby (exit)
         </button>
       </div>

@@ -49,11 +49,16 @@ public class Lobby {
     } //TODO: handle maps
     public OperationResult removeClientByUID (String uid) { //TODO: change to be UUID
         if (players.remove(uid) == null) {
+
             return new OperationResult("user_not_in_lobby");
         } else {
             if (players.isEmpty()) {
                 return new OperationResult("lobby_empty");
             }
+
+            String playerID = userToPlayer.get(uid);
+            playerToUser.remove(playerID);
+            userToPlayer.remove(uid);
             return  new OperationResult("success");
         }
 
@@ -97,6 +102,7 @@ public class Lobby {
             case "DIRECT":
                 String playerID = json.get("meta").get("player").get("playerID").asText();
                 String userID = playerToUser.get(playerID); //TODO: change to UUID
+                if (userID==null) { return;} // in case player has disconnected
                 Client client = players.get(userID);
                 client.handleMessage(root);
                 break;
