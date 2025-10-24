@@ -10,6 +10,7 @@ import dk.dtu.domain.model.Robot;
 import dk.dtu.domain.program.ProgramCard;
 import dk.dtu.domain.rules.api.BoardAPI;
 import dk.dtu.domain.rules.api.BoardApiImpl;
+import dk.dtu.support.NoDelayPacer;
 import org.junit.jupiter.api.Test;
 
 import java.util.ArrayList;
@@ -52,20 +53,21 @@ class GameObserverMockTest {
         List<Robot> robots = new ArrayList<>();
         robots.add(r);
 
+        NoDelayPacer pacer = new NoDelayPacer();
         BoardAPI api = new BoardApiImpl(board, robots);
-        //GameManager manager = new GameManager();
+        GameManager manager = new GameManager(pacer);
 
-//        UUID gameId = manager.startGame(board, api, robots);
-//        Game game = manager.findByID(gameId).orElseThrow();
+        UUID gameId = manager.startGame(board, api, robots);
+        Game game = manager.findByID(gameId).orElseThrow();
 
         PlayerID winner = new PlayerID(1);
-//        game.declareWinner(winner);
+        game.declareWinner(winner);
 
-//        Optional<Game> found = manager.findByID(gameId);
-//
-//        assertTrue(found.isPresent());
-//        assertTrue(found.get().getWinner().isPresent());
-//        assertEquals(winner, found.get().getWinner().get());
+        Optional<Game> found = manager.findByID(gameId);
+
+        assertTrue(found.isPresent());
+        assertTrue(found.get().getWinner().isPresent());
+       assertEquals(winner, found.get().getWinner().get());
 
     }
 }
