@@ -15,6 +15,8 @@ import java.util.concurrent.atomic.AtomicReference;
 import static dk.dtu.util.BoardTestUtils.*;
 import static org.junit.jupiter.api.Assertions.*;
 
+// Author(s) Weihao Mo
+
 class GameCheckpointTest {
     @Test
     void robotWinsAfterCompletingCheckpointsInOrder() {

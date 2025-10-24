@@ -16,6 +16,8 @@ import java.util.UUID;
 
 import static org.mockito.Mockito.*;
 
+// Author(s) William Pii Jæger
+
 class GameWsHandlerTest {
 
     private ObjectMapper mapper;

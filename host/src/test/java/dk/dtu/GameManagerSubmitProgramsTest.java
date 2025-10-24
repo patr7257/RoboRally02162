@@ -18,6 +18,8 @@ import java.util.UUID;
 import static dk.dtu.util.BoardTestUtils.initEmptyBoard;
 import static org.junit.jupiter.api.Assertions.*;
 
+// Author(s) Weihao Mo
+
 class GameManagerSubmitProgramsTest {
 
     @Test

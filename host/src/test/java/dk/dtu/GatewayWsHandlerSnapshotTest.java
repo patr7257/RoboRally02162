@@ -23,6 +23,9 @@ import java.util.UUID;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
+
+// Author(s) Weihao Mo, William Pii Jæger
+
 public class GatewayWsHandlerSnapshotTest {
     private final ObjectMapper mapper = new ObjectMapper();
 

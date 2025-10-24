@@ -17,6 +17,8 @@ import java.util.UUID;
 import static dk.dtu.util.BoardTestUtils.initEmptyBoard;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
+// Author(s) Weihao Mo
+
 class GameManagerStartGameTest {
 
     @Test
