@@ -1,7 +1,7 @@
 export type Direction = "N" | "E" | "S" | "W";
 
 /*
-Author(s): Asger, William
+Author(s): Asger, William, Bjarke, Niklas
 */
 
 export interface BaseEffect { kind: string; id: string }
@@ -47,6 +47,11 @@ export interface GameData {
     board: Board;
     robots: Robot[];
 }
+
+export interface HandData {
+  hand: MoveType[];
+}
+
 
 export interface WebSocketMessage {
     type: string;

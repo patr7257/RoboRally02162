@@ -1,10 +1,9 @@
-   
 /*
 Author(s): Niklas
 */
    export {leaveLobby};
    const API_BASE_URL = process.env.REACT_APP_API_BASE_URL;
-   
+
    const leaveLobby = async (
     lobbyId: string,
     username: string|null, //to be changed to UUID

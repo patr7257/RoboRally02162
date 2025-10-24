@@ -14,10 +14,7 @@ import org.springframework.web.socket.WebSocketSession;
 
 import java.util.UUID;
 
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
-
-// Author(s) William Pii Jæger
 
 class GameWsHandlerTest {
 
@@ -32,10 +29,10 @@ class GameWsHandlerTest {
         gameManager = mock(GameManager.class);
         handler = new GatewaysWsHandler(gameManager);
         session = mock(WebSocketSession.class);
-
         when(session.isOpen()).thenReturn(true);
-        when(gameManager.apply(any(UUID.class), any(GameCommand.class)))
-                .thenReturn(CommandResult.ok("ok"));
+        handler.afterConnectionEstablished(session);
+
+        when(gameManager.execute(any(GameCommand.class))).thenReturn(CommandResult.ok("ok"));
     }
 
     @Test
@@ -53,7 +50,7 @@ class GameWsHandlerTest {
         handler.handleMessage(session, new TextMessage(json));
 
         ArgumentCaptor<GameCommand> cmdCap = ArgumentCaptor.forClass(GameCommand.class);
-        verify(gameManager).apply(eq(gameId), cmdCap.capture());
+        verify(gameManager).execute(cmdCap.capture());
 
         GameCommand.SubmitPrograms cmd = (GameCommand.SubmitPrograms) cmdCap.getValue();
         assert cmd.player().value() == 42;

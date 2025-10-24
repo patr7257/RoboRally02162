@@ -3,30 +3,33 @@ import { MoveType } from "../types/boardTypes";
 import { MoveSelector } from "./MoveSelector";
 
 /*
-Author(s): Asger
+Author(s): Bjarke, Asger
 */
 
 interface GameControlsProps {
-  selectedMove: MoveType | null;
-  onSubmitMove: () => void;
-  onStartRound: () => void;
+  selectedMoves: (MoveType | null)[];
+  onSubmitMove: (moves: MoveType[]) => void;
+  onSelectMove: (moves: (MoveType | null)[]) => void;
+  hand: MoveType[];
 }
 
 export const GameControls: React.FC<GameControlsProps> = ({
-  selectedMove,
+  selectedMoves,
   onSubmitMove,
-  onStartRound,
+  onSelectMove,
+  hand,
 }) => (
   <div className="controls">
     <MoveSelector
-      selectedMove={selectedMove}
-      onSelectMove={(move) => {
-        /* This will be handled by parent */
-      }}
+      moves={hand}
+      selectedMoves={selectedMoves}
+      onChange={onSelectMove}
     />
-    <button onClick={onSubmitMove} disabled={!selectedMove}>
+    <button
+      onClick={() => onSubmitMove(selectedMoves.filter((m): m is MoveType => m !== null))}
+      disabled={selectedMoves.some((m) => m === null)}
+    >
       Make Move
     </button>
-    <button onClick={onStartRound}>Start Round</button>
   </div>
 );

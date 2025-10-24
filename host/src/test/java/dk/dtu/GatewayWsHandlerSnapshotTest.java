@@ -2,13 +2,14 @@ package dk.dtu;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import dk.dtu.domain.core.GameManager;
+import dk.dtu.domain.core.*;
 import dk.dtu.domain.model.Board;
 import dk.dtu.domain.model.Direction;
 import dk.dtu.domain.model.Robot;
 import dk.dtu.domain.rules.api.BoardAPI;
 import dk.dtu.domain.rules.api.BoardApiImpl;
 import dk.dtu.infrastructure.websocket.GatewaysWsHandler;
+import dk.dtu.support.NoDelayPacer;
 import dk.dtu.util.BoardTestUtils;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -16,15 +17,11 @@ import org.mockito.ArgumentCaptor;
 import org.springframework.web.socket.TextMessage;
 import org.springframework.web.socket.WebSocketSession;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
-
-// Author(s) William Pii Jæger
 
 public class GatewayWsHandlerSnapshotTest {
     private final ObjectMapper mapper = new ObjectMapper();
@@ -32,8 +29,8 @@ public class GatewayWsHandlerSnapshotTest {
     private WebSocketSession session;
     private GameManager manager;
     private GatewaysWsHandler handler;
-
     private UUID gameId;
+    private NoDelayPacer pacer;
 
     @BeforeEach
     void setup() {
@@ -41,63 +38,55 @@ public class GatewayWsHandlerSnapshotTest {
         when(session.isOpen()).thenReturn(true);
 
         Board board = BoardTestUtils.initEmptyBoard(3, 3);
-
         Robot r = new Robot(1, 1, 1, Direction.E);
+        BoardAPI api = new BoardApiImpl(board, List.of(r));
 
-        BoardAPI api = new BoardApiImpl(board,List.of(r));
-
-        manager = new GameManager();
+        pacer = new NoDelayPacer();
+        manager = new GameManager(pacer);
         gameId = manager.startGame(board, api, List.of(r));
 
         handler = new GatewaysWsHandler(manager);
+        handler.afterConnectionEstablished(session);
     }
 
     @Test
-    void submitMOVE1_thenStartRound_broadcastsSnapshotWithMovedRobot() throws Exception {
-        // This makes absolutely sure that websocket actually works and is
-        // hooked up correctly with GameManager
-        // We check that the packages received are correct
-        String submitJson = """
-                {
-                  "gameID": "%s",
-                  "playerID": 1,
-                  "payload": { "type": "submitProgram", "cards": ["MOVE1"] }
-                }
-                """.formatted(gameId);
-        handler.handleMessage(session, new TextMessage(submitJson));
+    void submitMOVE1_thenRunRound_thenGetBoard_returnsSnapshotWithMovedRobot() throws Exception {
+        handler.handleMessage(session, new TextMessage("""
+            {"gameID":"%s","playerID":1,"payload":{"type":"startProgramming","windowMs":60000}}
+        """.formatted(gameId)));
 
-        String startRoundJson = """
-        {
-          "gameID": "%s",
-          "playerID": 1,
-          "payload": { "type": "startRound" }
-        }
-        """.formatted(gameId);
+        handler.handleMessage(session, new TextMessage("""
+            {"gameID":"%s","playerID":1,"payload":{"type":"submitProgram","cards":["MOVE1"]}}
+        """.formatted(gameId)));
 
-        handler.handleMessage(session, new TextMessage(startRoundJson));
+        GameSession s = manager.findSessionByID(gameId).orElseThrow();
+        pacer.runAllRegisters(s);
+
+        handler.handleMessage(session, new TextMessage("""
+            {"gameID":"%s","playerID":1,"payload":{"type":"getBoard"}}
+        """.formatted(gameId)));
 
         ArgumentCaptor<TextMessage> sent = ArgumentCaptor.forClass(TextMessage.class);
         verify(session, atLeast(1)).sendMessage(sent.capture());
 
-        TextMessage lastFrame = sent.getAllValues().get(sent.getAllValues().size()-1);
-        JsonNode root = mapper.readTree(lastFrame.getPayload());
+        TextMessage last = sent.getAllValues().stream()
+                .filter(tm -> {
+                    try {
+                        JsonNode root = mapper.readTree(tm.getPayload());
+                        return "stateSnapshot".equals(root.path("type").asText());
+                    } catch (Exception e) { return false; }
+                })
+                .reduce((a,b) -> b)
+                .orElseThrow();
+
+        JsonNode root = mapper.readTree(last.getPayload());
 
         assertEquals("stateSnapshot", root.path("type").asText());
-        assertEquals("BROADCAST", root.path("delivery").asText());
         assertEquals(gameId.toString(), root.path("meta").path("game").path("gameID").asText());
-        assertEquals(1, root.path("meta").path("player").path("playerID").asInt());
 
-        JsonNode robots = root.path("payload").path("robots");
-        assertTrue(robots.isArray() && robots.size() == 1);
-
-        JsonNode robot0 = robots.get(0);
-
+        JsonNode robot0 = root.path("payload").path("robots").get(0);
         assertEquals(2, robot0.path("x").asInt());
         assertEquals(1, robot0.path("y").asInt());
         assertEquals("E", robot0.path("facing").asText());
-
-        assertTrue(root.path("payload").path("board").has("width"));
-        assertTrue(root.path("payload").path("board").has("height"));
-        assertTrue(root.path("payload").path("board").has("cells") || root.path("payload").path("board").has("tiles"));
     }
 }

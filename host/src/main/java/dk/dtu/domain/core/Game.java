@@ -1,45 +1,40 @@
 package dk.dtu.domain.core;
 
-import dk.dtu.domain.model.Board;
-import dk.dtu.domain.model.Direction;
-import dk.dtu.domain.model.Tile;
-import dk.dtu.domain.model.Robot;
+import dk.dtu.domain.model.*;
+import dk.dtu.domain.program.ProgramCard;
 import dk.dtu.domain.program.ProgramOP;
 import dk.dtu.domain.rules.DestroyEvent;
 import dk.dtu.domain.rules.MoveEvent;
 import dk.dtu.domain.rules.Outcome;
 import dk.dtu.domain.rules.api.BoardAPI;
-import dk.dtu.domain.rules.api.MoveOutcome;
 import dk.dtu.domain.rules.effects.Checkpoint;
 import dk.dtu.domain.rules.effects.TileEffect;
 
 import java.util.*;
 
-// Author(s) William Pii Jæger, Weihao Mo
-
 public class Game {
-    // The way this is structured, game actually doesn't need the board
-    // Keeping it here for now
     private final Board board;
     private final BoardAPI api;
-    // We iterate over these tile effects, added it so we don't forget
     private final Map<Phase, List<Tile>> phaseIndex;
     private final List<Robot> robots;
     private final Map<Integer, Robot> robotsMap;
     private final Map<PlayerID, Robot> robotMap = new HashMap<>();
+    private final Map<Integer, Deck> deckMap = new HashMap<>();
 
     private PlayerID winner;
     private final List<GameObserver> observers = new ArrayList<>();
 
-
+    // Author(s): William Pii Jæger, Weihao Mo
     public Game(Board board, BoardAPI api, List<Robot> robots) {
         this.board = board;
         this.api = api;
         this.robots = robots;
         this.winner = null;
+
         int playerCounter = 1;
         for (Robot r : robots) {
             this.robotMap.put(new PlayerID(playerCounter), r);
+            this.deckMap.put(r.getId(), new Deck());
             playerCounter++;
         }
         this.robotsMap = new HashMap<>();
@@ -47,59 +42,100 @@ public class Game {
             this.robotsMap.put(robot.getId(), robot);
         }
         this.phaseIndex = buildPhaseIndex(board.getCells());
+        dealNewHands();
     }
 
+    // Author(s): William Pii Jæger, Weihao Mo
     private Map<Phase, List<Tile>> buildPhaseIndex(Tile[][] tiles) {
-        Map<Phase, List<Tile>> phaseIndex = new HashMap<>();
-
-        for (Tile[] value : tiles) {
-            for (Tile tile : value) {
+        Map<Phase, List<Tile>> idx = new HashMap<>();
+        for (Tile[] row : tiles) {
+            for (Tile tile : row) {
                 if (tile == null) continue;
                 for (TileEffect effect : tile.getEffects()) {
                     if (effect.phases() == null) continue;
                     for (Phase phase : effect.phases()) {
-                        phaseIndex.computeIfAbsent(phase, k -> new ArrayList<>()).add(tile);
+                        idx.computeIfAbsent(phase, k -> new ArrayList<>()).add(tile);
                     }
                 }
-
             }
         }
-        return phaseIndex;
+        return idx;
     }
 
+    // Author(s): William Pii Jæger
+    public List<ProgramCard> getRobotHand(int robotID) {
+        return List.copyOf(deckMap.get(robotID).getHand());
+    }
+
+    // Author(s): William Pii Jæger, Weihao Mo
+    public void submitProgram(PlayerID player, List<ProgramCard> picked) {
+        Robot robot = robotMap.get(player);
+        if (robot == null) throw new IllegalArgumentException("No robot for player " + player.value());
+        Deck deck = deckMap.get(robot.getId());
+        List<ProgramCard> program = deck.validateAndCompleteOrThrow(picked);
+        robot.loadProgram(program);
+    }
+
+    // Author(s): William Pii Jæger, Bjarke, Niklas
+    public void dealNewHands() {
+        for (Robot r : robots) {
+            deckMap.get(r.getId()).dealHand(9);
+        }
+        notifyGameUpdate();
+    }
+
+    // Author(s): William Pii Jæger, Weihao Mo
     public void startRound() {
-        runPhase(Phase.ACTIVATION, this::executeProgramCards);
-        evaluateWinConditions();
+        for (int reg = 1; reg <= 5; reg++) {
+            executeRegister(reg);
+            if (evaluateWinConditions()) break;
+        }
+        dealNewHands();
+        notifyGameUpdate();
     }
 
-    public void evaluateWinConditions() {
+    // Author(s): William Pii Jæger, Weihao Mo
+    public void executeRegister(int registerIndex) {
+        runPhase(Phase.ACTIVATION, this::executeOneRegister);
+        evaluateWinConditions();
+        notifyGameUpdate();
+    }
+
+    // Author(s): William Pii Jæger, Bjarke, Niklas
+    public boolean evaluateWinConditions() {
         int totalCheckpoints = countCheckpoints(phaseIndex);
         for (Map.Entry<PlayerID, Robot> entry : robotMap.entrySet()) {
             Robot r = entry.getValue();
             if (r.hasWon(totalCheckpoints)) {
                 declareWinner(entry.getKey());
+                return true;
             }
         }
+        return false;
     }
 
+    // Author(s): William Pii Jæger, Weihao Mo
     public Robot getRobot(PlayerID playerID) {
         return robotMap.get(playerID);
     }
 
+    // Author(s): William Pii Jæger, Weihao Mo
     public List<Robot> getRobots() {
         return robots;
     }
 
+    // Author(s): William Pii Jæger, Weihao Mo
     public Board getBoard() {
         return board;
     }
 
+    // Author(s): William Pii Jæger, Weihao Mo
     public void runPhase(Phase phase, Runnable body) {
         body.run();
         applyTileEffects(phase);
     }
 
-
+    // Author(s): William Pii Jæger, Weihao Mo
     private void applyTileEffects(Phase phase) {
         List<Tile> tiles = phaseIndex.getOrDefault(phase, List.of());
         for (Tile tile : tiles) {
@@ -109,19 +145,19 @@ public class Game {
         }
     }
 
-    private int countCheckpoints(Map<Phase, List<Tile>> phaseIndex) {
+    // Author(s): Weihao Mo
+    private int countCheckpoints(Map<Phase, List<Tile>> idx) {
         int count = 0;
-        List<Tile> activationTiles = phaseIndex.getOrDefault(Phase.ACTIVATION, List.of());
+        List<Tile> activationTiles = idx.getOrDefault(Phase.ACTIVATION, List.of());
         for (Tile tile : activationTiles) {
             for (TileEffect effect : tile.getEffects()) {
-                if (effect instanceof Checkpoint) {
-                    count++;
-                }
+                if (effect instanceof Checkpoint) count++;
             }
         }
         return count;
     }
 
+    // Author(s): William Pii Jæger
     private boolean applyOneStep(BoardAPI api, Robot r, Direction dir) {
         Outcome out = api.tryMoveOneStep(r.getId(), dir);
         if (out instanceof Outcome.Moved moved) {
@@ -129,62 +165,71 @@ public class Game {
                 robotsMap.get(e.robotId()).setPosition(e.to().x(), e.to().y());
             }
             for (DestroyEvent d : moved.destroys()) {
-                // we should mark dead here, for now I just set pos.
                 robotsMap.get(d.robotId()).setPosition(d.at().x(), d.at().y());
             }
             return true;
         }
-        if (out instanceof Outcome.Blocked b) {
+        if (out instanceof Outcome.Blocked) {
             return false;
         }
         return false;
     }
 
-    private void executeProgramCards() {
-        boolean anyOpsLeft;
-        do {
-            anyOpsLeft = false;
-            for (Robot r : robots) {
-                ProgramOP op = r.pollNextOp();
-                if (op == null) continue;
+    // Author(s): William Pii Jæger
+    private void executeOneRegister() {
+        for (Robot r : robots) {
+            ProgramOP op = r.pollNextOp();
+            if (op == null) continue;
 
-                anyOpsLeft = true;
-
-                if (op instanceof ProgramOP.Move(int steps)) {
-                    Direction dir = r.getDirection();
-                    if (steps < 0) { dir = dir.opposite(); steps = -steps; }
-                    while (steps-- > 0) {
-                        boolean ok = applyOneStep(api, r, dir);
-                        if (!ok) break;
-                    }
-                } else {
-                    r.setDirection(op.apply(r.getDirection()));
+            if (op instanceof ProgramOP.Move(int stepsVal)) {
+                Direction dir = r.getDirection();
+                int steps = stepsVal;
+                if (steps < 0) {
+                    dir = dir.opposite();
+                    steps = -steps;
                 }
+                while (steps-- > 0) {
+                    boolean ok = applyOneStep(api, r, dir);
+                    if (!ok) break;
+                }
+            } else {
+                r.setDirection(op.apply(r.getDirection()));
             }
-        } while (anyOpsLeft);
+        }
     }
 
-
+    // Author(s): Weihao Mo
     public void addObserver(GameObserver observer) {
         observers.add(observer);
     }
 
+    // Author(s): Weihao Mo
     public void removeObserver(GameObserver observer) {
         observers.remove(observer);
     }
 
-    private void notifyWinner(PlayerID winner) {
+    // Author(s): Weihao Mo
+    private void notifyWinner(PlayerID win) {
         for (GameObserver obs : observers) {
-            obs.onWinnerDeclared(winner);
+            obs.onWinnerDeclared(win);
         }
     }
 
-    public void declareWinner(PlayerID winner) {
-        if (this.winner != null) return;
-        this.winner = winner;
-        notifyWinner(winner);
+    // Author(s): William Pii Jæger, Bjarke, Niklas
+    private void notifyGameUpdate() {
+        for (GameObserver obs : observers) {
+            obs.onGameUpdate(this);
+        }
     }
 
+    // Author(s): Weihao Mo
+    public void declareWinner(PlayerID win) {
+        if (this.winner != null) return;
+        this.winner = win;
+        notifyWinner(win);
+    }
+
+    // Author(s): Weihao Mo
     public Optional<PlayerID> getWinner() {
         return Optional.ofNullable(winner);
     }

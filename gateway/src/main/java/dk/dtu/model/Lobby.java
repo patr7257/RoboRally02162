@@ -59,10 +59,8 @@ public class Lobby {
             String playerID = userToPlayer.get(uid);
             playerToUser.remove(playerID);
             userToPlayer.remove(uid);
-            return  new OperationResult("success");
+            return new OperationResult("success");
         }
-
-
     }
 
     public void startGame() {
@@ -95,12 +93,13 @@ public class Lobby {
 
     public void handleHostMessage(JsonNode json) {
         ObjectNode root = JsonUtil.createObjectNode();
-        root.put("type", "game");
+        root.put("type", json.get("type"));
         root.set("payload", json.get("payload"));
 
         switch (json.get("delivery").asText()) {
             case "DIRECT":
                 String playerID = json.get("meta").get("player").get("playerID").asText();
+
                 String userID = playerToUser.get(playerID); //TODO: change to UUID
                 if (userID==null) { return;} // in case player has disconnected
                 Client client = players.get(userID);

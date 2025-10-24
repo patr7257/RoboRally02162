@@ -16,7 +16,14 @@ import java.util.UUID;
 
 public final class SnapshotMapper {
 
-    public  static BoardDto toBoardDto(Board b) {
+    public static SnapshotPayload createSnapshot(UUID gameId, Game game) {
+        GameDto gameDto = mapGame(gameId, game);
+        BoardDto board = toBoardDto(game.getBoard());
+        List<RobotDto> robots = mapRobots(game.getRobots());
+        return new SnapshotPayload(gameDto, board, robots);
+    }
+
+    public static BoardDto toBoardDto(Board b) {
         int w = b.getWidth(), h = b.getHeight();
         TileDto[][] tiles = new TileDto[w][h];
 
@@ -38,7 +45,7 @@ public final class SnapshotMapper {
         //    // We will add effects here like laser, gear ect.
         //}
         if (t != null && t.getEffects() != null) {
-    //        System.out.println("Tile effects at snapshot: " + t.getEffects());
+            //        System.out.println("Tile effects at snapshot: " + t.getEffects());
             for (var effect : t.getEffects()) {
                 if (effect instanceof Checkpoint cp) {
                     effects.add(new CheckpointDto(cp.number()));
@@ -59,6 +66,6 @@ public final class SnapshotMapper {
 
     public static GameDto mapGame(UUID gameID, Game game) {
         Integer winner = game.getWinner().map(PlayerID::value).orElse(null);
-        return new GameDto(gameID,winner);
+        return new GameDto(gameID, winner);
     }
 }

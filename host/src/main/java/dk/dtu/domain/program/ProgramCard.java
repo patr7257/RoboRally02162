@@ -25,6 +25,16 @@ public record ProgramCard(Action action, int steps) {
         };
     }
 
+    @Override
+    public String toString() {
+        return switch (action) {
+            case MOVE -> "MOVE" + steps;
+            case ROTATELEFT -> "ROTATELEFT";
+            case ROTATERIGHT -> "ROTATERIGHT";
+            case UTURN -> "UTURN";
+        };
+    }
+
     public static ProgramCard move1() { return new ProgramCard(Action.MOVE, 1); }
     public static ProgramCard move2() { return new ProgramCard(Action.MOVE, 2); }
     public static ProgramCard move3() { return new ProgramCard(Action.MOVE, 3); }

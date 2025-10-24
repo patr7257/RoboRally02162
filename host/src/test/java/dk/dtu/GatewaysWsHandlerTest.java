@@ -35,8 +35,8 @@ public class GatewaysWsHandlerTest {
         session = mock(WebSocketSession.class);
 
         when(session.isOpen()).thenReturn(true);
-        when(gameManager.apply(any(UUID.class), any(GameCommand.class)))
-                .thenReturn(CommandResult.ok("ok"));
+//        when(gameManager.apply(any(UUID.class), any(GameCommand.class)))
+//                .thenReturn(CommandResult.ok("ok"));
         handlerNew.afterConnectionEstablished(session);
     }
 

@@ -19,6 +19,7 @@ public class MessageQueue {
     private final BlockingQueue<ObjectNode> queue = new LinkedBlockingQueue<>();
     private final WebSocketSession session;
     //private final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
+    private final Object lock = new Object();
 
     public MessageQueue(WebSocketSession session) {
         this.session = session;
@@ -29,15 +30,17 @@ public class MessageQueue {
     }
 
     public void flush() {
-        while (!queue.isEmpty()) {
-            ObjectNode msg = queue.peek();
-            try {
-                session.sendMessage(new TextMessage(JsonUtil.toJson(msg)));
-                queue.poll();
-            } catch (IOException e) {
-                throw new RuntimeException(e);
-                //scheduler.schedule(this::flush, 500, TimeUnit.MILLISECONDS); //TODO: check this
-                //break;
+        synchronized (lock) {
+            while (!queue.isEmpty()) {
+                ObjectNode msg = queue.peek();
+                try {
+                    session.sendMessage(new TextMessage(JsonUtil.toJson(msg)));
+                    queue.poll();
+                } catch (IOException e) {
+                    throw new RuntimeException(e);
+                    //scheduler.schedule(this::flush, 500, TimeUnit.MILLISECONDS); //TODO: check this
+                    //break;
+                }
             }
         }
     }

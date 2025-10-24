@@ -235,7 +235,7 @@ public class WebSocketTests {
         verify(mockClient2, times(1)).handleMessage(any(ObjectNode.class));
 
         ObjectNode actualMsg = captor.getValue();
-        assertThat(actualMsg.get("type").asText()).isEqualTo("game");
+        assertThat(actualMsg.get("type").asText()).isEqualTo("stateSnapshot");
         assertThat(actualMsg.get("payload").asText()).isEqualTo("");
     }
 
@@ -278,11 +278,11 @@ public class WebSocketTests {
 
 
         ObjectNode actualMsg1 = captor1.getValue();
-        assertThat(actualMsg1.get("type").asText()).isEqualTo("game");
+        assertThat(actualMsg1.get("type").asText()).isEqualTo("stateSnapshot");
         assertThat(actualMsg1.get("payload").asText()).isEqualTo("");
 
         ObjectNode actualMsg2 = captor2.getValue();
-        assertThat(actualMsg2.get("type").asText()).isEqualTo("game");
+        assertThat(actualMsg2.get("type").asText()).isEqualTo("stateSnapshot");
         assertThat(actualMsg2.get("payload").asText()).isEqualTo("");
     }
 
