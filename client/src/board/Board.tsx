@@ -7,8 +7,8 @@ import { MoveType, GameData, HandData } from "../types/boardTypes";
 import { WinnerBanner } from "./WinnerBanner";
 import { BoardRenderer } from "./BoardRenderer";
 import { GameControls } from "./GameControls";
+import CheckpointChecklist from "../ui/checkpointChecklist";
 import { leaveLobby } from '../lobby/LeaveLobby';
-
 
 /*
 Author(s): Bjarke, Asger, Patrick, William
@@ -250,6 +250,10 @@ export default function Board() {
         onSelectMove={setSelectedMoves}
         hand={handData?.hand || []}
       />
+      {gameData && (
+        <CheckpointChecklist board={gameData.board} robots={gameData.robots} />
+      )}
+
 
       {gameState === 'programming' && readiness && (
         <div className="readiness-details">

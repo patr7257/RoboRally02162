@@ -1,4 +1,4 @@
 package dk.dtu.infrastructure.dto;
 
-public record RobotDto(int id, int x, int y, String facing) {
+public record RobotDto(int id, int x, int y, String facing, int nextCheckpoint) {
 }

@@ -29,6 +29,7 @@ export interface Robot {
     x: number;
     y: number;
     facing: Direction;
+    nextCheckpoint: number;
 }
 
 export interface Board {

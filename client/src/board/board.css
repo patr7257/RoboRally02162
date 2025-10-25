@@ -114,3 +114,45 @@
   font-size: 1.2rem;
   text-align: center;
 }
+
+.ck-lists {
+  width: 100%;
+  max-width: 720px;
+  margin-top: 12px;
+  background: #f9f9f9;
+  border: 2px solid #333;
+  border-radius: 8px;
+  padding: 10px 12px;
+  box-sizing: border-box;
+}
+
+.ck-section + .ck-section { margin-top: 10px; }
+
+.ck-title {
+  font-weight: bold;
+  margin-bottom: 6px;
+}
+
+.ck-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 10px;
+}
+
+.ck-item {
+  display: inline-flex;
+  align-items: center;
+  border: 1px solid #ddd;
+  padding: 2px 6px;
+  border-radius: 6px;
+  background: #fff;
+  color: #111;
+}
+
+.ck-others { display: flex; flex-direction: column; gap: 8px; }
+
+.ck-player { border-top: 1px dashed #ddd; padding-top: 6px; }
+.ck-player:first-child { border-top: 0; padding-top: 0; }
+
+.ck-player-name { font-weight: bold; color: #333; margin-bottom: 4px; }
+

@@ -61,7 +61,7 @@ public final class SnapshotMapper {
     }
 
     public static RobotDto mapRobot(Robot r) {
-        return new RobotDto(r.getId(), r.getX(), r.getY(), r.getDirection().name());
+        return new RobotDto(r.getId(), r.getX(), r.getY(), r.getDirection().name(), r.getNextCheckpoint());
     }
 
     public static GameDto mapGame(UUID gameID, Game game) {
