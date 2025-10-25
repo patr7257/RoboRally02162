@@ -48,7 +48,7 @@ public class WebSocketTests {
         Lobby mockLobby = mock(Lobby.class);
 
         when(mockLobby.getLobbyID()).thenReturn("1");
-        server.getLobbies().put(mockLobby.getLobbyID(), mockLobby);
+        server.getLobbiesForTest().put(mockLobby.getLobbyID(), mockLobby);
 
         WebSocketSession mockSession = mock(WebSocketSession.class);
         when(mockSession.getId()).thenReturn("session123");
@@ -103,8 +103,8 @@ public class WebSocketTests {
     void hostToGatewayTest() throws Exception {
         Lobby mockLobby = mock(Lobby.class);
         when(mockLobby.getLobbyID()).thenReturn("1");
-        server.getLobbies().put(mockLobby.getLobbyID(), mockLobby);
-        server.getGameToLobby().put("1", mockLobby.getLobbyID());
+        server.getLobbiesForTest().put(mockLobby.getLobbyID(), mockLobby);
+        server.getGameToLobbyForTest().put("1", mockLobby.getLobbyID());
 
         WebSocketSession mockSession = mock(WebSocketSession.class);
         when(mockSession.getId()).thenReturn("session123");
@@ -166,7 +166,7 @@ public class WebSocketTests {
         lobby.setGameID(gameID);
         lobby.getUserToPlayer().put("testUser", "1");
 
-        server.getLobbies().put(lobby.getLobbyID(), lobby);
+        server.getLobbiesForTest().put(lobby.getLobbyID(), lobby);
 
         WebSocketSession mockSession = mock(WebSocketSession.class);
         when(mockSession.getId()).thenReturn("session123");
@@ -197,8 +197,8 @@ public class WebSocketTests {
 
     @Test
     void hostToClientDirectTest() throws Exception {
-        System.out.println("Lobbies before test: " + server.getLobbies().keySet());
-        System.out.println("Games before test: " + server.getGameToLobby().keySet());
+        System.out.println("Lobbies before test: " + server.getLobbiesForTest().keySet());
+        System.out.println("Games before test: " + server.getGameToLobbyForTest().keySet());
         Host mockHost = mock(Host.class);
         when(mockHost.startGame(anyInt(),anyInt())).thenReturn(UUID.fromString("123e4567-e89b-12d3-a456-426614174000"));
         Client mockClient1 = mock(Client.class);
@@ -214,8 +214,8 @@ public class WebSocketTests {
         UUID  gameID = lobby.getGameID();
 
 
-        server.getLobbies().put("1", lobby);
-        server.getGameToLobby().put(gameID.toString(), "1");
+        server.getLobbiesForTest().put("1", lobby);
+        server.getGameToLobbyForTest().put(gameID.toString(), "1");
 
         WebSocketSession mockSession = mock(WebSocketSession.class);
         when(mockSession.getId()).thenReturn("hostSession123");
@@ -241,8 +241,8 @@ public class WebSocketTests {
 
     @Test
     void hostToClientBroadCastTest() throws Exception {
-        System.out.println("Lobbies before test: " + server.getLobbies().keySet());
-        System.out.println("Games before test: " + server.getGameToLobby().keySet());
+        System.out.println("Lobbies before test: " + server.getLobbiesForTest().keySet());
+        System.out.println("Games before test: " + server.getGameToLobbyForTest().keySet());
         Host mockHost = mock(Host.class);
         when(mockHost.startGame(anyInt(),anyInt())).thenReturn(UUID.fromString("123e4567-e89b-12d3-a456-426614174000"));
         Client mockClient1 = mock(Client.class);
@@ -258,8 +258,8 @@ public class WebSocketTests {
         UUID  gameID = lobby.getGameID();
 
 
-        server.getLobbies().put("1", lobby);
-        server.getGameToLobby().put(gameID.toString(), "1");
+        server.getLobbiesForTest().put("1", lobby);
+        server.getGameToLobbyForTest().put(gameID.toString(), "1");
 
         WebSocketSession mockSession = mock(WebSocketSession.class);
         when(mockSession.getId()).thenReturn("hostSession123");

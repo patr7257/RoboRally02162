@@ -55,7 +55,7 @@ export default function LobbyCreation() {
           Start Game
         </button>
 
-        <button className="big-button" onClick={() => navigate("/lobbyJoinScene")}>
+        <button className="big-button" onClick={async () =>{await leaveLobby(lobbyId,usernameInput,setError); navigate("/lobbyJoinScene")}}>
           Back to lobbies
         </button>
         

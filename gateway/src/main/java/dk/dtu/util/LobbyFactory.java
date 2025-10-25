@@ -7,7 +7,9 @@ Author(s): Niklas
 import dk.dtu.model.Client;
 import dk.dtu.model.Host;
 import dk.dtu.model.Lobby;
+import org.springframework.stereotype.Component;
 
+@Component
 public  class LobbyFactory {
     private static int nextLobbyID = 0;
 
@@ -15,7 +17,7 @@ public  class LobbyFactory {
     public LobbyFactory(){}
 
 
-    public static Lobby createLobby(Client creator, Host host) {
+    public Lobby createLobby(Client creator, Host host) {
         return  new Lobby(nextLobbyID++ + "" , creator, host);
 
     }

@@ -47,13 +47,11 @@ public class GatewaysWsHandler extends TextWebSocketHandler implements GameManag
      * @author Weihao Mo
      * @author William Pii Jæger
      */
-    public void send(OutgoingMessage<?> outgoingMessage) throws IOException {
-        if (session != null && session.isOpen()) {
-            String json = mapper.writeValueAsString(outgoingMessage);
-            session.sendMessage(new TextMessage(json));
-        } else {
-            throw new IllegalArgumentException("No open WebSocket session to gateway");
-        }
+    public synchronized void send(OutgoingMessage<?> msg) throws IOException {
+        WebSocketSession s = this.session;
+        if (s == null || !s.isOpen()) throw new IllegalStateException("No open WebSocket session");
+        String json = mapper.writeValueAsString(msg);
+        s.sendMessage(new TextMessage(json));
     }
 
     // Author(s) William Pii Jæger

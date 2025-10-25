@@ -8,7 +8,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import dk.dtu.model.Client;
 import dk.dtu.model.Lobby;
 import dk.dtu.model.User;
-import dk.dtu.shared.ServerRegistry;
+import dk.dtu.shared.ServerManager;
 import dk.dtu.util.JsonUtil;
 import dk.dtu.config.ClientHandshakeInterceptor;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -24,14 +24,14 @@ import java.util.*;
 public class Server implements WebSocketConfigurer { // TODO: after host connects remove
 
     private final ClientHandshakeInterceptor clientInterceptor;
-    private final ServerRegistry serverRegistry;
+    private final ServerManager serverManager;
     private WebSocketHandler clientHandler;
     private WebSocketHandler hostHandler;
 
     @Autowired
-    public Server(ClientHandshakeInterceptor cliHandInt, ServerRegistry serverRegistry) {
+    public Server(ClientHandshakeInterceptor cliHandInt, ServerManager serverManager) {
         this.clientInterceptor = cliHandInt;
-        this.serverRegistry = serverRegistry;
+        this.serverManager = serverManager;
         initClientHandler();
         initHostHandler();
     }
@@ -71,8 +71,7 @@ public class Server implements WebSocketConfigurer { // TODO: after host connect
                 System.out.println("Session state: " + session.isOpen());
                 System.out.println("========================");
                 User user = (User) session.getAttributes().get("user");
-                Client client = new Client(user, session);
-                serverRegistry.getClients().put(client.getUsername(), client); // TODO: change to ID
+                serverManager.createClient(user,session);
             }
 
             @Override
@@ -85,8 +84,8 @@ public class Server implements WebSocketConfigurer { // TODO: after host connect
                     System.out.println(lobbyID);
                     User user = (User) session.getAttributes().get("user");
                     String userID = user.getUserID();
-                    System.out.println(userID);
-                    Lobby lob = serverRegistry.getLobbies().get(lobbyID); // TODO: check for valid ID
+                    //System.out.println(userID);
+                    Lobby lob = serverManager.getLobbyFromID(lobbyID); // TODO: check for valid ID
                     lob.handleClientMessage(userID, json); // TODO: Check that toString() is correct
                 } catch (Exception e) {
                     System.err.println("=== ERROR IN MESSAGE HANDLING ===");
@@ -95,7 +94,7 @@ public class Server implements WebSocketConfigurer { // TODO: after host connect
                     e.printStackTrace();
                     System.err.println("================================");
                 }
-                System.out.println("Message handling completed for: " + session.getId());
+                //System.out.println("Message handling completed for: " + session.getId());
             }
 
             @Override
@@ -114,7 +113,7 @@ public class Server implements WebSocketConfigurer { // TODO: after host connect
                 System.err.println("User: " + getUserFromSession(session));
                 System.err.println("Close code: " + closeStatus.getCode());
                 System.err.println("Close reason: " + closeStatus.getReason());
-                System.err.println("Was clean: " + closeStatus.toString());
+                System.err.println("Was clean: " + closeStatus);
                 System.err.println("Close triggered from:");
                 Thread.dumpStack();
                 System.err.println("====================");
@@ -139,18 +138,41 @@ public class Server implements WebSocketConfigurer { // TODO: after host connect
                 System.out.println("Host");
                 System.out.println("Session state: " + session.isOpen());
                 System.out.println("========================");
-                serverRegistry.getHost().setSession(session);
+                serverManager.getHost().setSession(session);
             }
 
             @Override
             public void handleMessage(WebSocketSession session, WebSocketMessage<?> message) throws Exception {
-                String jSonText = message.getPayload().toString();
-                JsonNode json = JsonUtil.parser(jSonText);
-                String gameID = json.get("meta").get("game").get("gameID").asText();
+                try {
+                    String jSonText = message.getPayload().toString();
+                    JsonNode json = JsonUtil.parser(jSonText);
 
-                String lobbyID = serverRegistry.getGameToLobby().get(gameID); // TODO: check for valid ID
-                Lobby lob = serverRegistry.getLobbies().get(lobbyID);
-                lob.handleHostMessage(json);
+                    JsonNode meta = json.path("meta").path("game");
+                    String gameID = meta.path("gameID").asText(null);
+                    if (gameID == null || gameID.isBlank()) {
+                        System.err.println("[HOST] Missing gameID in message: " + jSonText);
+                        return;
+                    }
+
+                    String lobbyID = serverManager.getLobbyFromGameID(gameID);
+
+                    if (lobbyID == null) {
+                        System.err.println("[HOST] Unknown gameID " + gameID + " — no lobby mapping yet");
+                        return;
+                    }
+
+                    Lobby lob = serverManager.getLobbyFromID(lobbyID);
+                    if (lob == null) {
+                        System.err.println("[HOST] Stale mapping: lobby " + lobbyID + " not found for game " + gameID + ". Cleaning up.");
+                        serverManager.removeGameMapping(gameID);
+                        return;
+                    }
+
+                    lob.handleHostMessage(json);
+                } catch (Exception e) {
+                    System.err.println("[HOST] handleMessage error: " + e.getMessage());
+                    e.printStackTrace();
+                }
             }
 
             @Override
@@ -160,8 +182,7 @@ public class Server implements WebSocketConfigurer { // TODO: after host connect
 
             @Override
             public void afterConnectionClosed(WebSocketSession session, CloseStatus closeStatus) throws Exception {
-                // TODO: handle host disconnecting (probably message all clients that server is
-                // down)
+                // TODO: handle host disconnecting (probably message all clients that server is down)
             }
 
             @Override
@@ -171,16 +192,16 @@ public class Server implements WebSocketConfigurer { // TODO: after host connect
         };
     }
 
-    public Map<String, Lobby> getLobbies() {
-        return serverRegistry.getLobbies();
+    public Map<String, Lobby> getLobbiesForTest() {
+        return serverManager.getLobbiesForTest();
     }
 
-    public Map<String, String> getGameToLobby() {
-        return serverRegistry.getGameToLobby();
+    public Map<String, String> getGameToLobbyForTest() {
+        return serverManager.getGameToLobbyForTest();
     }
 
-    public Map<String, Client> getClients() {
-        return serverRegistry.getClients();
+    public Map<String, Client> getClientsForTest() {
+        return serverManager.getClientsForTest();
     }
 
     public WebSocketHandler getClientHandler() {
@@ -190,5 +211,7 @@ public class Server implements WebSocketConfigurer { // TODO: after host connect
     public WebSocketHandler getHostHandler() {
         return hostHandler;
     }
+
+
 
 }

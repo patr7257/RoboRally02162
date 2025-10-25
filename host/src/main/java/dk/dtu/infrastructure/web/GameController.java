@@ -33,11 +33,11 @@ public class GameController {
 
     public record StartGameRequest(int amountPlayers, int boardSize) {}
     public record StartGameResponse(UUID gameID) {}
-    public record EndGameRequest(UUID gameID) {}
+    public record EndGameRequest(String gameID) {}
     public record EndGameResponse(boolean endedGame) {}
 
     @PostMapping("/startGame")
-    public StartGameResponse start(@RequestBody StartGameRequest req) {
+    public synchronized StartGameResponse start(@RequestBody StartGameRequest req) {
         Tile[][] tiles = new Tile[req.boardSize()][req.boardSize()];
         for (int x = 0; x < req.boardSize(); x++) {
             for (int y = 0; y < req.boardSize(); y++) {
@@ -78,7 +78,7 @@ public class GameController {
 
     @PostMapping("/endGame")
     public EndGameResponse start(@RequestBody EndGameRequest req) {
-        gameManager.endGame(req.gameID());
+        gameManager.endGame(UUID.fromString(req.gameID()));
         return new EndGameResponse(true);
     }
 }

@@ -6,6 +6,8 @@ Author(s): Niklas, Karl, Benjamin
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import dk.dtu.dto.LobbyJson;
+import dk.dtu.observer.LobbyObserver;
 import dk.dtu.util.JsonUtil;
 import dk.dtu.dto.OperationResult;
 import java.util.*;
@@ -16,7 +18,7 @@ public class Lobby {
     private final String lobbyID;
     private final Map<String, Client> players = new HashMap<>();
     private final Host host;
-
+    private final HashSet<LobbyObserver> observers = new HashSet<>();
     private boolean locked;
     //TODO: might need to store the creator of the lobby. As playerID can no longer be used to determine this.
 
@@ -24,6 +26,7 @@ public class Lobby {
     private final Map<String, String> userToPlayer = new HashMap<>();
     private final Map<String, String> playerToUser = new HashMap<>();
     private int nextPlayerID = 1;
+
 
     ExecutorService broadcastPool = Executors.newCachedThreadPool();
 
@@ -44,15 +47,17 @@ public class Lobby {
         }
     }
 
-    public void removePlayer(Client client) {
-        players.values().remove(client);
-    } //TODO: handle maps
+
     public OperationResult removeClientByUID (String uid) { //TODO: change to be UUID
         if (players.remove(uid) == null) {
 
             return new OperationResult("user_not_in_lobby");
         } else {
             if (players.isEmpty()) {
+                if (gameID != null) {
+                    host.endGame(gameID);
+                }
+                notifyObservers(LobbyUpdateReason.DESTROYED); //destruction happens through loss of reference.
                 return new OperationResult("lobby_empty");
             }
 
@@ -69,18 +74,20 @@ public class Lobby {
         this.locked = true; //lock before
         try {
             this.gameID = host.startGame(players.size(), 10); // TODO: Change the boardsize to be decided by the client
+            notifyObservers(LobbyUpdateReason.GAME_STARTED);
+            ObjectNode root = JsonUtil.createObjectNode();
+            root.put("type", "game");
+
+            ObjectNode payload = JsonUtil.createObjectNode();
+            payload.put("action", "start");
+
+            root.set("payload", payload);
+            broadcastToClients(root);
         } catch (Exception e) {
             this.locked = false; //game failed to start, unlock it again
             System.out.println("Failed to start game");//add proper error handling.
         }
-        ObjectNode root = JsonUtil.createObjectNode();
-        root.put("type", "game");
 
-        ObjectNode payload = JsonUtil.createObjectNode();
-        payload.put("action", "start");
-
-        root.set("payload", payload);
-        broadcastToClients(root);
     }
 
     public void handleClientMessage(String userID, JsonNode json) {
@@ -167,6 +174,23 @@ public class Lobby {
 
     public boolean isOccupied(){
         return players.size() >= 6; // TODO: We need to ask the host for this number
+    }
+
+    public void addObserver(LobbyObserver observer) {
+        observers.add(observer);
+    }
+    public void removeObserver(LobbyObserver observer) {
+        observers.remove(observer);
+    }
+
+    private void notifyObservers(LobbyUpdateReason reason) {
+        for (LobbyObserver observer : observers) {
+            observer.handleUpdate(reason, this);
+        }
+    }
+
+    public LobbyJson asJson() {
+        return new LobbyJson(this.lobbyID); //TODO: construct lobby json.
     }
 
 }

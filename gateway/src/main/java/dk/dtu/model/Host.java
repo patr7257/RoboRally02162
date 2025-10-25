@@ -20,7 +20,9 @@ public class Host { //TODO: maybe make singleton
 
     private WebSocketSession session;
     private MessageQueue queue;
+    private String hostURL = "http://localhost:2948/";
 
+    public Host(){};
     public void setSession(WebSocketSession session) {
         this.session = session;
         this.queue = new MessageQueue(session);
@@ -39,7 +41,7 @@ public class Host { //TODO: maybe make singleton
         );
 
         String response = restTemplate.postForObject(
-                "http://localhost:2948/startGame", // TODO: agree on port
+                hostURL+"startGame", // TODO: agree on port
                 body,
                 String.class
         );
@@ -47,5 +49,19 @@ public class Host { //TODO: maybe make singleton
         String gameID = JsonUtil.parser(response).get("gameID").asText();
 
         return UUID.fromString(gameID);
+    }
+
+    public void endGame(UUID gameID) {
+        RestTemplate restTemplate = new RestTemplate();
+        Map<String,String> body = Map.of(
+                "gameID",gameID.toString()
+        );
+
+        String response = restTemplate.postForObject(
+                hostURL+"endGame",
+                body,
+                String.class
+        );
+
     }
 }

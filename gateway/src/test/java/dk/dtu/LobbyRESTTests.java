@@ -8,11 +8,11 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 import dk.dtu.interfaces.UserDatabase;
 import dk.dtu.model.Lobby;
-import dk.dtu.shared.ServerRegistry;
+import dk.dtu.shared.ServerManager;
 import org.hamcrest.Matchers;
-import org.junit.Before;
+
 import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.BeforeEach;
+
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
@@ -36,7 +36,7 @@ import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.TimeUnit;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assert.assertFalse;
+
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
@@ -58,7 +58,7 @@ public class LobbyRESTTests {
     private UserDatabase userDatabase;
 
     @Autowired
-    private ServerRegistry serverRegistry;
+    private ServerManager serverManager;
 
     @Autowired
     private Server server;
@@ -74,7 +74,7 @@ public class LobbyRESTTests {
 
         // We sleep here after creating the user.
         // This is probably a result of concurrency?
-        // Making the thread sleep fixed the automatic tests on github.
+        // Making the thread sleep fixed the automatic tests on gitHub.
         Thread.sleep(50);
 
         WebSocketSession wsSession = connectWebSocket(token);
@@ -92,9 +92,9 @@ public class LobbyRESTTests {
 
         //UUID lobbyUUID = UUID.fromString(lobbyID);
 
-        assertThat(server.getLobbies()).containsKey(lobbyID);
-        assertThat(server.getLobbies().get(lobbyID).getPlayers().values())
-                .contains(server.getClients().get(username));
+        assertThat(server.getLobbiesForTest()).containsKey(lobbyID);
+        assertThat(server.getLobbiesForTest().get(lobbyID).getPlayers().values())
+                .contains(server.getClientsForTest().get(username));
 
         wsSession.close();
     }
@@ -136,10 +136,10 @@ public class LobbyRESTTests {
                 .andExpect(status().isCreated())
                 .andExpect(content().string(lobbyID));
 
-        assertThat(server.getLobbies().get(lobbyID).getPlayers().values())
-                .contains(server.getClients().get(hostUser));
-        assertThat(server.getLobbies().get(lobbyID).getPlayers().values())
-                .contains(server.getClients().get(clientUser));
+        assertThat(server.getLobbiesForTest().get(lobbyID).getPlayers().values())
+                .contains(server.getClientsForTest().get(hostUser));
+        assertThat(server.getLobbiesForTest().get(lobbyID).getPlayers().values())
+                .contains(server.getClientsForTest().get(clientUser));
 
         hostSession.close();
         clientSession.close();
@@ -304,12 +304,12 @@ public class LobbyRESTTests {
                         .content(mapper.writeValueAsString(Map.of("lobbyID", lobbyID))))
                 .andExpect(status().isOk());
 
-        assertThat(server.getGameToLobby().values())
+        assertThat(server.getGameToLobbyForTest().values())
                 .contains(lobbyID);
 
         String expectedGameId = "123e4567-e89b-12d3-a456-426614174000";
 
-        assertThat(server.getGameToLobby())
+        assertThat(server.getGameToLobbyForTest())
                 .containsEntry(expectedGameId, lobbyID);
 
         hostSession.close();
@@ -413,7 +413,7 @@ public class LobbyRESTTests {
                         .content(mapper.writeValueAsString(leaveBody)))
                 .andExpect(status().isNoContent());
         // check not in registry (should be good enough. no need to check websocket directly.)
-        Lobby lob = serverRegistry.getLobbies().get(lobbyID);
+        Lobby lob = serverManager.getLobbyFromID(lobbyID);
         Assertions.assertFalse(lob.getPlayers().containsKey(username2));
 
     }
@@ -458,6 +458,7 @@ public class LobbyRESTTests {
 
     @Test
     public void leaveLobbyEmptyLobbyTest() throws Exception {
+        System.out.println("LEAVELOBBYEMPTYLOBBYTEST");
         //test that lobby is deleted after becoming empty
         //create and login user 1
         String username1 = "TestUser1";
@@ -482,7 +483,7 @@ public class LobbyRESTTests {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(mapper.writeValueAsString(leaveBody)))
                 .andExpect(status().isNoContent());
-        Lobby lob = serverRegistry.getLobbies().get(lobbyID);
+        Lobby lob = serverManager.getLobbyFromID(lobbyID);
         Assertions.assertNull(lob);
     }
 
@@ -557,9 +558,9 @@ public class LobbyRESTTests {
                 .andExpect(status().isOk());
 
         //get playerID ID's
-        Lobby lob = serverRegistry.getLobbies().get(lobbyID);
+        Lobby lob = serverManager.getLobbyFromID(lobbyID);
         List<String> ids = lob.getPlayerIDs();
-        //check that ID's are 1 and 2
+        //check that IDs are 1 and 2
         assertThat(ids).containsOnly("1","2");
 
     }
