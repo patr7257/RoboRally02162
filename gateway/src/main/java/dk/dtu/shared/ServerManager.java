@@ -74,11 +74,13 @@ public class ServerManager implements LobbyObserver {
     public String getLobbyFromGameID(String gameID) {
         return gameToLobby.get(gameID);
     }
+    /*
     public void putLobby(Lobby lobby) {
         lobbies.put(lobby.getLobbyID(), lobby);
     }
+    */
     public void putClient(Client client) {
-        clients.put(client.getUsername(),client);
+        clients.put(client.getUserID(),client);
     }
 
     public Client createClient(User user, WebSocketSession session) {

@@ -12,7 +12,7 @@ interface Lobby {
 
 export default function JoinLobby() {
   const navigate = useNavigate();
-  const usernameInput: string | null = localStorage.getItem("username");
+  const userID: string | null = localStorage.getItem("userID");
   const [lobbyId, setLobbyId] = useState<string>("");
   const [lobbies, setLobbies] = useState<Lobby[]>([]);
   const [error, setError] = useState<string>("");
@@ -46,7 +46,7 @@ export default function JoinLobby() {
       const response = await fetch(API_BASE_URL+"/api/lobby/join", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ username: usernameInput, lobbyID: id }),
+        body: JSON.stringify({ userID: userID, lobbyID: id }),
       });
 
       const data = await response.text();

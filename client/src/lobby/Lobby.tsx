@@ -8,7 +8,7 @@ import Layout from "./Layout";
 
 export default function Lobby() {
   const navigate = useNavigate();
-  const usernameInput: string | null = localStorage.getItem("username");
+  const userID: string | null = localStorage.getItem("userID");
   const [lobbyId, setLobbyId] = useState<string>(localStorage.getItem("id") || "");
   const [error, setError] = useState<string>("");
   const API_BASE_URL = process.env.REACT_APP_API_BASE_URL;
@@ -26,7 +26,7 @@ export default function Lobby() {
       const response = await fetch(API_BASE_URL+"/api/lobby/create", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ username: usernameInput }),
+        body: JSON.stringify({ userID: userID }),
       });
 
       const data = await response.text();

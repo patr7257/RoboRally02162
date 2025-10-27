@@ -7,6 +7,7 @@ Author(s): Karl, Benjamin, Niklas
 import com.fasterxml.jackson.databind.JsonNode;
 
 import dk.dtu.dto.LobbyJson;
+import dk.dtu.dto.LobbyUserRequest;
 import dk.dtu.dto.OperationResult;
 import dk.dtu.model.Client;
 import dk.dtu.model.Lobby;
@@ -29,11 +30,15 @@ public class LobbyAPI {
 
     @PostMapping("/lobby/create") // returns lobbyID.
     public ResponseEntity<String> createLobby(@RequestBody JsonNode json) { // TODO: add authorization
-        String username = json.get("username").asText();
-        if(username.isEmpty()){
-            return ResponseEntity.status(HttpStatus.FORBIDDEN).body("USERNAME_IS_EMPTY");
+
+        if (!json.has("userID")) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("INVALID_REQUEST_BODY");
         }
-        Client creator = serverManager.getClient(username); // TODO: make check that person is connected to websocket
+        String userID = json.get("userID").asText();
+        if(userID.isEmpty()){
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body("USERID_IS_EMPTY");
+        }
+        Client creator = serverManager.getClient(userID); // TODO: make check that person is connected to websocket
         if(creator == null){
             return ResponseEntity.status(HttpStatus.FORBIDDEN).body("CLIENT_IS_NULL");
         }
@@ -45,8 +50,8 @@ public class LobbyAPI {
     }
 
     @PostMapping("/lobby/join")
-    public ResponseEntity<String> joinLobby(@RequestBody JsonNode json) {
-        String lobbyID = json.get("lobbyID").asText();
+    public ResponseEntity<String> joinLobby(@RequestBody LobbyUserRequest req) {
+        String lobbyID =req.lobbyID;
         if(lobbyID.isEmpty()){
             return ResponseEntity.status(HttpStatus.FORBIDDEN).body("LOBBY_ID_IS_EMPTY");
         }
@@ -55,12 +60,12 @@ public class LobbyAPI {
         if (lob == null) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body("LOBBY_NOT_FOUND");
         }
-        String username = json.get("username").asText();
-        if(username.isEmpty()){
-            return ResponseEntity.status(HttpStatus.FORBIDDEN).body("USERNAME_IS_EMPTY");
+        String userID = req.userID;
+        if(userID.isEmpty()){
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body("USERID_IS_EMPTY");
         }
 
-        Client client = serverManager.getClient(username);
+        Client client = serverManager.getClient(userID);
         if (client == null) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body("USER_NOT_CONNECTED");
         }
@@ -100,13 +105,13 @@ public class LobbyAPI {
     }
 
     @PostMapping("lobby/leave")
-    public ResponseEntity<String> leaveLobby(@RequestBody JsonNode json) {
-        String username = json.get("username").asText(); //TODO: change to userID
-        Client client = serverManager.getClient(username);
+    public ResponseEntity<String> leaveLobby(@RequestBody LobbyUserRequest req) {
+        String userID = req.userID;
+        Client client = serverManager.getClient(userID);
         if (client == null) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body("USER_NOT_CONNECTED");
         }
-        String lobbyID = json.get("lobbyID").asText();
+        String lobbyID = req.lobbyID;
         Lobby lob = serverManager.getLobbyFromID(lobbyID);
         if (lob == null) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body("LOBBY_NOT_FOUND");

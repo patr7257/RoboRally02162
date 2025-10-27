@@ -13,7 +13,9 @@ public interface UserDatabase {
     public boolean existsID (String id);
     public boolean existsName (String name);
     public User findUserByName(String name);
+    public User findUserByNamePassword(String name, String passwordHash);
     public boolean deleteUser(String id);
     public boolean wipeUserDatabase(); //Resets entire user database
+    public boolean existsNamePassword(String name, String passwordHash);
 }
 

@@ -6,11 +6,11 @@ Author(s): Niklas
 
    const leaveLobby = async (
     lobbyId: string,
-    username: string|null, //to be changed to UUID
+    userID: string|null, //to be changed to UUID
     setError: ((msg:string) =>void) | null //allow to not have error handling
    ):Promise<void> => {
     if (setError) setError("");
-    if (username === null) {
+    if (userID === null) {
         throw new Error("Attempted to leave lobby without providing username");
     }
     try 
@@ -20,7 +20,7 @@ Author(s): Niklas
       const response = await fetch(API_BASE_URL+"/api/lobby/leave", {
         method: "POST",
         headers: {"Content-Type":"application/json"},
-        body: JSON.stringify({lobbyID: lobbyId, username:username}),
+        body: JSON.stringify({lobbyID: lobbyId, userID:userID}),
       });
       if (!response.ok) {
         throw new Error("Server returned error when leaving lobby");

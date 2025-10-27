@@ -42,12 +42,12 @@ public class ClientHandshakeInterceptor implements HandshakeInterceptor {
             //example default user
            // userDatabase.createUser("User", "password");
 
-            if (!userDatabase.existsName(token)) {
+            if (!userDatabase.existsID(token)) {
                 response.setStatusCode(HttpStatus.FORBIDDEN); // 403
                 return false;
             }
 
-            User us = userDatabase.findUserByName(token);
+            User us = userDatabase.findUserById(token);
             if (us == null) {
                 response.setStatusCode(HttpStatus.FORBIDDEN); // extra safety
                 return false;

@@ -9,7 +9,7 @@ import { subscribe } from "../utils/ws";
 import { leaveLobby } from './LeaveLobby';
 export default function LobbyCreation() {
   const navigate = useNavigate();
-  const usernameInput: string | null = localStorage.getItem("username");
+  const userID: string | null = localStorage.getItem("userID");
   const [lobbyId, setLobbyId] = useState<string>(localStorage.getItem("id") || "");
   const [error, setError] = useState<string>("");
   const API_BASE_URL = process.env.REACT_APP_API_BASE_URL;
@@ -55,11 +55,11 @@ export default function LobbyCreation() {
           Start Game
         </button>
 
-        <button className="big-button" onClick={async () =>{await leaveLobby(lobbyId,usernameInput,setError); navigate("/lobbyJoinScene")}}>
+        <button className="big-button" onClick={async () =>{await leaveLobby(lobbyId,userID,setError); navigate("/lobbyJoinScene")}}>
           Back to lobbies
         </button>
         
-        <button className="big-button" onClick={async () => { await leaveLobby(lobbyId,usernameInput,setError); navigate("/lobbyScene"); }}>
+        <button className="big-button" onClick={async () => { await leaveLobby(lobbyId,userID,setError); navigate("/lobbyScene"); }}>
           Leave Lobby (exit)
         </button>
       </div>

@@ -64,13 +64,15 @@ public class Server implements WebSocketConfigurer { // TODO: after host connect
         clientHandler = new WebSocketHandler() { // Client
             @Override
             public void afterConnectionEstablished(WebSocketSession session) throws Exception {
+
                 String token = getTokenFromSession(session);
+                User user = (User) session.getAttributes().get("user");
                 System.out.println("=== WebSocket CONNECTED ===");
                 System.out.println("Session ID: " + session.getId());
-                System.out.println("User: " + token);
+                System.out.println("User: " + user.getName());
                 System.out.println("Session state: " + session.isOpen());
                 System.out.println("========================");
-                User user = (User) session.getAttributes().get("user");
+
                 serverManager.createClient(user,session);
             }
 

@@ -108,11 +108,10 @@ public class ConnectionEstablishmentTests {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(payload))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.status").value("successful"))
-                .andExpect(jsonPath("$.username").value("newuser")).andReturn();
+                .andExpect(jsonPath("$.status").value("successful")).andReturn();
         String responseBody = result.getResponse().getContentAsString();
         JsonNode json = mapper.readTree(responseBody);
-        String token = json.get("username").asText();
+        String token = json.get("userID").asText();
         //Establish and test connection
         ArrayBlockingQueue<WebSocketSession> sessions = new ArrayBlockingQueue<>(1);
 

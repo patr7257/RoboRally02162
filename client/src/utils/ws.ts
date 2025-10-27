@@ -11,8 +11,8 @@ let reconnectAttempts = 0;
 const maxReconnectAttempts = 10;
 
 function getWsUrl(): string {
-  const usernameInput: string | null = localStorage.getItem("username");
-  const token = usernameInput;
+  const userID: string | null = localStorage.getItem("userID");
+  const token = userID;
   const wsProtocol = window.location.protocol === "https:" ? "wss" : "ws";
   const wsHost = process.env.REACT_APP_API_WS_URL!.replace(/^ws(s)?:\/\//, ''); // remove ws:// prefix
   return `${wsProtocol}://${wsHost}/client?token=${token}`;

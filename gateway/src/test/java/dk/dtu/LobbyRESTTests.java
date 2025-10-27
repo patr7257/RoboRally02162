@@ -83,7 +83,7 @@ public class LobbyRESTTests {
 
         String lobbyID = mockMvc.perform(post("/api/lobby/create")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(mapper.writeValueAsString(Map.of("username", username))))
+                        .content(mapper.writeValueAsString(Map.of("userID", token))))
                 .andExpect(status().isCreated())
                 .andExpect(content().string(Matchers.notNullValue()))
                 .andReturn()
@@ -94,7 +94,7 @@ public class LobbyRESTTests {
 
         assertThat(server.getLobbiesForTest()).containsKey(lobbyID);
         assertThat(server.getLobbiesForTest().get(lobbyID).getPlayers().values())
-                .contains(server.getClientsForTest().get(username));
+                .contains(server.getClientsForTest().get(token));
 
         wsSession.close();
     }
@@ -114,7 +114,7 @@ public class LobbyRESTTests {
 
         String lobbyID = mockMvc.perform(post("/api/lobby/create")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(mapper.writeValueAsString(Map.of("username", hostUser))))
+                        .content(mapper.writeValueAsString(Map.of("userID", hostToken))))
                 .andExpect(status().isCreated())
                 .andReturn()
                 .getResponse()
@@ -127,7 +127,7 @@ public class LobbyRESTTests {
         WebSocketSession clientSession = connectWebSocket(clientToken);
 
         Map<String, Object> joinBody = new HashMap<>();
-        joinBody.put("username", clientUser);
+        joinBody.put("userID", clientToken);
         joinBody.put("lobbyID", lobbyID);
 
         mockMvc.perform(post("/api/lobby/join")
@@ -137,9 +137,9 @@ public class LobbyRESTTests {
                 .andExpect(content().string(lobbyID));
 
         assertThat(server.getLobbiesForTest().get(lobbyID).getPlayers().values())
-                .contains(server.getClientsForTest().get(hostUser));
+                .contains(server.getClientsForTest().get(hostToken));
         assertThat(server.getLobbiesForTest().get(lobbyID).getPlayers().values())
-                .contains(server.getClientsForTest().get(clientUser));
+                .contains(server.getClientsForTest().get(clientToken));
 
         hostSession.close();
         clientSession.close();
@@ -159,7 +159,7 @@ public class LobbyRESTTests {
 
         String lobbyID = mockMvc.perform(post("/api/lobby/create")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(mapper.writeValueAsString(Map.of("username", hostUser))))
+                        .content(mapper.writeValueAsString(Map.of("userID", hostToken))))
                 .andExpect(status().isCreated())
                 .andReturn()
                 .getResponse()
@@ -178,7 +178,7 @@ public class LobbyRESTTests {
 
 
         Map<String, Object> joinBody = new HashMap<>();
-        joinBody.put("username", clientUser);
+        joinBody.put("userID", clientToken);
         joinBody.put("lobbyID", lobbyID);
 
         mockMvc.perform(post("/api/lobby/join")
@@ -206,7 +206,7 @@ public class LobbyRESTTests {
 
         String lobbyID = mockMvc.perform(post("/api/lobby/create")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(mapper.writeValueAsString(Map.of("username", hostUser))))
+                        .content(mapper.writeValueAsString(Map.of("userID", hostToken))))
                 .andExpect(status().isCreated())
                 .andReturn()
                 .getResponse()
@@ -220,7 +220,7 @@ public class LobbyRESTTests {
 
 
         Map<String, Object> joinBody = new HashMap<>();
-        joinBody.put("username", clientUser);
+        joinBody.put("userID", clientToken);
         joinBody.put("lobbyID", lobbyID);
 
         mockMvc.perform(post("/api/lobby/join")
@@ -247,7 +247,7 @@ public class LobbyRESTTests {
 
         String lobbyID = mockMvc.perform(post("/api/lobby/create")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(mapper.writeValueAsString(Map.of("username", hostUser))))
+                        .content(mapper.writeValueAsString(Map.of("userID", hostToken))))
                 .andExpect(status().isCreated())
                 .andReturn()
                 .getResponse()
@@ -260,7 +260,7 @@ public class LobbyRESTTests {
         WebSocketSession clientSession = connectWebSocket(clientToken);
 
         Map<String, Object> joinBody = new HashMap<>();
-        joinBody.put("username", clientUser);
+        joinBody.put("userID", clientToken);
         joinBody.put("lobbyID", "-1");
 
         mockMvc.perform(post("/api/lobby/join")
@@ -291,7 +291,7 @@ public class LobbyRESTTests {
 
         String lobbyID = mockMvc.perform(post("/api/lobby/create")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(mapper.writeValueAsString(Map.of("username", hostUser))))
+                        .content(mapper.writeValueAsString(Map.of("userID", hostToken))))
                 .andExpect(status().isCreated())
                 .andReturn()
                 .getResponse()
@@ -328,7 +328,7 @@ public class LobbyRESTTests {
 
         String lobbyID1 = mockMvc.perform(post("/api/lobby/create")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(mapper.writeValueAsString(Map.of("username", username))))
+                        .content(mapper.writeValueAsString(Map.of("userID", token))))
                 .andExpect(status().isCreated())
                 .andExpect(content().string(Matchers.notNullValue()))
                 .andReturn()
@@ -337,7 +337,7 @@ public class LobbyRESTTests {
 
         String lobbyID2 = mockMvc.perform(post("/api/lobby/create")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(mapper.writeValueAsString(Map.of("username", username))))
+                        .content(mapper.writeValueAsString(Map.of("userID", token))))
                 .andExpect(status().isCreated())
                 .andExpect(content().string(Matchers.notNullValue()))
                 .andReturn()
@@ -351,7 +351,7 @@ public class LobbyRESTTests {
 
         String lobbyID3 = mockMvc.perform(post("/api/lobby/create")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(mapper.writeValueAsString(Map.of("username", username))))
+                        .content(mapper.writeValueAsString(Map.of("userID", token))))
                 .andExpect(status().isCreated())
                 .andExpect(content().string(Matchers.notNullValue()))
                 .andReturn()
@@ -387,7 +387,7 @@ public class LobbyRESTTests {
         //create lobby
         String lobbyID = mockMvc.perform(post("/api/lobby/create")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(mapper.writeValueAsString(Map.of("username", username1))))
+                        .content(mapper.writeValueAsString(Map.of("userID", token1))))
                 .andExpect(status().isCreated())
                 .andExpect(content().string(Matchers.notNullValue()))
                 .andReturn()
@@ -395,7 +395,7 @@ public class LobbyRESTTests {
                 .getContentAsString();
         //user 2 join lobby
         Map<String, Object> joinBody = new HashMap<>();
-        joinBody.put("username", username2);
+        joinBody.put("userID", token2);
         joinBody.put("lobbyID", lobbyID);
 
         mockMvc.perform(post("/api/lobby/join")
@@ -405,7 +405,7 @@ public class LobbyRESTTests {
                 .andExpect(content().string(lobbyID));
         //user 2 leave lobby
         Map<String,Object> leaveBody = new HashMap<>();
-        leaveBody.put("username", username2);
+        leaveBody.put("userID", token2);
         leaveBody.put("lobbyID", lobbyID);
 
         mockMvc.perform(post("/api/lobby/leave")
@@ -430,7 +430,7 @@ public class LobbyRESTTests {
         //create lobby
         String lobbyID = mockMvc.perform(post("/api/lobby/create")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(mapper.writeValueAsString(Map.of("username", username1))))
+                        .content(mapper.writeValueAsString(Map.of("userID", token1))))
                 .andExpect(status().isCreated())
                 .andExpect(content().string(Matchers.notNullValue()))
                 .andReturn()
@@ -446,7 +446,7 @@ public class LobbyRESTTests {
 
 
         Map<String,Object> leaveBody = new HashMap<>();
-        leaveBody.put("username", username2);
+        leaveBody.put("userID", token2);
         leaveBody.put("lobbyID", lobbyID);
         mockMvc.perform(post("/api/lobby/leave")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -458,7 +458,6 @@ public class LobbyRESTTests {
 
     @Test
     public void leaveLobbyEmptyLobbyTest() throws Exception {
-        System.out.println("LEAVELOBBYEMPTYLOBBYTEST");
         //test that lobby is deleted after becoming empty
         //create and login user 1
         String username1 = "TestUser1";
@@ -470,14 +469,14 @@ public class LobbyRESTTests {
         //create lobby
         String lobbyID = mockMvc.perform(post("/api/lobby/create")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(mapper.writeValueAsString(Map.of("username", username1))))
+                        .content(mapper.writeValueAsString(Map.of("userID", token1))))
                 .andExpect(status().isCreated())
                 .andExpect(content().string(Matchers.notNullValue()))
                 .andReturn()
                 .getResponse()
                 .getContentAsString();
         Map<String,Object> leaveBody = new HashMap<>();
-        leaveBody.put("username", username1);
+        leaveBody.put("userID", token1);
         leaveBody.put("lobbyID", lobbyID);
         mockMvc.perform(post("/api/lobby/leave")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -514,7 +513,7 @@ public class LobbyRESTTests {
 
         String lobbyID = mockMvc.perform(post("/api/lobby/create")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(mapper.writeValueAsString(Map.of("username", username1))))
+                        .content(mapper.writeValueAsString(Map.of("userID", token1))))
                 .andExpect(status().isCreated())
                 .andExpect(content().string(Matchers.notNullValue()))
                 .andReturn()
@@ -524,7 +523,7 @@ public class LobbyRESTTests {
 
         //user2 join lobby
         Map<String, Object> joinBody2 = new HashMap<>();
-        joinBody2.put("username", username2);
+        joinBody2.put("userID", token2);
         joinBody2.put("lobbyID", lobbyID);
         mockMvc.perform(post("/api/lobby/join")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -533,7 +532,7 @@ public class LobbyRESTTests {
                 .andExpect(content().string(lobbyID));
         //user3 join lobby
         Map<String, Object> joinBody3 = new HashMap<>();
-        joinBody3.put("username", username3);
+        joinBody3.put("userID", token3);
         joinBody3.put("lobbyID", lobbyID);
         mockMvc.perform(post("/api/lobby/join")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -544,7 +543,7 @@ public class LobbyRESTTests {
 
         //user2 leave lobby
         Map<String,Object> leaveBody = new HashMap<>();
-        leaveBody.put("username", username2);
+        leaveBody.put("userID", token2);
         leaveBody.put("lobbyID", lobbyID);
 
         mockMvc.perform(post("/api/lobby/leave")
@@ -576,14 +575,14 @@ public class LobbyRESTTests {
 
         String lobbyID = mockMvc.perform(post("/api/lobby/create")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(mapper.writeValueAsString(Map.of("username",""))))
+                        .content(mapper.writeValueAsString(Map.of("userID",""))))
                 .andExpect(status().isForbidden())
                 .andExpect(content().string(Matchers.notNullValue()))
                 .andReturn()
                 .getResponse()
                 .getContentAsString();
 
-        assertThat(lobbyID).isEqualTo("USERNAME_IS_EMPTY");
+        assertThat(lobbyID).isEqualTo("USERID_IS_EMPTY");
     }
 
     @Test
@@ -596,7 +595,7 @@ public class LobbyRESTTests {
 
         String lobbyID = mockMvc.perform(post("/api/lobby/create")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(mapper.writeValueAsString(Map.of("username","testUser2"))))
+                        .content(mapper.writeValueAsString(Map.of("userID","testUser2"))))
                 .andExpect(status().isForbidden())
                 .andExpect(content().string(Matchers.notNullValue()))
                 .andReturn()
@@ -616,7 +615,7 @@ public class LobbyRESTTests {
 
         String lobbyID = mockMvc.perform(post("/api/lobby/create")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(mapper.writeValueAsString(Map.of("username",username1))))
+                        .content(mapper.writeValueAsString(Map.of("userID",token1))))
                 .andExpect(status().isCreated())
                 .andExpect(content().string(Matchers.notNullValue()))
                 .andReturn()
@@ -636,7 +635,7 @@ public class LobbyRESTTests {
     }
 
     @Test
-    public void joinLobbyUsernameIsEmptyTest() throws Exception{
+    public void joinLobbyUserIDIsEmptyTest() throws Exception{
         String username1 = "TestUser1";
         String token1 = createAndLoginUser(username1);
         Thread.sleep(50);
@@ -645,7 +644,7 @@ public class LobbyRESTTests {
 
         String lobbyID = mockMvc.perform(post("/api/lobby/create")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(mapper.writeValueAsString(Map.of("username", username1))))
+                        .content(mapper.writeValueAsString(Map.of("userID", token1))))
                 .andExpect(status().isCreated())
                 .andExpect(content().string(Matchers.notNullValue()))
                 .andReturn()
@@ -653,14 +652,14 @@ public class LobbyRESTTests {
                 .getContentAsString();
 
         Map<String, Object> joinBody = new HashMap<>();
-        joinBody.put("username", "");
+        joinBody.put("userID", "");
         joinBody.put("lobbyID", lobbyID);
         String msg = mockMvc.perform(post("/api/lobby/join")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(mapper.writeValueAsString(joinBody)))
                 .andExpect(status().isForbidden()).andReturn().getResponse().getContentAsString();
 
-        assertThat(msg).isEqualTo("USERNAME_IS_EMPTY");
+        assertThat(msg).isEqualTo("USERID_IS_EMPTY");
 
     }
 
@@ -683,7 +682,7 @@ public class LobbyRESTTests {
         //create lobby
         String lobbyID = mockMvc.perform(post("/api/lobby/create")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(mapper.writeValueAsString(Map.of("username", usernamePrefix + "1"))))
+                        .content(mapper.writeValueAsString(Map.of("userID", token1))))
                 .andExpect(status().isCreated())
                 .andExpect(content().string(Matchers.notNullValue()))
                 .andReturn()
@@ -699,7 +698,7 @@ public class LobbyRESTTests {
             sessions.add(wsSession);
 
             Map<String, Object> joinBody = new HashMap<>();
-            joinBody.put("username", username);
+            joinBody.put("userID", token);
             joinBody.put("lobbyID", lobbyID);
             mockMvc.perform(post("/api/lobby/join")
                             .contentType(MediaType.APPLICATION_JSON)
@@ -712,7 +711,7 @@ public class LobbyRESTTests {
         WebSocketSession wsSession7 = connectWebSocket(token7);
 
         Map<String, Object> joinBody7 = new HashMap<>();
-        joinBody7.put("username", usernamePrefix + "7");
+        joinBody7.put("userID", token7);
         joinBody7.put("lobbyID", lobbyID);
 
         String msg7 = mockMvc.perform(post("/api/lobby/join")
@@ -745,7 +744,7 @@ public class LobbyRESTTests {
                 .andExpect(status().isOk())
                 .andReturn();
 
-        return mapper.readTree(loginResult.getResponse().getContentAsString()).get("username").asText(); //TODO: change to token when the clientHandshake actually checks tokens instead of usernames.
+        return mapper.readTree(loginResult.getResponse().getContentAsString()).get("userID").asText(); //TODO: change to token when the clientHandshake actually checks tokens instead of userIDs.
     }
 
     private WebSocketSession connectWebSocket(String token) throws Exception {
