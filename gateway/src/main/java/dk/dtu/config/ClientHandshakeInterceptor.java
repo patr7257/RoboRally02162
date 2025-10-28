@@ -1,5 +1,7 @@
 package dk.dtu.config;
 
+import dk.dtu.model.DynamicUserDatabase;
+
 /*
 Author(s): Niklas, Bjarke
  */
@@ -23,7 +25,7 @@ public class ClientHandshakeInterceptor implements HandshakeInterceptor {
     private final UserDatabase userDatabase;
 
     @Autowired
-    public ClientHandshakeInterceptor(UserDatabase userDatabase) {
+    public ClientHandshakeInterceptor(DynamicUserDatabase userDatabase) {
         this.userDatabase = userDatabase;
     }
 

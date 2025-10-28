@@ -15,7 +15,7 @@ import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
-@Service
+@Service("localDatabase")
 public class Database implements UserDatabase {
     // id -> user (all user data)
     private final Map<String, User> usersById = new ConcurrentHashMap<>(); //TODO: change to be ID based.

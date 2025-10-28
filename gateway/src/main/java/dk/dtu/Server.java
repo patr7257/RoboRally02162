@@ -5,6 +5,7 @@ Author(s): Niklas, Karl, Benjamin
  */
 
 import com.fasterxml.jackson.databind.JsonNode;
+import dk.dtu.model.SQLDatabaseInitializer;
 import dk.dtu.model.Client;
 import dk.dtu.model.Lobby;
 import dk.dtu.model.User;
@@ -30,6 +31,7 @@ public class Server implements WebSocketConfigurer { // TODO: after host connect
 
     @Autowired
     public Server(ClientHandshakeInterceptor cliHandInt, ServerManager serverManager) {
+        SQLDatabaseInitializer.initializeDatabaseComplete();
         this.clientInterceptor = cliHandInt;
         this.serverManager = serverManager;
         initClientHandler();
@@ -59,6 +61,7 @@ public class Server implements WebSocketConfigurer { // TODO: after host connect
 
         registry.addHandler(hostHandler, "/host").setAllowedOrigins("*");
     }
+
 
     private void initClientHandler() {
         clientHandler = new WebSocketHandler() { // Client

@@ -1,5 +1,7 @@
 package dk.dtu.web;
 
+import dk.dtu.model.DynamicUserDatabase;
+
 /*
 Author(s): Lizette, Kajsa, Niklas
 */
@@ -23,7 +25,7 @@ public class AccountHandler {
     private final UserDatabase userDatabase;
     private final BCryptPasswordEncoder encoder = new BCryptPasswordEncoder();
 
-    public AccountHandler(UserDatabase userDatabase) {
+    public AccountHandler(DynamicUserDatabase userDatabase) {
         this.userDatabase = userDatabase;
     }
 

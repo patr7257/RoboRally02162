@@ -31,6 +31,7 @@ import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.Assert.assertThat;
 import static org.mockito.Mockito.timeout;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -40,7 +41,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
 @AutoConfigureMockMvc
 public class ConnectionEstablishmentTests {
-   @Autowired
+    @Autowired
     private MockMvc mockMvc;
 
     @Autowired
@@ -51,6 +52,7 @@ public class ConnectionEstablishmentTests {
 
     private StandardWebSocketClient clientSocket;
     private StandardWebSocketClient hostSocket;
+
     @BeforeEach
     void setup() {
         clientSocket = new StandardWebSocketClient();
@@ -68,7 +70,8 @@ public class ConnectionEstablishmentTests {
             }
 
             @Override
-            protected void handleTextMessage(WebSocketSession session, TextMessage message) { }
+            protected void handleTextMessage(WebSocketSession session, TextMessage message) {
+            }
         };
 
         URI uri = URI.create("ws://localhost:" + port + "/host");
@@ -76,7 +79,6 @@ public class ConnectionEstablishmentTests {
 
         CompletableFuture<WebSocketSession> future = hostSocket.execute(handler, headers, uri);
         WebSocketSession clientSession = future.get(5, TimeUnit.SECONDS);
-
 
         try {
             WebSocketSession established = sessions.poll(5, TimeUnit.SECONDS);
@@ -92,9 +94,9 @@ public class ConnectionEstablishmentTests {
 
     @Test
     void connectClientSuccessful() throws Exception {
-        //create user
+        // create user
         mockMvc.perform(post("/api/users/create")
-                        .contentType(MediaType.APPLICATION_JSON)
+                .contentType(MediaType.APPLICATION_JSON)
                 .content("{\"username\":\"newuser\", \"passwordHash\":\"password\"}"))
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.status").value("successful"));
@@ -103,16 +105,16 @@ public class ConnectionEstablishmentTests {
         map.put("username", "newuser");
         map.put("passwordHash", "password");
         String payload = mapper.writeValueAsString(map);
-        //login user
+        // login user
         MvcResult result = mockMvc.perform(post("/api/users/login")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(payload))
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(payload))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.status").value("successful")).andReturn();
         String responseBody = result.getResponse().getContentAsString();
         JsonNode json = mapper.readTree(responseBody);
         String token = json.get("userID").asText();
-        //Establish and test connection
+        // Establish and test connection
         ArrayBlockingQueue<WebSocketSession> sessions = new ArrayBlockingQueue<>(1);
 
         var handler = new AbstractWebSocketHandler() {
@@ -122,7 +124,8 @@ public class ConnectionEstablishmentTests {
             }
 
             @Override
-            protected void handleTextMessage(WebSocketSession session, TextMessage message) { }
+            protected void handleTextMessage(WebSocketSession session, TextMessage message) {
+            }
         };
 
         WebSocketHttpHeaders headers = new WebSocketHttpHeaders();
@@ -146,8 +149,8 @@ public class ConnectionEstablishmentTests {
     @Test
     void connectClientUnsuccessfulNoAuth() throws Exception {
 
-        //TODO: establish connection
-        //TODO: test connection (should fail)
+        // TODO: establish connection
+        // TODO: test connection (should fail)
 
         ArrayBlockingQueue<WebSocketSession> sessions = new ArrayBlockingQueue<>(1);
 
@@ -158,11 +161,11 @@ public class ConnectionEstablishmentTests {
             }
 
             @Override
-            protected void handleTextMessage(WebSocketSession session, TextMessage message) { }
+            protected void handleTextMessage(WebSocketSession session, TextMessage message) {
+            }
         };
 
         URI uri = URI.create("ws://localhost:" + port + "/client");
-
 
         try {
             CompletableFuture<WebSocketSession> future = hostSocket.execute(handler, null, uri);
@@ -172,14 +175,15 @@ public class ConnectionEstablishmentTests {
             assertThat(clientSession.isOpen()).isFalse();
             assertThat(established.isOpen()).isFalse();
         } catch (Exception e) {
-            assertThat(e.getCause().getMessage()).contains("401"); //missing authorization
+            assertThat(e.getCause().getMessage()).contains("401"); // missing authorization
         }
     }
+
     @Test
     void connectClientUnsuccessfulInvalidAuth() throws Exception {
 
-        //TODO: establish connection
-        //TODO: test connection (should fail)
+        // TODO: establish connection
+        // TODO: test connection (should fail)
 
         ArrayBlockingQueue<WebSocketSession> sessions = new ArrayBlockingQueue<>(1);
 
@@ -190,7 +194,8 @@ public class ConnectionEstablishmentTests {
             }
 
             @Override
-            protected void handleTextMessage(WebSocketSession session, TextMessage message) { }
+            protected void handleTextMessage(WebSocketSession session, TextMessage message) {
+            }
         };
 
         URI uri = URI.create("ws://localhost:" + port + "/client?token=someUserWithoutAccess");
@@ -203,7 +208,7 @@ public class ConnectionEstablishmentTests {
             assertThat(clientSession.isOpen()).isFalse();
             assertThat(established.isOpen()).isFalse();
         } catch (Exception e) {
-            assertThat(e.getCause().getMessage()).contains("403"); //missing authorization
+            assertThat(e.getCause().getMessage()).contains("403"); // missing authorization
         }
     }
 
