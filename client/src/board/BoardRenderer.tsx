@@ -33,8 +33,9 @@ export const BoardRenderer: React.FC<BoardRendererProps> = ({ gameData }) => {
           ["--tile-size" as any]: `${tileSize}px`,
         }}
       >
-        {gameData.board.tiles.map((row, y) =>
-          row.map((tile, x) => {
+        {gameData.board.tiles.map((col, xIdx) =>
+          col.map((tile, yIdx) => {
+            const x = xIdx, y = yIdx;
             const robot = getRobotAtPosition(gameData.robots, x, y);
             return (
               <BoardTile
@@ -48,6 +49,7 @@ export const BoardRenderer: React.FC<BoardRendererProps> = ({ gameData }) => {
             );
           })
         )}
+
       </div>
     </div>
   );

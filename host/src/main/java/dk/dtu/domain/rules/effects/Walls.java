@@ -28,9 +28,12 @@ public class Walls implements TileEffect {
         return false;
     }
 
+    public EnumSet<Direction> getEdges() {
+        return edges;
+    }
+
     @Override
     public void onPhase(Phase phase, Tile tile, BoardAPI api) {
-
     }
 
     @Override

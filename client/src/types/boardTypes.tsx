@@ -7,7 +7,8 @@ Author(s): Asger, William, Bjarke, Niklas
 export interface BaseEffect { kind: string; id: string }
 export interface CheckpointEffect extends BaseEffect { kind: "checkpoint"; number: number }
 export interface ConveyorEffect   extends BaseEffect { kind: "conveyor"; dir: Direction; speed: 1|2 }
-export type TileEffect = CheckpointEffect | ConveyorEffect;
+export interface WallEffect       extends BaseEffect { kind: "walldto"; walls: Direction[]; }
+export type TileEffect = CheckpointEffect | ConveyorEffect | WallEffect;
 
 export type MoveType =
     | "MOVE1"

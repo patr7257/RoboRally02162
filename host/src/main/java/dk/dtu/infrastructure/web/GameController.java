@@ -8,6 +8,7 @@ import dk.dtu.domain.model.Robot;
 import dk.dtu.domain.rules.api.BoardAPI;
 import dk.dtu.domain.rules.api.BoardApiImpl;
 import dk.dtu.domain.rules.effects.Checkpoint;
+import dk.dtu.domain.rules.effects.Walls;
 import dk.dtu.infrastructure.SnapshotMapper;
 import dk.dtu.infrastructure.dto.BoardDto;
 import dk.dtu.infrastructure.dto.RobotDto;
@@ -16,10 +17,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Random;
-import java.util.UUID;
+import java.util.*;
 
 // Author(s) Weihao Mo, William Pii Jæger
 
@@ -36,12 +34,29 @@ public class GameController {
     public record EndGameRequest(String gameID) {}
     public record EndGameResponse(boolean endedGame) {}
 
+    private ArrayList<Tile> randomTiles(int floor, int ceil, Board board) {
+        Random rnd = new Random();
+        ArrayList<Tile> selectedTiles = new ArrayList<>();
+        for (int i = floor; i <= ceil; i++) {
+            int x, y;
+            do {
+                x = rnd.nextInt(board.getWidth());
+                y = rnd.nextInt(board.getHeight());
+            } while (!board.getTile(x, y).getEffects().isEmpty());
+
+            selectedTiles.add(board.getTile(x, y));
+        }
+
+        return selectedTiles;
+    }
+
+
     @PostMapping("/startGame")
     public synchronized StartGameResponse start(@RequestBody StartGameRequest req) {
         Tile[][] tiles = new Tile[req.boardSize()][req.boardSize()];
         for (int x = 0; x < req.boardSize(); x++) {
             for (int y = 0; y < req.boardSize(); y++) {
-                tiles[y][x] = new Tile(y,x);
+                tiles[x][y] = new Tile(x,y);
             }
         }
 
@@ -60,15 +75,19 @@ public class GameController {
             robots.add(new Robot(id, x, y, dir));
         }
 
-        for (int i = 1; i <= 3; i++) {
-            int x, y;
-            do {
-                x = rnd.nextInt(req.boardSize());
-                y = rnd.nextInt(req.boardSize());
-            } while (!tiles[x][y].getEffects().isEmpty());
-
-            tiles[x][y].addEffect(new Checkpoint(i));
+        ArrayList<Tile> checkPointTiles = randomTiles(1, 3, board);
+        for (int i = 0; i <= 2; i++) {
+            checkPointTiles.get(i).addEffect(new Checkpoint(i+1));
         }
+
+        ArrayList<Tile> wallTiles = randomTiles(0, 5, board);
+        Direction[] dirs = Direction.values();
+
+        for (Tile t : wallTiles) {
+            Direction d = dirs[rnd.nextInt(dirs.length)];
+            t.addEffect(new Walls(EnumSet.of(d)));
+        }
+
 
         BoardAPI boardApi = new BoardApiImpl(board,robots);
         UUID gameID = gameManager.startGame(board, boardApi, robots);

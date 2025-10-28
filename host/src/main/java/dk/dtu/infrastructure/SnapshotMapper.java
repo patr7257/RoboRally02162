@@ -3,9 +3,11 @@ package dk.dtu.infrastructure;
 import dk.dtu.domain.core.Game;
 import dk.dtu.domain.core.PlayerID;
 import dk.dtu.domain.model.Board;
+import dk.dtu.domain.model.Direction;
 import dk.dtu.domain.model.Robot;
 import dk.dtu.domain.model.Tile;
 import dk.dtu.domain.rules.effects.Checkpoint;
+import dk.dtu.domain.rules.effects.Walls;
 import dk.dtu.infrastructure.dto.*;
 
 import java.util.ArrayList;
@@ -49,6 +51,9 @@ public final class SnapshotMapper {
             for (var effect : t.getEffects()) {
                 if (effect instanceof Checkpoint cp) {
                     effects.add(new CheckpointDto(cp.number()));
+                }
+                if (effect instanceof Walls wl) {
+                    effects.add(new WallDto(List.copyOf(wl.getEdges())));
                 }
             }
         }

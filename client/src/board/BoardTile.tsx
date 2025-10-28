@@ -18,9 +18,8 @@ interface BoardTileProps {
 export const BoardTile: React.FC<BoardTileProps> = ({
   x, y, tileSize, robot, effects = [],
 }) => (
-  <div className="tile" style={{ width: tileSize, height: tileSize }}>
+<div className="tile" style={{ width: tileSize, height: tileSize, gridColumn: x + 1, gridRow: y + 1 }}>
     <span className="tile-coords">{x},{y}</span>
-
     {robot && (
       <div className="robot" style={{ backgroundColor: getRobotColor(robot.id) }}>
         <div className="robot-arrow">{getFacingArrow(robot.facing)}</div>

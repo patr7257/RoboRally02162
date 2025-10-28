@@ -18,7 +18,7 @@ public final class BoardTestUtils {
         Tile[][] tiles = new Tile[width][height];
         for (int x = 0; x < width; x++) {
             for (int y = 0; y < height; y++) {
-                Tile c = new Tile(y, x);
+                Tile c = new Tile(x, y);
                 c.setX(x);
                 c.setY(y);
                 c.setEffects(Collections.emptyList());

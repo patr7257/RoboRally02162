@@ -12,7 +12,7 @@ public class Tile {
 
     private List<TileEffect> effects;
 
-    public Tile(int y, int x) {
+    public Tile(int x, int y) {
         this.x = x;
         this.y = y;
         this.effects = new ArrayList<>();
