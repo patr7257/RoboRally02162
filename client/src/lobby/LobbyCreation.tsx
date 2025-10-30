@@ -44,25 +44,44 @@ export default function LobbyCreation() {
     }
   };
 
- 
 
-  return (
-    <Layout>
-      <h1>Lobby Creation</h1>
-      <p>Your lobby ID is: {lobbyId}</p>
-      <div className="lobby-actions">
-        <button className="big-button" onClick={() => startGame()}>
+// lobby creation
+return (
+  <Layout>
+    <div className="panel-container">
+      <h1 className="panel-title">Mission Setup</h1>
+
+      <div className="control-panel">
+        <div className="lobby-id-display">
+          <span className="lobby-id-label">LOBBY ID</span>
+          <span className="lobby-id-value">{lobbyId}</span>
+        </div>
+
+        <button className="metal-button" onClick={() => startGame()}>
           Start Game
         </button>
 
-        <button className="big-button" onClick={async () =>{await leaveLobby(lobbyId,userID,setError); navigate("/lobbyJoinScene")}}>
-          Back to lobbies
+        <button
+          className="metal-button"
+          onClick={async () => {
+            await leaveLobby(lobbyId, userID, setError);
+            navigate("/lobbyJoinScene");
+          }}
+        >
+          Back to Lobbies
         </button>
-        
-        <button className="big-button" onClick={async () => { await leaveLobby(lobbyId,userID,setError); navigate("/lobbyScene"); }}>
-          Leave Lobby (exit)
+
+        <button
+          className="metal-button"
+          onClick={async () => {
+            await leaveLobby(lobbyId, userID, setError);
+            navigate("/lobbyScene");
+          }}
+        >
+          Leave Lobby (Exit)
         </button>
       </div>
-    </Layout>
-  );
+    </div>
+  </Layout>
+);
 }

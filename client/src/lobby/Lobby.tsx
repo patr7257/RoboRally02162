@@ -42,27 +42,31 @@ export default function Lobby() {
       setError("Network error. Try again.");
     }
   };
-
+//lobby menu
   return (
     <Layout>
-      <h1>Lobby menu</h1>
-      <div className="button-container">
-        <button
-          className="big-button"
-          onClick={async () => {
-            await createLobby();
-            navigate("/lobbyCreationScene");
-          }}
-        >
-          Create Lobby
-        </button>
-        <button className="big-button" onClick={() => navigate("/lobbyJoinScene")}>
-          Join Lobby
-        </button>
-        <button className="big-button" onClick={() => navigate("/")}> 
-          Go to homepage
-        </button>
-      </div>
+      <h1>Command Center</h1> 
+      <div className="lobby-actions">
+  <div className="control-panel">
+    <button
+      className="metal-button"
+      onClick={async () => {
+        await createLobby();
+        navigate("/lobbyCreationScene");
+      }}
+    >
+      Create Lobby
+    </button>
+
+    <button className="metal-button" onClick={() => navigate("/lobbyJoinScene")}>
+      Join Lobby
+    </button>
+
+    <button className="metal-button" onClick={() => navigate("/")}>
+      Go to homepage
+    </button>
+  </div>
+</div>
     </Layout>
   );
 }

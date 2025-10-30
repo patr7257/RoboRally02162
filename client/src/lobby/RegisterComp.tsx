@@ -5,9 +5,9 @@ Author(s): Lizette, Asger
 import React, { useState } from "react";
 import { sha256Hex } from "../utils/hashPassword";
 
-interface RegisterCompProps {}
+interface RegisterCompProps { }
 
-export default function RegisterComp({}: RegisterCompProps) {
+export default function RegisterComp({ }: RegisterCompProps) {
   const [username, setUsername] = useState<string>("");
   const [password, setPassword] = useState<string>("");
   const [error, setError] = useState<string>("");
@@ -22,7 +22,7 @@ export default function RegisterComp({}: RegisterCompProps) {
     try {
       const clientHash = await sha256Hex(password);
 
-      const response = await fetch(API_BASE_URL+"/api/users/create", {
+      const response = await fetch(API_BASE_URL + "/api/users/create", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -76,12 +76,12 @@ export default function RegisterComp({}: RegisterCompProps) {
         />
       </div>
 
-      <button type="button" onClick={handleRegister}>
+      <button type="button" className="metal-button" onClick={handleRegister}>
         Register
       </button>
-
-  {error && <p className="error-text">{error}</p>}
-  {success && <p className="success-text">{success}</p>}
+      {/* Themed feedback messages */}
+      {error && <p className="auth-message error">{error}</p>}
+      {success && <p className="auth-message success">{success}</p>}
     </div>
   );
 }

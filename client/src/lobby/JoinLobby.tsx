@@ -72,41 +72,45 @@ export default function JoinLobby() {
   };
 
   return (
-    <Layout>
-      <div className="lobby-actions">
-        <button className="big-button" onClick={findLobby}>
-          See lobbies
-        </button>
-        <button className="big-button" onClick={() => navigate("/lobbyScene")}>
-          Go back to lobby menu
-        </button>
-      </div>
+  <Layout>
+    <div className="panel-container">
+      <h1 className="panel-title">Mission Access Terminal</h1>
 
-      {lobbies.length > 0 && (
-        <div className="lobbies-list">
-          <ul>
-            {lobbies.map((lobby, index) => (
-              <li key={index}>
-                <div className="lobbyContainer">
-                  Lobby ID: {lobby.lobbyID}
+      <div className="control-panel">
+        <button className="metal-button" onClick={findLobby}>
+          Scan for Active Lobbies
+        </button>
+
+        <button className="metal-button" onClick={() => navigate("/lobbyScene")}>
+          Return to Command Center
+        </button>
+
+        {lobbies.length > 0 && (
+          <div className="lobbies-terminal">
+            <h2 className="terminal-title">Available Lobbies</h2>
+            <ul className="terminal-list">
+              {lobbies.map((lobby, index) => (
+                <li key={index} className="terminal-item">
+                  <span className="terminal-id">ID: {lobby.lobbyID}</span>
                   <button
-                    className="join-button"
+                    className="metal-button small"
                     onClick={async () => {
                       if (await joinLobby(lobby.lobbyID)) {
-                      navigate("/lobbyCreationScene");
+                        navigate("/lobbyCreationScene");
                       }
                     }}
                   >
                     Join
                   </button>
-                </div>
-              </li>
-            ))}
-          </ul>
-        </div>
-      )}
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
 
-  {error && <p className="error-text">{error}</p>}
-    </Layout>
-  );
+        {error && <p className="error-text">{error}</p>}
+      </div>
+    </div>
+  </Layout>
+);
 }

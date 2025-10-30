@@ -6,12 +6,21 @@ Author(s): Bjarke, Asger, Patrick
 import { Direction, MoveType } from "./boardTypes";
 
 export const ROBOT_COLORS = [
-    "#ff4444",
-    "#44ff44",
-    "#4444ff",
-    "#ffff44",
-    "#ff44ff",
-    "#44ffff",
+  "#3b82f6", // blue
+  "#ffffff", // white
+  "#22c55e", // green
+  "#facc15", // yellow
+  "#ef4444", // red
+  "#a855f7", // purple
+];
+
+export const ROBOT_IMAGES = [
+    "/robots/blueRobot.png",
+    "/robots/whiteRobot.png",
+    "/robots/greenRobot.png",
+    "/robots/yellowRobot.png",
+    "/robots/redRobot.png",
+    "/robots/purpleRobot.png",
 ];
 
 export const DIRECTION_ARROWS: Record<Direction, string> = {

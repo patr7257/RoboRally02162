@@ -66,4 +66,4 @@ export interface GameMessage extends WebSocketMessage {
 }
 
 // Re-export constants for convenience / compatibility
-export { ROBOT_COLORS, DIRECTION_ARROWS, MOVE_OPTIONS } from "./constants";
+export { ROBOT_COLORS, ROBOT_IMAGES, DIRECTION_ARROWS, MOVE_OPTIONS } from "./constants";

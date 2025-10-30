@@ -3,13 +3,16 @@ Author(s): Bjarke, Asger, Patrick
 */
 
 
-import { Direction, Robot, DIRECTION_ARROWS, ROBOT_COLORS } from "../types/boardTypes"
+import { Direction, Robot, DIRECTION_ARROWS, ROBOT_COLORS, ROBOT_IMAGES } from "../types/boardTypes"
 
 export const getFacingArrow = (facing: Direction): string =>
   DIRECTION_ARROWS[facing] || "●";
 
 export const getRobotColor = (id: number): string =>
   ROBOT_COLORS[(id - 1) % ROBOT_COLORS.length];
+
+export const getRobotImage = (id: number): string =>
+  ROBOT_IMAGES[(id - 1) % ROBOT_IMAGES.length];
 
 export const getRobotAtPosition = (
   robots: Robot[],

@@ -1,5 +1,5 @@
 /*
-Author(s): Asger, Bjarke, Patrick
+Author(s): Asger, Bjarke, Patrick, Lizette
 */
 
 import './App.css';
@@ -43,25 +43,49 @@ function Home() {
 
   return (
     <Layout>
-      <h1>Welcome to RoboRally!</h1>
-      {username ? (
-        <div className="home-user-panel">
-          <p className="home-username">Logged in as: <strong>{username}</strong></p>
-          <div className="home-actions">
-            <button className="big-button wide-button" onClick={handleLobby}>
-              Make or join lobby
-            </button>
-            <button className="big-button wide-button" onClick={handleLogout}>
-              Logout
-            </button>
+      <div className="panel-container">
+        <h1 className="metal-text">Welcome to RoboRally</h1>
+        <h2 className="home-username">Command Access Portal</h2>
+
+        {username ? (
+          <>
+            <p className="home-username">
+              Logged in as: <strong>{username}</strong>
+            </p>
+
+            <div className="control-panel">
+              <button className="metal-button" onClick={handleLobby}>
+                Enter Command Center
+              </button>
+
+              <button className="metal-button" onClick={handleLogout}>
+                Logout
+              </button>
+            </div>
+          </>
+        ) : (
+          <div className="control-panel auth-panel">
+            <LoginComp onLogin={handleLoggedIn} />
+            <RegisterComp />
           </div>
-        </div>
-      ) : (
-        <div className="auth-container">
-          <LoginComp onLogin={setUsername} />
-          <RegisterComp />
-        </div>
-      )}
+        )}
+      </div>
+      {/* 🔩 evenly spaced screws along both sides */}
+      {Array.from({ length: 10 }).map((_, i) => (
+        <div
+          key={`screw-left-${i}`}
+          className="screw screw-left"
+          style={{ top: `${5 + (i / 9) * 90}vh` }}
+        ></div>
+      ))}
+
+      {Array.from({ length: 10 }).map((_, i) => (
+        <div
+          key={`screw-right-${i}`}
+          className="screw screw-right"
+          style={{ top: `${5 + (i / 9) * 90}vh` }}
+        ></div>
+      ))}
     </Layout>
   );
 }

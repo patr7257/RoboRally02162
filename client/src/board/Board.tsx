@@ -192,12 +192,13 @@ export default function Board() {
       <div className="navigation">
         <h1>Board Scene</h1>
         <button
+          className="go-home-btn"
           onClick={() => {
             leaveLobby(lobbyId, localStorage.getItem("username"), null);
             navigate("/");
           }}
         >
-          Go to homepage
+          Go to Homepage
         </button>
       </div>
 

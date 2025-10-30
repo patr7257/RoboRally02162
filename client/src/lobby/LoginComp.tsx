@@ -79,10 +79,11 @@ export default function LoginComp({ onLogin }: LoginCompProps) {
         />
       </div>
 
-      <button type="button" onClick={handleLogin}>
+      <button type="button" className="metal-button" onClick={handleLogin}>
         Login
       </button>
-  {error && <p className="error-text">{error}</p>}
+ {/* Themed feedback messages */}
+      {error && <p className="auth-message error">{error}</p>}
     </div>
   );
 }
