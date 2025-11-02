@@ -30,8 +30,7 @@ public class SQLDatabaseInitializer {
             System.out.println("Database ready (created or already exists)");
 
         } catch (SQLException e) {
-            System.err.println("Error with database: " + e.getMessage());
-            e.printStackTrace();
+            System.out.println("Error when creating database");
         }
     }
 
@@ -54,7 +53,7 @@ public class SQLDatabaseInitializer {
             System.out.println("Table created successfully");
 
         } catch (SQLException e) {
-            e.printStackTrace();
+            System.out.println("Error when creating tables");
         }
     }
 
