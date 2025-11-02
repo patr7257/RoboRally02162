@@ -220,7 +220,6 @@
 	flex-direction: column;
 	align-items: center;
 	gap: 22px;
-	/* space between buttons */
 	padding: 30px;
 	width: 360px;
 
@@ -235,7 +234,6 @@
 	box-shadow:
 		inset 0 3px 6px rgba(0, 0, 0, 0.7),
 		0 0 24px rgba(255, 215, 0, 0.4);
-	/* steady yellow glow */
 
 	position: relative;
 }
@@ -439,4 +437,47 @@ h1::after {
 	flex-direction: column;
 	align-items: center;
 	justify-content: center;
+}
+
+.lobby-panels-row {
+	display: flex;
+	flex-direction: row;
+	align-items: flex-start;
+	justify-content: center;
+	gap: 40px;
+}
+
+.readiness-panel {
+	min-width: 180px;
+	background: #111;
+	padding: 20px;
+	border-radius: 12px;
+	border: 2px solid #333;
+	box-shadow: 0 0 12px rgba(0, 255, 0, 0.5);
+}
+
+.readiness-panel h2 {
+	color: #00ff6a;
+	margin-bottom: 12px;
+	text-align: center;
+}
+
+.readiness-panel ul {
+	list-style: none;
+	padding: 0;
+	margin: 0;
+}
+
+.readiness-panel li {
+	padding: 6px 8px;
+	border-bottom: 1px solid rgba(0, 255, 0, 0.2);
+	text-align: left;
+}
+
+.ready {
+	color: #00ff6a;
+}
+
+.not-ready {
+	color: #ff4d4d;
 }

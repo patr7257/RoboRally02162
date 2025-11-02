@@ -2,6 +2,10 @@ package dk.dtu.model;
 
 /*
 Author(s): Niklas, Karl, Benjamin
+@author Niklas Emil Lysdal
+@author Karl Agerbo
+@author Benjamin Benyo
+@author Asger Allin Jensen
  */
 
 import com.fasterxml.jackson.databind.JsonNode;
@@ -20,13 +24,15 @@ public class Lobby {
     private final Host host;
     private final HashSet<LobbyObserver> observers = new HashSet<>();
     private boolean locked;
-    //TODO: might need to store the creator of the lobby. As playerID can no longer be used to determine this.
+    // TODO: might need to store the creator of the lobby. As playerID can no longer
+    // be used to determine this.
 
     private UUID gameID;
     private final Map<String, String> userToPlayer = new HashMap<>();
     private final Map<String, String> playerToUser = new HashMap<>();
+    private final Map<String, Boolean> playerReadinessMap = new HashMap<>();
+    private final Map<String, Boolean> userNameReadinessMap = new HashMap<>();
     private int nextPlayerID = 1;
-
 
     ExecutorService broadcastPool = Executors.newCachedThreadPool();
 
@@ -43,38 +49,50 @@ public class Lobby {
             return new OperationResult("lobby_locked");
         } else {
             players.put(client.getUserID(), client);
-            return  new OperationResult("success");
+            playerReadinessMap.put(client.getUserID(), false);
+            userNameReadinessMap.put(client.getUsername(), false);
+            handleUserReadyState();
+            return new OperationResult("success");
         }
     }
 
-
-    public OperationResult removeClientByUID (String uid) { //TODO: change to be UUID
-        if (players.remove(uid) == null) {
-
+    public OperationResult removeClientByUID(String uid) {
+        Client removed = players.remove(uid);
+        if (removed == null) {
             return new OperationResult("user_not_in_lobby");
         } else {
+            playerReadinessMap.remove(uid);
+            userNameReadinessMap.remove(removed.getUsername());
+
             if (players.isEmpty()) {
                 if (gameID != null) {
                     host.endGame(gameID);
                 }
-                notifyObservers(LobbyUpdateReason.DESTROYED); //destruction happens through loss of reference.
+                notifyObservers(LobbyUpdateReason.DESTROYED);
                 return new OperationResult("lobby_empty");
             }
 
             String playerID = userToPlayer.get(uid);
             playerToUser.remove(playerID);
             userToPlayer.remove(uid);
+            handleUserReadyState();
             return new OperationResult("success");
         }
     }
 
     public void startGame() {
+        if (!areAllPlayersReady()) {
+            broadcastNotReadyMessage();
+            return;
+        }
 
         initPlayerUserMaps();
-        this.locked = true; //lock before
+        this.locked = true; // lock before starting
+
         try {
-            this.gameID = host.startGame(players.size(), 10); // TODO: Change the boardsize to be decided by the client
+            this.gameID = host.startGame(players.size(), 10);
             notifyObservers(LobbyUpdateReason.GAME_STARTED);
+
             ObjectNode root = JsonUtil.createObjectNode();
             root.put("type", "game");
 
@@ -84,10 +102,10 @@ public class Lobby {
             root.set("payload", payload);
             broadcastToClients(root);
         } catch (Exception e) {
-            this.locked = false; //game failed to start, unlock it again
-            System.out.println("Failed to start game");//add proper error handling.
+            this.locked = false; // game failed to start, unlock it again
+            System.out.println("Failed to start game: " + e.getMessage());
+            // Consider broadcasting an error message to clients here
         }
-
     }
 
     public void handleClientMessage(String userID, JsonNode json) {
@@ -107,8 +125,10 @@ public class Lobby {
             case "DIRECT":
                 String playerID = json.get("meta").get("player").get("playerID").asText();
 
-                String userID = playerToUser.get(playerID); //TODO: change to UUID
-                if (userID==null) { return;} // in case player has disconnected
+                String userID = playerToUser.get(playerID); // TODO: change to UUID
+                if (userID == null) {
+                    return;
+                } // in case player has disconnected
                 Client client = players.get(userID);
                 client.handleMessage(root);
                 break;
@@ -121,9 +141,6 @@ public class Lobby {
         }
     }
 
-
-
-
     private void initPlayerUserMaps() {
         for (Client client : players.values()) {
             userToPlayer.put(client.getUserID(), nextPlayerID + "");
@@ -132,12 +149,9 @@ public class Lobby {
         }
     }
 
-
-
-
     private void broadcastToClients(ObjectNode msg) {
         for (Client c : players.values()) {
-           broadcastPool.submit(() -> c.handleMessage(msg));
+            broadcastPool.submit(() -> c.handleMessage(msg));
         }
     }
 
@@ -169,16 +183,17 @@ public class Lobby {
         if (!locked) {
             throw new Exception("GAME_NOT_STARTED");
         }
-        return new ArrayList<> (userToPlayer.values());
+        return new ArrayList<>(userToPlayer.values());
     }
 
-    public boolean isOccupied(){
+    public boolean isOccupied() {
         return players.size() >= 6; // TODO: We need to ask the host for this number
     }
 
     public void addObserver(LobbyObserver observer) {
         observers.add(observer);
     }
+
     public void removeObserver(LobbyObserver observer) {
         observers.remove(observer);
     }
@@ -190,7 +205,76 @@ public class Lobby {
     }
 
     public LobbyJson asJson() {
-        return new LobbyJson(this.lobbyID); //TODO: construct lobby json.
+        return new LobbyJson(this.lobbyID); // TODO: construct lobby json.
+    }
+
+    // @author Asger Allin Jensen
+    // @author Niklas Emil Lysdal
+    public OperationResult playerMarkedAsReady(String uid) {
+        Client client = players.get(uid);
+        if (client == null) {
+            return new OperationResult("user_not_in_lobby");
+        }
+        playerReadinessMap.put(uid, true);
+        userNameReadinessMap.put(client.getUsername(), true);
+        handleUserReadyState();
+        return new OperationResult("success");
+    }
+
+    // @author Asger Allin Jensen
+    // @author Niklas Emil Lysdal
+    public OperationResult playerMarkedAsNotReady(String uid) {
+        Client client = players.get(uid);
+        if (client == null) {
+            return new OperationResult("user_not_in_lobby");
+        }
+        playerReadinessMap.put(uid, false);
+        userNameReadinessMap.put(client.getUsername(), false);
+        handleUserReadyState();
+        return new OperationResult("success");
+    }
+
+    // @author Asger Allin Jensen
+    // @author Niklas Emil Lysdal
+    private OperationResult handleUserReadyState() {
+        ObjectNode root = JsonUtil.createObjectNode();
+        root.put("lobbyID", lobbyID);
+        root.put("action", "Readiness");
+        ObjectNode payloadNode = JsonUtil.createObjectNode();
+        for (Map.Entry<String, Boolean> entry : userNameReadinessMap.entrySet()) {
+            payloadNode.put(entry.getKey(), entry.getValue());
+        }
+        root.set("payload", payloadNode);
+        broadcastToClients(root);
+
+        return new OperationResult("success");
+    }
+
+    // @author Asger Allin Jensen
+    private boolean areAllPlayersReady() {
+        if (players.isEmpty()) {
+            return false;
+        }
+
+        for (String uid : players.keySet()) {
+            Boolean ready = playerReadinessMap.get(uid);
+            if (ready == null || !ready) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    // @author Asger Allin Jensen
+    private void broadcastNotReadyMessage() {
+        ObjectNode root = JsonUtil.createObjectNode();
+        root.put("type", "lobby");
+        root.put("action", "start_denied");
+        ObjectNode payload = JsonUtil.createObjectNode();
+        payload.put("reason", "Not all players are ready");
+        root.set("payload", payload);
+
+        broadcastToClients(root);
     }
 
 }

@@ -15,6 +15,7 @@ import dk.dtu.shared.ServerManager;
 import dk.dtu.util.JsonUtil;
 
 import org.springframework.http.HttpStatus;
+import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -104,7 +105,7 @@ public class LobbyAPI {
         return ResponseEntity.ok(json);
     }
 
-    @PostMapping("lobby/leave")
+    @PostMapping("/lobby/leave")
     public ResponseEntity<String> leaveLobby(@RequestBody LobbyUserRequest req) {
         String userID = req.userID;
         Client client = serverManager.getClient(userID);
@@ -123,8 +124,51 @@ public class LobbyAPI {
             case "user_not_in_lobby" -> ResponseEntity.status(HttpStatus.CONFLICT).body("USER_NOT_IN_LOBBY");
             default -> ResponseEntity.status(HttpStatus.BAD_REQUEST).body("UNKNOWN_ERROR");
         };
+    }
 
+    // @author Asger
+    // @author Niklas
+    @PostMapping("/lobby/markReady")
+    public ResponseEntity<String> markReady(@RequestBody LobbyUserRequest req) {
+        String userID = req.userID;
+        Client client = serverManager.getClient(userID);
+        if (client == null) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("USER_NOT_CONNECTED");
+        }
+        String lobbyID = req.lobbyID;
+        Lobby lob = serverManager.getLobbyFromID(lobbyID);
+        if (lob == null) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("LOBBY_NOT_FOUND");
+        }
+        OperationResult operationResult = lob.playerMarkedAsReady(userID);
+        String status = operationResult.getStatus();
+        return switch (status) {
+            case "success" -> ResponseEntity.status(HttpStatus.NO_CONTENT).body("");
+            case "user_not_in_lobby" -> ResponseEntity.status(HttpStatus.CONFLICT).body("USER_NOT_IN_LOBBY");
+            default -> ResponseEntity.status(HttpStatus.BAD_REQUEST).body("UNKNOWN_ERROR");
+        };
+    }
 
-
+    // @author Asger
+    // @author Niklas
+    @PostMapping("/lobby/markNotReady")
+    public ResponseEntity<String> markNotReady(@RequestBody LobbyUserRequest req) {
+        String userID = req.userID;
+        Client client = serverManager.getClient(userID);
+        if (client == null) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("USER_NOT_CONNECTED");
+        }
+        String lobbyID = req.lobbyID;
+        Lobby lob = serverManager.getLobbyFromID(lobbyID);
+        if (lob == null) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("LOBBY_NOT_FOUND");
+        }
+        OperationResult operationResult = lob.playerMarkedAsNotReady(userID);
+        String status = operationResult.getStatus();
+        return switch (status) {
+            case "success" -> ResponseEntity.status(HttpStatus.NO_CONTENT).body("");
+            case "user_not_in_lobby" -> ResponseEntity.status(HttpStatus.CONFLICT).body("USER_NOT_IN_LOBBY");
+            default -> ResponseEntity.status(HttpStatus.BAD_REQUEST).body("UNKNOWN_ERROR");
+        };
     }
 }
