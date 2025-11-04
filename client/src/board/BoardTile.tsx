@@ -3,10 +3,14 @@ import { Robot, TileEffect } from "../types/boardTypes";
 import { getFacingArrow, getRobotColor, getRobotImage } from "../utils/boardUtils";
 import { renderEffect } from "../ui/effectRegistry";
 
-/*
-Author(s): Bjarke, Asger, Patrick, William, Lizette
-*/
 
+/*
+* @author Asger Allin Jensen
+* @author Bjarke Søderhamn Petersen
+* @author Lizette Nikolajsen
+* @author Patrick Røbel
+* @author William Pii Jæger
+*/
 interface BoardTileProps {
   x: number;
   y: number;
@@ -24,6 +28,13 @@ const getRotationDegrees = (facing: string): number => {
   }
 };
 
+/*
+* @author Asger Allin Jensen
+* @author Bjarke Søderhamn Petersen
+* @author Lizette Nikolajsen
+* @author Patrick Røbel
+* @author William Pii Jæger
+*/
 export const BoardTile: React.FC<BoardTileProps> = ({
   x, y, tileSize, robot, effects = [],
 }) => (

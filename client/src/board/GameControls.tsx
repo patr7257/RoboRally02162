@@ -1,9 +1,14 @@
 import React from "react";
 import { MoveType } from "../types/boardTypes";
 import { MoveSelector } from "./MoveSelector";
+import "./board.css"
 
 /*
-Author(s): Bjarke, Asger
+* @author Asger Allin Jensen
+* @author Bjarke Søderhamn Petersen
+* @author Lizette Nikolajsen
+* @author Patrick Røbel
+* @author William Pii Jæger
 */
 
 interface GameControlsProps {
@@ -20,12 +25,16 @@ export const GameControls: React.FC<GameControlsProps> = ({
   hand,
 }) => (
   <div className="controls">
-    <MoveSelector
-      moves={hand}
-      selectedMoves={selectedMoves}
-      onChange={onSelectMove}
-    />
+    <div>
+      <MoveSelector
+        moves={hand}
+        selectedMoves={selectedMoves}
+        onChange={onSelectMove}
+      />
+    </div>
+
     <button
+      className="metal-button"
       onClick={() => onSubmitMove(selectedMoves.filter((m): m is MoveType => m !== null))}
       disabled={selectedMoves.some((m) => m === null)}
     >

@@ -1,5 +1,9 @@
 /*
-Author(s): Bjarke, Asger, Patrick
+* @author Asger Allin Jensen
+* @author Bjarke Søderhamn Petersen
+* @author Lizette Nikolajsen
+* @author Patrick Røbel
+* @author William Pii Jæger
 */
 
 import React from "react";

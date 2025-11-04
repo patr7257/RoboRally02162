@@ -11,7 +11,10 @@ import CheckpointChecklist from "../ui/checkpointChecklist";
 import { leaveLobby } from '../lobby/LeaveLobby';
 
 /*
-Author(s): Bjarke, Asger, Patrick, William
+* @author Asger Allin Jensen
+* @author Bjarke Søderhamn Petersen
+* @author Patrick Røbel
+* @author William Pii Jæger
 */
 
 interface ReadinessData {
@@ -19,6 +22,12 @@ interface ReadinessData {
   msRemaining: number;
 }
 
+/*
+* @author Asger Allin Jensen
+* @author Bjarke Søderhamn Petersen
+* @author Patrick Røbel
+* @author William Pii Jæger
+*/
 export default function Board() {
   const navigate = useNavigate();
   const [lobbyId] = useState<string>(localStorage.getItem("id") || "");

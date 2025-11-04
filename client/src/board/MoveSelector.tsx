@@ -1,65 +1,164 @@
-import React, { useEffect, useState } from "react";
-import Dropdown from "react-bootstrap/Dropdown";
-import "bootstrap/dist/css/bootstrap.min.css";
+import React, { useState } from "react";
+import { motion } from "framer-motion";
 import { MoveType } from "../types/boardTypes";
 
 /*
-Author(s): Bjarke, Asger, Niklas
+* @author Asger Allin Jensen
+* @author Bjarke Søderhamn Petersen
+* @author Lizette Nikolajsen
+* @author Patrick Røbel
+* @author William Pii Jæger
 */
 
 interface MoveSelectorProps {
   moves: MoveType[];
-  count?: number;
   selectedMoves: (MoveType | null)[];
   onChange: (selectedMoves: (MoveType | null)[]) => void;
 }
 
+const MoveCard = ({ move, onDragStart, isDragging }: { 
+  move: MoveType; 
+  onDragStart: () => void;
+  isDragging: boolean;
+}) => (
+  <motion.div
+    draggable
+    onDragStart={onDragStart}
+    className={`moveCard ${isDragging ? 'dragging' : ''}`}
+    whileHover={{ scale: 1.05, y: -5 }}
+    whileTap={{ scale: 0.95 }}
+    initial={{ opacity: 0, y: 20 }}
+    animate={{ opacity: 1, y: 0 }}
+  >
+    {move}
+  </motion.div>
+);
+
+const DropSlot = ({ 
+  index, 
+  move, 
+  onDrop, 
+  onRemove,
+  isOver 
+}: { 
+  index: number; 
+  move: MoveType | null; 
+  onDrop: () => void;
+  onRemove: () => void;
+  isOver: boolean;
+}) => (
+  <motion.div
+    onDragOver={(e) => e.preventDefault()}
+    onDrop={onDrop}
+    className={`dropSlot ${isOver ? 'dragOver' : ''} ${move ? 'filled' : 'empty'}`}
+    whileHover={{ scale: 1.02 }}
+  >
+    {move ? (
+      <>
+        <span>{move}</span>
+        <button
+          className="removeCardBtn"
+          onClick={onRemove}
+        >
+          x
+        </button>
+      </>
+    ) : (
+      <span className="slotPlaceholder">Slot {index + 1}</span>
+    )}
+  </motion.div>
+);
+
 export const MoveSelector: React.FC<MoveSelectorProps> = ({
   moves,
-  count = 5,
   selectedMoves,
   onChange,
 }) => {
-  const [localSelected, setLocalSelected] = useState<(MoveType | null)[]>(selectedMoves);
+  const [draggedMove, setDraggedMove] = useState<MoveType | null>(null);
+  const [dragOverIndex, setDragOverIndex] = useState<number | null>(null);
 
-  useEffect(() => {
-    setLocalSelected(selectedMoves);
-  }, [selectedMoves]);
+  const getAvailableMoves = () => {
+    const moveCounts = new Map<MoveType, number>();
+    
+    moves.forEach(move => {
+      moveCounts.set(move, (moveCounts.get(move) || 0) + 1);
+    });
+    
+    selectedMoves.forEach(move => {
+      if (move !== null) {
+        moveCounts.set(move, (moveCounts.get(move) || 0) - 1);
+      }
+    });
+    
+    const available: MoveType[] = [];
+    moveCounts.forEach((count, move) => {
+      for (let i = 0; i < count; i++) {
+        available.push(move);
+      }
+    });
+    
+    return available;
+  };
 
-  const handleSelect = (index: number, value: MoveType) => {
-    const updated = [...localSelected];
-    updated[index] = value;
-    setLocalSelected(updated);
+  const availableMoves = getAvailableMoves();
+
+  const handleDragStart = (move: MoveType) => {
+    setDraggedMove(move);
+  };
+
+  const handleDrop = (index: number) => {
+    if (draggedMove) {
+      const updated = [...selectedMoves];
+      updated[index] = draggedMove;
+      onChange(updated);
+      setDraggedMove(null);
+      setDragOverIndex(null);
+    }
+  };
+
+  const handleRemove = (index: number) => {
+    const updated = [...selectedMoves];
+    updated[index] = null;
     onChange(updated);
   };
 
-  const getAvailableMoves = (index: number) => {
-    const remaining = [...moves];
-    localSelected.forEach((m, i) => {
-      if (i !== index && m !== null) {
-        const removeIndex = remaining.indexOf(m);
-        if (removeIndex !== -1) remaining.splice(removeIndex, 1);
-      }
-    });
-    return remaining;
-  };
-
   return (
-    <div style={{ display: "flex", gap: "10px" }}>
-      {Array.from({ length: count }).map((_, i) => (
-        <Dropdown key={i}>
-          <Dropdown.Toggle variant="success">
-            {localSelected[i] || "Choose Move"}
-          </Dropdown.Toggle>
-          <Dropdown.Menu>
-            {getAvailableMoves(i).map((move, idx) => (
-              <Dropdown.Item key={`${move}-${idx}`} onClick={() => handleSelect(i, move)}>
-                {move}
-              </Dropdown.Item>
-            ))}
-          </Dropdown.Menu>
-        </Dropdown>
-      ))}
+    <div className="moveSelectorContainer">
+      <div className="availableMovesSection">
+        <h3 className="sectionTitle">AVAILABLE CARDS</h3>
+        <div className={`availableMovesGrid ${availableMoves.length === 0 ? 'emptyGrid' : ''}`}>
+          {availableMoves.length > 0 ? (
+            availableMoves.map((move, idx) => (
+              <MoveCard
+                key={`${move}-${idx}`}
+                move={move}
+                onDragStart={() => handleDragStart(move)}
+                isDragging={draggedMove === move}
+              />
+            ))
+          ) : (
+            <p className="noCardsMessage">All cards selected</p>
+          )}
+        </div>
+      </div>
+
+      <div className="programSlotsSection">
+        <h3 className="sectionTitle">
+          YOUR PROGRAM ({selectedMoves.filter(m => m !== null).length}/5)
+        </h3>
+        <div className="programSlotsGrid">
+          {selectedMoves.map((move, index) => (
+            <DropSlot
+              key={index}
+              index={index}
+              move={move}
+              onDrop={() => handleDrop(index)}
+              onRemove={() => handleRemove(index)}
+              isOver={dragOverIndex === index}
+            />
+          ))}
+        </div>
+      </div>
     </div>
   );
 };

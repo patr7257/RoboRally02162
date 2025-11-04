@@ -5,11 +5,21 @@ import { BoardTile } from "./BoardTile";
 import "./board.css";
 
 /*
-Author(s): Bjarke, Asger, Patrick, William
+* @author Asger Allin Jensen
+* @author Bjarke Søderhamn Petersen
+* @author Patrick Røbel
+* @author William Pii Jæger
 */
 
 interface BoardRendererProps { gameData: GameData | null; }
 
+
+/*
+* @author Asger Allin Jensen
+* @author Bjarke Søderhamn Petersen
+* @author Patrick Røbel
+* @author William Pii Jæger
+*/
 export const BoardRenderer: React.FC<BoardRendererProps> = ({ gameData }) => {
   if (!gameData) {
     return <div className="board-empty"><p>Waiting for game data...</p></div>;
