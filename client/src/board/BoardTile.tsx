@@ -39,7 +39,7 @@ export const BoardTile: React.FC<BoardTileProps> = ({
   x, y, tileSize, robot, effects = [],
 }) => (
   <div
-    className="tile"
+    className={`tile ${y === 2 ? 'game-area-separator' : ''}`}
     style={{
       width: tileSize,
       height: tileSize,

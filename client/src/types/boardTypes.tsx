@@ -9,7 +9,8 @@ export interface CheckpointEffect extends BaseEffect { kind: "checkpoint"; numbe
 export interface ConveyorEffect   extends BaseEffect { kind: "conveyor"; dir: Direction; speed: 1|2 }
 export interface WallEffect       extends BaseEffect { kind: "walldto"; walls: Direction[]; }
 export interface RebootTokenEffect extends BaseEffect { kind: "reboot_token"; direction: Direction}
-export type TileEffect = CheckpointEffect | ConveyorEffect | WallEffect | RebootTokenEffect;
+export interface StartingTileEffect extends BaseEffect { kind: "startingtile"; playerId: number; }
+export type TileEffect = CheckpointEffect | ConveyorEffect | WallEffect | StartingTileEffect | RebootTokenEffect;
 
 export type MoveType =
     | "MOVE1"

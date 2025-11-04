@@ -10,6 +10,7 @@ import dk.dtu.domain.rules.api.BoardApiImpl;
 import dk.dtu.domain.rules.effects.Checkpoint;
 import dk.dtu.domain.rules.effects.RebootToken;
 import dk.dtu.domain.rules.effects.Walls;
+import dk.dtu.domain.rules.effects.StartingTile;
 import dk.dtu.infrastructure.SnapshotMapper;
 import dk.dtu.infrastructure.dto.BoardDto;
 import dk.dtu.infrastructure.dto.RobotDto;
@@ -42,7 +43,7 @@ public class GameController {
             int x, y;
             do {
                 x = rnd.nextInt(board.getWidth());
-                y = rnd.nextInt(board.getHeight());
+                y = 2 + rnd.nextInt(board.getHeight() - 2); // Skip starting area (rows 0-1)
             } while (!board.getTile(x, y).getEffects().isEmpty());
 
             selectedTiles.add(board.getTile(x, y));
@@ -128,26 +129,39 @@ public class GameController {
 
     @PostMapping("/startGame")
     public synchronized StartGameResponse start(@RequestBody StartGameRequest req) {
-        Tile[][] tiles = new Tile[req.boardSize()][req.boardSize()];
-        for (int x = 0; x < req.boardSize(); x++) {
-            for (int y = 0; y < req.boardSize(); y++) {
+        // Create 10x12 board (2 starting rows + 10 game rows)
+        int width = req.boardSize();
+        int totalHeight = req.boardSize() + 2; // Add 2 rows for starting area
+        
+        Tile[][] tiles = new Tile[width][totalHeight];
+        for (int x = 0; x < width; x++) {
+            for (int y = 0; y < totalHeight; y++) {
                 tiles[x][y] = new Tile(x,y);
             }
         }
 
-        Board board = new Board(req.boardSize(), req.boardSize(), tiles);
+        Board board = new Board(width, totalHeight, tiles);
         List<Robot> robots = new ArrayList<>(5);
-
+        
         Random rnd = new Random();
-        for (int i = 0; i < req.amountPlayers(); i++) {
-            int x = rnd.nextInt(req.boardSize());
-            int y = rnd.nextInt(req.boardSize());
-
+        
+        // Place robots in starting area (rows 0-1) with starting tiles
+        int[][] startingPositions = {
+            {1, 0}, {2, 0}, {3, 0}, {4, 0}, {5, 0}, {6, 0}, {7, 0}, {8, 0},
+            {1, 1}, {2, 1}, {3, 1}, {4, 1}, {5, 1}, {6, 1}, {7, 1}, {8, 1}
+        };
+        
+        for (int i = 0; i < req.amountPlayers() && i < startingPositions.length; i++) {
+            int x = startingPositions[i][0];
+            int y = startingPositions[i][1];
             int id = i + 1;
 
-            Direction dir = Direction.values()[rnd.nextInt(Direction.values().length)];
+            Direction dir = Direction.S; // All robots face south into the game area
 
             robots.add(new Robot(id, x, y, dir));
+            
+            // Add starting tile effect
+            board.getTile(x, y).addEffect(new StartingTile(id));
         }
 
         ArrayList<Tile> checkPointTiles = randomTiles(1, 3, board);
