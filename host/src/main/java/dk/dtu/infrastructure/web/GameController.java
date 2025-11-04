@@ -8,6 +8,7 @@ import dk.dtu.domain.model.Robot;
 import dk.dtu.domain.rules.api.BoardAPI;
 import dk.dtu.domain.rules.api.BoardApiImpl;
 import dk.dtu.domain.rules.effects.Checkpoint;
+import dk.dtu.domain.rules.effects.RebootToken;
 import dk.dtu.domain.rules.effects.Walls;
 import dk.dtu.infrastructure.SnapshotMapper;
 import dk.dtu.infrastructure.dto.BoardDto;
@@ -50,6 +51,80 @@ public class GameController {
         return selectedTiles;
     }
 
+    private ArrayList<Tile> randomTilesWithoutFacingWallsAndEdges(Board board) {
+        Random rnd = new Random();
+        ArrayList<Tile> selectedTiles = new ArrayList<>();
+
+        int maxAttempts = board.getWidth() * board.getHeight() * 10;
+        int attempts = 0;
+
+        while (selectedTiles.isEmpty() && attempts < maxAttempts) {
+            attempts++;
+
+            int x = rnd.nextInt(board.getWidth());
+            int y = rnd.nextInt(board.getHeight());
+
+            Tile tile = board.getTile(x, y);
+
+            if (!tile.getEffects().isEmpty()) {
+                continue;
+            }
+
+            Direction[] directions = Direction.values();
+            List<Direction> validDirections = new ArrayList<>();
+
+            for (Direction dir : directions) {
+                if (isValidRebootDirection(board, tile, dir)) {
+                    validDirections.add(dir);
+                }
+            }
+
+            if (!validDirections.isEmpty()) {
+                selectedTiles.add(tile);
+            }
+        }
+
+        return selectedTiles;
+    }
+
+    private boolean isValidRebootDirection(Board board, Tile tile, Direction dir) {
+        int x = tile.getX();
+        int y = tile.getY();
+
+        int nextX = x;
+        int nextY = y;
+
+        for (int step = 1; step <= 6; step++) {
+            switch (dir) {
+                case N -> nextY = y - step;
+                case S -> nextY = y + step;
+                case E -> nextX = x + step;
+                case W -> nextX = x - step;
+            }
+
+            if (!board.isInBounds(nextX, nextY)) {
+                return false;
+            }
+
+            Tile currentTile = (step == 1) ? tile : board.getTile(
+                    dir == Direction.E || dir == Direction.W ? x + (step - 1) * (dir == Direction.E ? 1 : -1) : x,
+                    dir == Direction.N || dir == Direction.S ? y + (step - 1) * (dir == Direction.S ? 1 : -1) : y
+            );
+
+            Tile nextTile = board.getTile(nextX, nextY);
+
+            if (Walls.hasWall(currentTile, dir)) {
+                return false;
+            }
+            if (Walls.hasWall(nextTile, dir.opposite())) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+
 
     @PostMapping("/startGame")
     public synchronized StartGameResponse start(@RequestBody StartGameRequest req) {
@@ -86,6 +161,27 @@ public class GameController {
         for (Tile t : wallTiles) {
             Direction d = dirs[rnd.nextInt(dirs.length)];
             t.addEffect(new Walls(EnumSet.of(d)));
+        }
+
+
+        ArrayList<Tile> rebootTiles = randomTilesWithoutFacingWallsAndEdges(board);
+
+        if (!rebootTiles.isEmpty()) {
+            Tile rebootTile = rebootTiles.get(0);
+
+            Direction[] directions = Direction.values();
+            List<Direction> validDirections = new ArrayList<>();
+
+            for (Direction dir : directions) {
+                if (isValidRebootDirection(board, rebootTile, dir)) {
+                    validDirections.add(dir);
+                }
+            }
+
+            if (!validDirections.isEmpty()) {
+                Direction rebootDir = validDirections.get(rnd.nextInt(validDirections.size()));
+                rebootTile.addEffect(new RebootToken(rebootDir));
+            }
         }
 
 

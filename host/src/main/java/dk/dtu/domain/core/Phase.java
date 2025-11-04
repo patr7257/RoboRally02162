@@ -5,5 +5,6 @@ package dk.dtu.domain.core;
 public enum Phase {
     UPGRADE,
     PROGRAMMING,
-    ACTIVATION
+    ACTIVATION,
+    ACTIVATE_REBOOT
 }

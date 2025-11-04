@@ -132,14 +132,16 @@ public class Game {
     // Author(s): William Pii Jæger, Weihao Mo
     public void runPhase(Phase phase, Runnable body) {
         body.run();
-        applyTileEffects(phase);
+        for(Phase sub : Phase.values()) {
+            applyTileEffects(sub);
+        }
     }
 
     // Author(s): William Pii Jæger, Weihao Mo
     private void applyTileEffects(Phase phase) {
         List<Tile> tiles = phaseIndex.getOrDefault(phase, List.of());
         for (Tile tile : tiles) {
-            for (TileEffect effect : tile.getEffects()) {
+            for (TileEffect effect : tile.getEffectsForPhase(phase)) {
                 effect.onPhase(phase, tile, api);
             }
         }
@@ -157,6 +159,14 @@ public class Game {
         return count;
     }
 
+    public void rebootRobots() {
+        for(Robot r: robots) {
+            if(!r.isAlive()) {
+                r.setAlive();
+            }
+        }
+    }
+
     // Author(s): William Pii Jæger
     private boolean applyOneStep(BoardAPI api, Robot r, Direction dir) {
         Outcome out = api.tryMoveOneStep(r.getId(), dir);
@@ -165,7 +175,8 @@ public class Game {
                 robotsMap.get(e.robotId()).setPosition(e.to().x(), e.to().y());
             }
             for (DestroyEvent d : moved.destroys()) {
-                robotsMap.get(d.robotId()).setPosition(d.at().x(), d.at().y());
+                robotsMap.get(d.robotId()).clearRegisters();
+                robotsMap.get(d.robotId()).setDead();
             }
             return true;
         }

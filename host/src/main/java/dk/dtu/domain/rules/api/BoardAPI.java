@@ -11,4 +11,5 @@ import java.util.List;
 public interface BoardAPI {
     Outcome tryMoveOneStep(int robotId, Direction dir);
     List<Robot> getRobotsOnTile(int x, int y);
+    List<Robot> getDeadRobots();
 }

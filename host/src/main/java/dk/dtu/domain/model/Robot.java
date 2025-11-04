@@ -14,6 +14,7 @@ public class Robot {
     private int x, y;
     private Direction direction;
     private int nextCheckpoint = 1;
+    private Boolean isAlive = true;
 
     private final Deque<ProgramOP> registers = new ArrayDeque<>();
 
@@ -90,5 +91,17 @@ public class Robot {
     public void setPosition(int x, int y) {
         this.x = x;
         this.y = y;
+    }
+
+    public void setAlive() {
+        isAlive = true;
+    }
+
+    public void setDead() {
+        isAlive = false;
+    }
+
+    public Boolean isAlive() {
+        return isAlive;
     }
 }

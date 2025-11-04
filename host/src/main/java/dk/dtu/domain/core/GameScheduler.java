@@ -109,6 +109,7 @@ public class GameScheduler implements RoundPacer {
                     runRegister(session, reg + 1);
                 } else {
                     game.dealNewHands();
+                    game.rebootRobots();
                     session.cancelStepTask();
                     scheduleProgrammingPhase(session, NEXT_WINDOW_MS);
                 }

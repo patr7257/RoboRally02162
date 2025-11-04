@@ -144,4 +144,16 @@ public final class BoardApiImpl implements BoardAPI {
         }
         return result;
     }
+
+    @Override
+    public List<Robot> getDeadRobots() {
+        List<Robot> result = new ArrayList<>();
+        for(Robot r: robots.values()) {
+            if(!r.isAlive()) {
+                result.add(r);
+            }
+        }
+        return result;
+    }
+
 }

@@ -8,7 +8,8 @@ export interface BaseEffect { kind: string; id: string }
 export interface CheckpointEffect extends BaseEffect { kind: "checkpoint"; number: number }
 export interface ConveyorEffect   extends BaseEffect { kind: "conveyor"; dir: Direction; speed: 1|2 }
 export interface WallEffect       extends BaseEffect { kind: "walldto"; walls: Direction[]; }
-export type TileEffect = CheckpointEffect | ConveyorEffect | WallEffect;
+export interface RebootTokenEffect extends BaseEffect { kind: "reboot_token"; direction: Direction}
+export type TileEffect = CheckpointEffect | ConveyorEffect | WallEffect | RebootTokenEffect;
 
 export type MoveType =
     | "MOVE1"

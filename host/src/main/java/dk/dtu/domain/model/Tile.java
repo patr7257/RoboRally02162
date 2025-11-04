@@ -1,5 +1,6 @@
 package dk.dtu.domain.model;
 
+import dk.dtu.domain.core.Phase;
 import dk.dtu.domain.rules.effects.TileEffect;
 
 import java.util.ArrayList;
@@ -47,5 +48,16 @@ public class Tile {
 
     public List<TileEffect> getEffects() {
         return effects;
+    }
+
+    public List<TileEffect> getEffectsForPhase(Phase phase) {
+        List<TileEffect> out = new ArrayList<>();
+        for (TileEffect e : effects) {
+            var phases = e.phases();
+            if (phases != null && phases.contains(phase)) {
+                out.add(e);
+            }
+        }
+        return List.copyOf(out);
     }
 }

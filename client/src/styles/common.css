@@ -99,3 +99,36 @@ body {
 .wall.dir-e { border-right-width: var(--wall-thickness); }
 .wall.dir-s { border-bottom-width: var(--wall-thickness); }
 .wall.dir-w { border-left-width: var(--wall-thickness); }
+
+.reboot-token {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+  z-index: 1;
+}
+
+.reboot-token-image {
+  width: 60%;
+  height: 60%;
+  object-fit: contain;
+  transition: transform 0.3s ease;
+  filter: drop-shadow(0 0 8px rgba(0, 255, 0, 0.4));
+  animation: rebootPulse 2s ease-in-out infinite;
+}
+
+@keyframes rebootPulse {
+  0%, 100% {
+    filter: drop-shadow(0 0 8px rgba(0, 255, 0, 0.4));
+  }
+  50% {
+    filter: drop-shadow(0 0 15px rgba(0, 255, 0, 0.7));
+  }
+}
+
+.robot {
+  position: relative;
+  z-index: 5;
+}

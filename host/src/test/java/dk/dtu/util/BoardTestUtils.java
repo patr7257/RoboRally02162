@@ -1,8 +1,10 @@
 package dk.dtu.util;
 
 import dk.dtu.domain.model.Board;
+import dk.dtu.domain.model.Direction;
 import dk.dtu.domain.model.Tile;
 import dk.dtu.domain.rules.effects.Checkpoint;
+import dk.dtu.domain.rules.effects.RebootToken;
 
 import java.util.Collections;
 import java.util.List;
@@ -73,5 +75,16 @@ public final class BoardTestUtils {
 
         return new Board(width,height,tiles);
 
+    }
+
+    public static Board initBoardWithRebootToken(int width, int height) {
+        Tile[][] tiles = initEmptyCells(width,height);
+        Tile cp1 = tiles[2][2];
+        cp1.setEffects(List.of(new RebootToken(Direction.E)));
+
+        Tile cp2 = tiles[4][4];
+        cp2.setEffects(List.of(new Checkpoint(1)));
+
+        return new Board(width,height,tiles);
     }
 }

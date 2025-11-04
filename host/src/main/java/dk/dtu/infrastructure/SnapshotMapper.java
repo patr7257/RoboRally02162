@@ -7,6 +7,7 @@ import dk.dtu.domain.model.Direction;
 import dk.dtu.domain.model.Robot;
 import dk.dtu.domain.model.Tile;
 import dk.dtu.domain.rules.effects.Checkpoint;
+import dk.dtu.domain.rules.effects.RebootToken;
 import dk.dtu.domain.rules.effects.Walls;
 import dk.dtu.infrastructure.dto.*;
 
@@ -54,6 +55,9 @@ public final class SnapshotMapper {
                 }
                 if (effect instanceof Walls wl) {
                     effects.add(new WallDto(List.copyOf(wl.getEdges())));
+                }
+                if (effect instanceof RebootToken rt) {
+                    effects.add(new RebootTokenDto(rt.direction()));
                 }
             }
         }
