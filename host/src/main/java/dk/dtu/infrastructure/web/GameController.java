@@ -41,14 +41,15 @@ public class GameController {
         ArrayList<Tile> selectedTiles = new ArrayList<>();
         for (int i = floor; i <= ceil; i++) {
             int x, y;
+            Tile candidate;
             do {
                 x = rnd.nextInt(board.getWidth());
                 y = 2 + rnd.nextInt(board.getHeight() - 2); // Skip starting area (rows 0-1)
-            } while (!board.getTile(x, y).getEffects().isEmpty());
+                candidate = board.getTile(x, y);
+            } while (!candidate.getEffects().isEmpty() || selectedTiles.contains(candidate));
 
-            selectedTiles.add(board.getTile(x, y));
+            selectedTiles.add(candidate);
         }
-
         return selectedTiles;
     }
 
