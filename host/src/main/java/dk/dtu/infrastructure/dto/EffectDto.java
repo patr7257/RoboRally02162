@@ -11,7 +11,10 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo;
                 @JsonSubTypes.Type(value = BlueConveyorDto.class,  name = "BLUE_CONVEYOR"),
                 @JsonSubTypes.Type(value = GreenConveyorDto.class, name = "GREEN_CONVEYOR"),
                 @JsonSubTypes.Type(value = RebootTokenDto.class, name = "REBOOT_TOKEN"),
-                @JsonSubTypes.Type(value = AntennaDto.class, name = "ANTENNA")
+                @JsonSubTypes.Type(value = AntennaDto.class, name = "ANTENNA"),
+                @JsonSubTypes.Type(value = WallDto.class, name = "walldto"),
+                @JsonSubTypes.Type(value = StartingTileDto.class, name = "startingtile"),
+                @JsonSubTypes.Type(value = GearDto.class, name = "geardto")
         })
 // ConveyorDto, LasterDto ect
 // Keeping here for future use

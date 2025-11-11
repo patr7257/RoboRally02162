@@ -45,6 +45,15 @@
   gap: 12px;
 }
 
+.boardNavigation {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+}
+
+
 .controls {
   margin-top: 12px;
   display: flex;

@@ -1,10 +1,16 @@
 package dk.dtu.infrastructure.web;
 
 import dk.dtu.domain.core.GameManager;
+import dk.dtu.domain.core.GameQuery;
+import dk.dtu.domain.core.GameSession;
+import dk.dtu.domain.core.GameState;
+import dk.dtu.domain.model.*;
+import dk.dtu.domain.program.ProgramCard;
 import dk.dtu.domain.model.*;
 import dk.dtu.domain.rules.api.BoardAPI;
 import dk.dtu.domain.rules.api.BoardApiImpl;
 import dk.dtu.domain.rules.effects.Checkpoint;
+import dk.dtu.domain.rules.effects.TileEffect;
 import dk.dtu.domain.rules.effects.RebootToken;
 import dk.dtu.domain.rules.effects.Gear;
 import dk.dtu.domain.rules.effects.Walls;
@@ -15,11 +21,14 @@ import dk.dtu.infrastructure.dto.BoardDto;
 import dk.dtu.infrastructure.dto.RobotDto;
 import dk.dtu.infrastructure.dto.SnapshotPayload;
 import dk.dtu.infrastructure.utils.ConveyorBeltPatterns;
+import dk.dtu.infrastructure.dto.*;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 // Author(s) Weihao Mo, William Pii Jæger
 
@@ -35,6 +44,14 @@ public class GameController {
     public record StartGameResponse(UUID gameID) {}
     public record EndGameRequest(String gameID) {}
     public record EndGameResponse(boolean endedGame) {}
+
+    public record SaveGameRequest(String gameID) {}
+    public record SaveGameResponse(Object snapshotPayload, Object decks){}
+
+    public record SnapshotLoadedPayload(GameDto game, BoardDto board, List<RobotDto> robots){}
+    public record DeckDto(List<ProgramCard> drawPile, List<ProgramCard> discardPile, List<ProgramCard> hand){}
+    public record GameInfo(SnapshotLoadedPayload snapshotPayload, Map<Integer, DeckDto> decks){}
+    public record StartLoadedGameRequest(int amountPlayers, int boardSize, String gameID, GameInfo gameInfo) {}
 
     private ArrayList<Tile> randomTiles(int floor, int ceil, Board board) {
         int toPick = Math.max(0, ceil - floor + 1);
@@ -153,7 +170,6 @@ public class GameController {
             ConveyorBeltPatterns.applyCorridorBlitz(board);
         }
 
-
         // Place robots in starting area (rows 0-1) with starting tiles
         int[][] startingPositions = {
             {1, 0}, {2, 0}, {3, 0}, {4, 0}, {5, 0}, {6, 0}, {7, 0}, {8, 0},
@@ -168,7 +184,6 @@ public class GameController {
             Direction dir = Direction.S;
 
             robots.add(new Robot(id, x, y, dir));
-
 
             // Add starting tile effect
             board.getTile(x, y).addEffect(new StartingTile(id));
@@ -224,9 +239,72 @@ public class GameController {
         return new StartGameResponse(gameID);
     }
 
+    /**
+     @author Bjarke Søderhamn Petersen
+     @author Benjamin Benyo Endahl Hansen
+     @author Karl Johannes Agerbo
+     */
+    @PostMapping("/startLoadedGame")
+    public synchronized StartGameResponse start(@RequestBody StartLoadedGameRequest req) {
+        SnapshotLoadedPayload snapshot = req.gameInfo().snapshotPayload();
+        BoardDto boardDto = snapshot.board();
+
+        Board board = SnapshotMapper.fromBoardDto(boardDto);
+        List<Robot> robots = SnapshotMapper.fromRobotDtos(snapshot.robots());
+        Map<Integer, Deck> deckMap = SnapshotMapper.fromMapDeckDto(req.gameInfo().decks());
+
+        BoardAPI boardApi = new BoardApiImpl(board, robots);
+
+        UUID gameID = gameManager.startGame(board, boardApi, robots, deckMap);
+
+        return new StartGameResponse(gameID);
+    }
+
     @PostMapping("/endGame")
     public EndGameResponse start(@RequestBody EndGameRequest req) {
         gameManager.endGame(UUID.fromString(req.gameID()));
         return new EndGameResponse(true);
+    }
+
+
+    /**
+     @author Bjarke Søderhamn Petersen
+     @author Benjamin Benyo Endahl Hansen
+     @author Karl Johannes Agerbo
+     */
+    @PostMapping("/saveGame")
+    public SaveGameResponse save(@RequestBody SaveGameRequest req) throws Exception {
+        UUID gameID = UUID.fromString(req.gameID());
+
+        GameSession session = gameManager.getActiveSessions().get(gameID);
+
+        if (session.getState() == GameState.EXECUTING) {
+            throw new Exception("Cannot save while executing!");
+        }
+
+        List<Integer> players = session.getGame().getRobots().stream().map(Robot::getId).toList();
+
+        Optional<SnapshotPayload> snapOpt = gameManager.query(gameID, new GameQuery.GetSnapshot());
+        SnapshotPayload snapShotPayload = snapOpt.get();
+
+        Map<Integer, Map<String, Object>> decks = new HashMap<>();
+
+        for (Integer pid : players) {
+            Optional<List<ProgramCard>> handOpt = gameManager.query(gameID, new GameQuery.GetHand(pid));
+
+            Deck deck = session.getGame().getDeckMap().get(pid);
+            decks.put(
+                pid,
+                    Map.of(
+                       "drawPile", deck.getDrawPile(),
+                       "discardPile", deck.getDiscardPile(),
+                       "hand", handOpt.orElse(Collections.emptyList())
+                    )
+            );
+        }
+
+        gameManager.endGame(gameID);
+
+        return new SaveGameResponse(snapShotPayload, decks);
     }
 }

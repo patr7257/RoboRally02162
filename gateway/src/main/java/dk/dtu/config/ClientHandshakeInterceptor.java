@@ -1,6 +1,6 @@
 package dk.dtu.config;
 
-import dk.dtu.model.DynamicUserDatabase;
+import dk.dtu.model.database.DynamicUserDatabase;
 
 /*
 Author(s): Niklas, Bjarke

@@ -2,10 +2,7 @@ package dk.dtu.infrastructure;
 
 import dk.dtu.domain.core.Game;
 import dk.dtu.domain.core.PlayerID;
-import dk.dtu.domain.model.Board;
-import dk.dtu.domain.model.Direction;
-import dk.dtu.domain.model.Robot;
-import dk.dtu.domain.model.Tile;
+import dk.dtu.domain.model.*;
 import dk.dtu.domain.rules.effects.Checkpoint;
 import dk.dtu.domain.rules.effects.RebootToken;
 import dk.dtu.domain.rules.effects.StartingTile;
@@ -13,10 +10,9 @@ import dk.dtu.domain.rules.effects.Gear;
 import dk.dtu.domain.rules.effects.Walls;
 import dk.dtu.domain.rules.effects.*;
 import dk.dtu.infrastructure.dto.*;
+import dk.dtu.infrastructure.web.GameController;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 
 // Author(s) William Pii Jæger, Weihao Mo
 
@@ -83,6 +79,58 @@ public final class SnapshotMapper {
         return new TileDto(List.copyOf(effects));
     }
 
+    /**
+     @author Karl Johannes Agerbo
+     */
+    public static Board fromBoardDto(BoardDto dto) {
+        int w = dto.width();
+        int h = dto.height();
+        Tile[][] tiles = new Tile[w][h];
+
+        for (int x = 0; x < w; x++) {
+            for (int y = 0; y < h; y++) {
+                tiles[x][y] = fromTileDto(dto.tiles()[x][y], x, y);
+            }
+        }
+
+        return new Board(w, h, tiles);
+    }
+
+    /**
+     @author Karl Johannes Agerbo
+     */
+    //TODO: Should be updated after each new tile effect is implemented.
+    private static Tile fromTileDto(TileDto dto, int x, int y) {
+        Tile tile = new Tile(x, y);
+        for (EffectDto effect : dto.effects()) {
+            if (effect instanceof CheckpointDto(int number)) {
+                tile.addEffect(new Checkpoint(number));
+            }
+            if (effect instanceof WallDto(List<Direction> walls)) {
+                tile.addEffect(new Walls(EnumSet.copyOf(walls)));
+            }
+            if (effect instanceof StartingTileDto(int playerId)) {
+                tile.addEffect(new StartingTile(playerId));
+            }
+            if (effect instanceof RebootTokenDto(Direction direction)) {
+                tile.addEffect(new RebootToken(direction));
+            }
+            if (effect instanceof AntennaDto(Direction direction)) {
+                tile.addEffect(new Antenna(direction));
+            }
+            if (effect instanceof BlueConveyorDto(Direction direction, Rotation rotation) ) {
+                tile.addEffect(new BlueConveyor(direction, rotation));
+            }
+            if (effect instanceof GreenConveyorDto(Direction direction, Rotation rotation) ) {
+                tile.addEffect(new GreenConveyor(direction, rotation));
+            }
+            if (effect instanceof GearDto(Rotation rotation)) {
+                tile.addEffect(new Gear(rotation));
+            }
+        }
+        return tile;
+    }
+
     public static List<RobotDto> mapRobots(List<Robot> robots) {
         return robots.stream().map(SnapshotMapper::mapRobot).toList();
     }
@@ -91,8 +139,41 @@ public final class SnapshotMapper {
         return new RobotDto(r.getId(), r.getX(), r.getY(), r.getDirection().name(), r.getNextCheckpoint());
     }
 
+    /**
+     @author Karl Johannes Agerbo
+     */
+    public static List<Robot> fromRobotDtos(List<RobotDto> dtos) {
+        return dtos.stream().map(SnapshotMapper::fromRobotDto).toList();
+    }
+
+    /**
+     @author Karl Johannes Agerbo
+     */
+    public static Robot fromRobotDto(RobotDto dto) {
+        return new Robot(dto.id(), dto.x(), dto.y(), Direction.valueOf(dto.facing()), dto.nextCheckpoint());
+    }
+
     public static GameDto mapGame(UUID gameID, Game game) {
         Integer winner = game.getWinner().map(PlayerID::value).orElse(null);
         return new GameDto(gameID, winner);
+    }
+
+    /**
+     @author Karl Johannes Agerbo
+     */
+    public static Map<Integer, Deck> fromMapDeckDto(Map<Integer, GameController.DeckDto> deckDtoMap) {
+        Map<Integer, Deck> deckMap = new HashMap<>();
+        for (Map.Entry<Integer, GameController.DeckDto> entry : deckDtoMap.entrySet()) {
+            Integer playerId = entry.getKey();
+            GameController.DeckDto dto = entry.getValue();
+
+            Deck deck = new Deck(
+                    new ArrayDeque<>(dto.drawPile()),
+                    dto.discardPile(),
+                    dto.hand()
+            );
+            deckMap.put(playerId, deck);
+        }
+        return deckMap;
     }
 }

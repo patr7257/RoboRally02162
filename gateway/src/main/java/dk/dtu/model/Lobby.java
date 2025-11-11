@@ -1,14 +1,14 @@
 package dk.dtu.model;
 
-/*
-Author(s): Niklas, Karl, Benjamin
-@author Niklas Emil Lysdal
-@author Karl Agerbo
-@author Benjamin Benyo
-@author Asger Allin Jensen
+/**
+ @author Niklas Emil Lysdal
+ @author Karl Johannes Agerbo
+ @author Benjamin Benyo Endahl Hansen
+ @author Asger Allin Jensen
  */
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import dk.dtu.dto.LobbyJson;
 import dk.dtu.observer.LobbyObserver;
@@ -17,6 +17,7 @@ import dk.dtu.dto.OperationResult;
 import java.util.*;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.stream.Collectors;
 
 public class Lobby {
     private final String lobbyID;
@@ -28,11 +29,13 @@ public class Lobby {
     // be used to determine this.
 
     private UUID gameID;
-    private final Map<String, String> userToPlayer = new HashMap<>();
+    private final UUID saveID;
+    private final Map<String, String> userToPlayer;
     private final Map<String, String> playerToUser = new HashMap<>();
     private final Map<String, Boolean> playerReadinessMap = new HashMap<>();
     private final Map<String, Boolean> userNameReadinessMap = new HashMap<>();
     private int nextPlayerID = 1;
+    public final boolean loadedLobby;
 
     ExecutorService broadcastPool = Executors.newCachedThreadPool();
 
@@ -41,7 +44,24 @@ public class Lobby {
         Objects.requireNonNull(host, "host must not be null");
         this.lobbyID = lobbyID;
         this.host = host;
+        this.userToPlayer = new HashMap<>();
+        this.saveID = UUID.randomUUID();
+        loadedLobby = false;
         addPlayer(creator);
+    }
+
+    /**
+     @author Bjarke Søderhamn Petersen
+     @author Benjamin Benyo Endahl Hansen
+     @author Karl Johannes Agerbo
+     */
+    public Lobby(String lobbyID, Client c, Host host, Map<String, String> userToPlayer, UUID saveID) {
+        this.userToPlayer = userToPlayer;
+        this.lobbyID = lobbyID;
+        this.host = host;
+        this.saveID = saveID;
+        loadedLobby = true;
+        addPlayer(c);
     }
 
     public OperationResult addPlayer(Client client) {
@@ -74,23 +94,36 @@ public class Lobby {
 
             String playerID = userToPlayer.get(uid);
             playerToUser.remove(playerID);
-            userToPlayer.remove(uid);
+
+            if (!loadedLobby) userToPlayer.remove(uid);
+
             handleUserReadyState();
+
             return new OperationResult("success");
         }
     }
 
-    public void startGame() {
+
+
+    public void startGame(JsonNode gameInfo) throws Exception {
         if (!areAllPlayersReady()) {
             broadcastNotReadyMessage();
-            return;
+            throw new Exception("Game tried to start before all players are ready");
         }
 
-        initPlayerUserMaps();
-        this.locked = true; // lock before starting
+        if (loadedLobby) {
+            initPlayerUserMapsLoadedLobby();
+        } else {
+            initPlayerUserMaps();
+        }
 
+        this.locked = true; //lock before
         try {
-            this.gameID = host.startGame(players.size(), 10); // TODO: Change the boardsize to be decided by the client
+            if (loadedLobby) {
+                this.gameID = host.startLoadedGame(players.size(), 10, gameInfo);
+            } else {
+                this.gameID = host.startGame(players.size(), 10); // TODO: Change the boardsize to be decided by the client
+            }
             notifyObservers(LobbyUpdateReason.GAME_STARTED);
 
             ObjectNode root = JsonUtil.createObjectNode();
@@ -106,6 +139,19 @@ public class Lobby {
             System.out.println("Failed to start game: " + e.getMessage());
             // Consider broadcasting an error message to clients here
         }
+    }
+
+    /**
+     @author Bjarke Søderhamn Petersen
+     @author Benjamin Benyo Endahl Hansen
+     @author Karl Johannes Agerbo
+     */
+    public JsonNode saveGame() {
+        JsonNode gameSnapshot = host.saveGame(gameID);
+
+        notifyObservers(LobbyUpdateReason.DESTROYED);
+
+        return gameSnapshot;
     }
 
     public void handleClientMessage(String userID, JsonNode json) {
@@ -149,6 +195,25 @@ public class Lobby {
         }
     }
 
+    /**
+     @author Bjarke Søderhamn Petersen
+     @author Benjamin Benyo Endahl Hansen
+     @author Karl Johannes Agerbo
+     */
+    private void initPlayerUserMapsLoadedLobby() throws Exception {
+        if (allPlayersHaveJoined()) {
+            for (Client client : players.values()) {
+                playerToUser.put(userToPlayer.get(client.getUserID()), client.getUserID());
+            }
+        } else {
+            throw new Exception("Not all players have joined!");
+        }
+    }
+
+    private boolean allPlayersHaveJoined() {
+        return userToPlayer.keySet().equals(players.keySet());
+    }
+
     private void broadcastToClients(ObjectNode msg) {
         for (Client c : players.values()) {
             broadcastPool.submit(() -> c.handleMessage(msg));
@@ -163,12 +228,20 @@ public class Lobby {
         return lobbyID;
     }
 
+    public UUID getSaveID() {
+        return saveID;
+    }
+
     public Map<String, Client> getPlayers() {
         return players;
     }
 
     public Map<String, String> getUserToPlayer() {
         return userToPlayer;
+    }
+
+    public Map<String, String> getPlayerToUser() {
+        return playerToUser;
     }
 
     public void setGameID(UUID gameID) {
@@ -204,8 +277,39 @@ public class Lobby {
         }
     }
 
+    /**
+     @author Bjarke Søderhamn Petersen
+     @author Benjamin Benyo Endahl Hansen
+     @author Karl Johannes Agerbo
+     */
+    public void notifyGameSaved(boolean succeed) {
+        if (succeed) {
+            ObjectNode root = JsonUtil.createObjectNode();
+            root.put("type", "gameSaved");
+
+            broadcastToClients(root);
+        } else {
+            ObjectNode root = JsonUtil.createObjectNode();
+            root.put("type", "error");
+
+            ObjectNode payload = JsonUtil.createObjectNode();
+            payload.put("message", "Error in saving game");
+
+            root.set("payload", payload);
+
+            broadcastToClients(root);
+        }
+    }
+
     public LobbyJson asJson() {
         return new LobbyJson(this.lobbyID); // TODO: construct lobby json.
+    }
+
+    /**
+     @author Karl Johannes Agerbo
+     */
+    public boolean isLoadedLobby() {
+        return loadedLobby;
     }
 
     // @author Asger Allin Jensen
@@ -252,6 +356,7 @@ public class Lobby {
 
     // @author Asger Allin Jensen
     private boolean areAllPlayersReady() {
+        System.out.println("PlayerReadinessMap: "+playerReadinessMap+"\nPlayers: "+players.keySet());
         if (players.isEmpty()) {
             return false;
         }

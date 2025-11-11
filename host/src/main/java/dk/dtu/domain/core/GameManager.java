@@ -1,6 +1,7 @@
 package dk.dtu.domain.core;
 
 import dk.dtu.domain.model.Board;
+import dk.dtu.domain.model.Deck;
 import dk.dtu.domain.model.Robot;
 import dk.dtu.domain.program.ProgramCard;
 import dk.dtu.domain.rules.api.BoardAPI;
@@ -30,6 +31,22 @@ public class GameManager implements GameObserver {
         activeSessions.put(id, session);
         return id;
     }
+
+
+    /**
+     @author Bjarke Søderhamn Petersen
+     @author Benjamin Benyo Endahl Hansen
+     @author Karl Johannes Agerbo
+     */
+    public UUID startGame(Board board, BoardAPI api, List<Robot> players, Map<Integer, Deck> decks) {
+        UUID id = UUID.randomUUID();
+        Game game = new Game(board, api, players, decks);
+        game.addObserver(this);
+        GameSession session = new GameSession(id, game);
+        activeSessions.put(id, session);
+        return id;
+    }
+
 
     // Author(s) William Pii Jæger, Weihao Mo
     public void endGame(UUID id) {
@@ -218,5 +235,14 @@ public class GameManager implements GameObserver {
                 obs.handleGameUpdate(game, gameId);
             }
         }
+    }
+
+    /**
+     @author Bjarke Søderhamn Petersen
+     @author Benjamin Benyo Endahl Hansen
+     @author Karl Johannes Agerbo
+     */
+    public Map<UUID, GameSession> getActiveSessions() {
+        return activeSessions;
     }
 }

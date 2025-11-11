@@ -1,22 +1,22 @@
-package dk.dtu.model;
+package dk.dtu.model.database;
 
 /*
 Author(s): Niklas
  */
 
 import dk.dtu.interfaces.UserDatabase;
+import dk.dtu.model.User;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
-@Service("localDatabase")
-public class Database implements UserDatabase {
+@Service("localUserDatabase")
+public class LocalUserDatabase implements UserDatabase {
     // id -> user (all user data)
     private final Map<String, User> usersById = new ConcurrentHashMap<>(); //TODO: change to be ID based.
     // name -> id (secondary index giving us user id from name)

@@ -29,19 +29,43 @@ public class Game {
         this.api = api;
         this.robots = robots;
         this.winner = null;
+        this.robotsMap = new HashMap<>();
+        initGame(robots, null);
+        this.phaseIndex = buildPhaseIndex(board.getCells());
+        dealNewHands();
+    }
 
+    /**
+     @author Bjarke Søderhamn Petersen
+     @author Benjamin Benyo Endahl Hansen
+     @author Karl Johannes Agerbo
+     */
+    public Game(Board board, BoardAPI api, List<Robot> robots, Map<Integer, Deck> decks) {
+        this.board = board;
+        this.api = api;
+        this.robots = robots;
+        this.winner = null;
+        this.robotsMap = new HashMap<>();
+        initGame(robots, decks);
+        this.phaseIndex = buildPhaseIndex(board.getCells());
+    }
+
+    /**
+     @author William Pii Jæger
+     @author Weihao Mo
+     */
+    private void initGame(List<Robot> robots, Map<Integer, Deck> decks) {
         int playerCounter = 1;
+
         for (Robot r : robots) {
             this.robotMap.put(new PlayerID(playerCounter), r);
-            this.deckMap.put(r.getId(), new Deck());
+            this.deckMap.put(r.getId(), decks == null ? new Deck() : decks.get(r.getId()));
             playerCounter++;
         }
-        this.robotsMap = new HashMap<>();
+
         for (Robot robot : robots) {
             this.robotsMap.put(robot.getId(), robot);
         }
-        this.phaseIndex = buildPhaseIndex(board.getCells());
-        dealNewHands();
     }
 
     // Author(s): William Pii Jæger, Weihao Mo
@@ -311,5 +335,15 @@ public class Game {
     // Author(s): Weihao Mo
     public Optional<PlayerID> getWinner() {
         return Optional.ofNullable(winner);
+    }
+
+
+    /**
+     @author Bjarke Søderhamn Petersen
+     @author Benjamin Benyo Endahl Hansen
+     @author Karl Johannes Agerbo
+     */
+    public Map<Integer, Deck> getDeckMap() {
+        return deckMap;
     }
 }

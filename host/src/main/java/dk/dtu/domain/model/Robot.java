@@ -26,6 +26,17 @@ public class Robot {
         this.direction = direction;
     }
 
+    /**
+     @author Karl Johannes Agerbo
+     */
+    public Robot(int id, int x, int y, Direction direction, int nextCheckpoint) {
+        this.id = id;
+        this.x = x;
+        this.y = y;
+        this.direction = direction;
+        this.nextCheckpoint = nextCheckpoint;
+    }
+
     public void loadProgram(List<ProgramCard> cards) {
         registers.clear();
         for (ProgramCard c : cards) registers.addAll(c.toOps());

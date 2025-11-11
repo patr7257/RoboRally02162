@@ -1,10 +1,11 @@
-package dk.dtu.model;
+package dk.dtu.model.database;
 
 /*
 Author(s): Asger
 */
 
 import dk.dtu.interfaces.UserDatabase;
+import dk.dtu.model.User;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 
@@ -19,13 +20,13 @@ public class DynamicUserDatabase implements UserDatabase {
     private final UserDatabase local;
     private boolean mysqlAvailable = true;
 
-    public DynamicUserDatabase(@Qualifier("mysqlDatabase") UserDatabase mysql,
-            @Qualifier("localDatabase") UserDatabase local) {
+    public DynamicUserDatabase(@Qualifier("mysqlUserDatabase") UserDatabase mysql,
+            @Qualifier("localUserDatabase") UserDatabase local) {
         this.mysql = mysql;
         this.local = local;
         this.mysqlAvailable = checkMySQLAvailable();
         if (!mysqlAvailable)
-            System.err.println("MySQL not available, using local fallback database.");
+            System.err.println("MySQLUserDatabase not available, using local fallback database.");
     }
 
     private boolean checkMySQLAvailable() {

@@ -1,17 +1,18 @@
-package dk.dtu.model;
+package dk.dtu.model.database;
 
 /*
 Author(s): Asger
 */
 
 import dk.dtu.interfaces.UserDatabase;
+import dk.dtu.model.User;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.sql.*;
 import java.util.UUID;
 
-@Service("mysqlDatabase")
+@Service("mysqlUserDatabase")
 public class MySQLUserDatabase implements UserDatabase {
 
     private static final String URL = "jdbc:mysql://localhost:3306/RoboRallyDatabase";

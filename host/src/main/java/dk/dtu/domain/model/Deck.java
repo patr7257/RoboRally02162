@@ -17,6 +17,15 @@ public class Deck {
         drawPile.addAll(startingCards);
     }
 
+    /**
+     @author Karl Johannes Agerbo
+     */
+    public Deck(Deque<ProgramCard> drawPile, List<ProgramCard> discardPile, List<ProgramCard> hand) {
+        this.drawPile = drawPile;
+        this.discardPile = discardPile;
+        this.hand = hand;
+    }
+
     // Author(s) Kajsa Berlstedt, Lizette Nikolajsen
     public void draw() {
         if (drawPile.isEmpty()) reshuffle();
@@ -118,5 +127,23 @@ public class Deck {
     // Author(s) Kajsa Berlstedt, Lizette Nikolajsen
     public ArrayList<ProgramCard> getHand() {
         return new ArrayList<>(hand);
+    }
+
+    /**
+     @author Bjarke Søderhamn Petersen
+     @author Benjamin Benyo Endahl Hansen
+     @author Karl Johannes Agerbo
+     */
+    public Deque<ProgramCard> getDrawPile() {
+        return drawPile;
+    }
+
+    /**
+     @author Bjarke Søderhamn Petersen
+     @author Benjamin Benyo Endahl Hansen
+     @author Karl Johannes Agerbo
+     */
+    public List<ProgramCard> getDiscardPile() {
+        return discardPile;
     }
 }

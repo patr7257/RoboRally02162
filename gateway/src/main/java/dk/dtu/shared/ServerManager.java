@@ -10,14 +10,22 @@ import java.util.ArrayList;
 
 import java.util.Map;
 
+import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
-/*
-Author(s): Niklas
+
+/**
+ @author Bjarke Søderhamn Petersen
+ @author Benjamin Benyo Endahl Hansen
+ @author Karl Johannes Agerbo
+ @author Niklas Emil Lysdal
  */
+
 @Component
 public class ServerManager implements LobbyObserver {
     private final Map<String, Client> clients = new ConcurrentHashMap<>();
     private final Map<String, Lobby> lobbies = new ConcurrentHashMap<>();
+    private final Map<String, String> lobbyIDFromSaveID = new ConcurrentHashMap<>();
+    private final Map<String, Lobby> loadedLobbies = new ConcurrentHashMap<>();
     private final Map<String, String> gameToLobby = new ConcurrentHashMap<>();
     private Host host;
     private final LobbyFactory lobbyFactory;
@@ -41,6 +49,8 @@ public class ServerManager implements LobbyObserver {
                     gameToLobby.entrySet().removeIf(entry -> entry.getValue().equals(lobID));
                     lobby.removeObserver(this);
                     lobbies.remove(lobID);
+                    loadedLobbies.remove(lobID);
+                    lobbyIDFromSaveID.remove(lobby.getSaveID().toString());
                 }
                 break;
 
@@ -60,9 +70,14 @@ public class ServerManager implements LobbyObserver {
 
     }
 
-
-    public Lobby getLobbyFromID(String lobID) {
-        return lobbies.get(lobID);
+    /**
+     @author Bjarke Søderhamn Petersen
+     @author Benjamin Benyo Endahl Hansen
+     @author Karl Johannes Agerbo
+     */
+    public Lobby getLobbyFromLobbyID(String lobID){
+        Lobby lob = loadedLobbies.get(lobID);
+        return lob == null ? lobbies.get(lobID) : lob;
     }
 
     public ArrayList<Lobby> getLobbiesListCopy() {
@@ -71,8 +86,22 @@ public class ServerManager implements LobbyObserver {
     public Client getClient(String clientID) {
         return clients.get(clientID);
     }
-    public String getLobbyFromGameID(String gameID) {
+
+    public String getLobbyIDFromGameID(String gameID) {
         return gameToLobby.get(gameID);
+    }
+
+    /**
+     @author Bjarke Søderhamn Petersen
+     @author Benjamin Benyo Endahl Hansen
+     @author Karl Johannes Agerbo
+     */
+    public Lobby getLoadedLobbyFromSaveID(String saveID){
+        String lobbyID = lobbyIDFromSaveID.get(saveID);
+        if(lobbyID == null){
+            return null;
+        }
+        return getLobbyFromLobbyID(lobbyID);
     }
     /*
     public void putLobby(Lobby lobby) {
@@ -107,6 +136,20 @@ public class ServerManager implements LobbyObserver {
     public Lobby createLobby(Client creator) {
         Lobby lob = lobbyFactory.createLobby(creator,this.host);
         lobbies.put(lob.getLobbyID(), lob);
+        lob.addObserver(this);
+        return lob;
+    }
+
+    /**
+     @author Bjarke Søderhamn Petersen
+     @author Benjamin Benyo Endahl Hansen
+     @author Karl Johannes Agerbo
+     */
+
+    public Lobby recreateLobby(Client c, Map<String, String> userToPlayer, UUID saveID) {
+        Lobby lob = lobbyFactory.recreateLobby(c, this.host, userToPlayer, saveID);
+        lobbyIDFromSaveID.put(lob.getSaveID().toString(), lob.getLobbyID());
+        loadedLobbies.put(lob.getLobbyID(), lob);
         lob.addObserver(this);
         return lob;
     }

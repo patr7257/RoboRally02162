@@ -45,7 +45,7 @@ export default function Lobby() {
 //lobby menu
   return (
     <Layout>
-      <h1>Command Center</h1> 
+      <h1>Command Center</h1>
       <div className="lobby-actions">
   <div className="control-panel">
     <button
@@ -60,6 +60,10 @@ export default function Lobby() {
 
     <button className="metal-button" onClick={() => navigate("/lobbyJoinScene")}>
       Join Lobby
+    </button>
+
+    <button className="metal-button" onClick={() => navigate("/lobbyLoadScene")}>
+       Continue Game
     </button>
 
     <button className="metal-button" onClick={() => navigate("/")}>

@@ -216,7 +216,7 @@ public class WebSocketTests {
         lobby.playerMarkedAsReady("testUser1");
         lobby.playerMarkedAsReady("testUser2");
 
-        lobby.startGame();
+        lobby.startGame(null);
         UUID gameID = lobby.getGameID();
 
         server.getLobbiesForTest().put("1", lobby);
@@ -263,7 +263,7 @@ public class WebSocketTests {
         lobby.playerMarkedAsReady("testUser1");
         lobby.playerMarkedAsReady("testUser2");
 
-        lobby.startGame();
+        lobby.startGame(null);
         UUID gameID = lobby.getGameID();
 
         server.getLobbiesForTest().put("1", lobby);

@@ -5,7 +5,7 @@ Author(s): Niklas, Karl, Benjamin
  */
 
 import com.fasterxml.jackson.databind.JsonNode;
-import dk.dtu.model.SQLDatabaseInitializer;
+import dk.dtu.model.database.SQLDatabaseInitializer;
 import dk.dtu.model.Client;
 import dk.dtu.model.Lobby;
 import dk.dtu.model.User;
@@ -90,7 +90,7 @@ public class Server implements WebSocketConfigurer { // TODO: after host connect
                     User user = (User) session.getAttributes().get("user");
                     String userID = user.getUserID();
                     //System.out.println(userID);
-                    Lobby lob = serverManager.getLobbyFromID(lobbyID); // TODO: check for valid ID
+                    Lobby lob = serverManager.getLobbyFromLobbyID(lobbyID); // TODO: check for valid ID
                     lob.handleClientMessage(userID, json); // TODO: Check that toString() is correct
                 } catch (Exception e) {
                     System.err.println("=== ERROR IN MESSAGE HANDLING ===");
@@ -159,14 +159,14 @@ public class Server implements WebSocketConfigurer { // TODO: after host connect
                         return;
                     }
 
-                    String lobbyID = serverManager.getLobbyFromGameID(gameID);
+                    String lobbyID = serverManager.getLobbyIDFromGameID(gameID);
 
                     if (lobbyID == null) {
                         System.err.println("[HOST] Unknown gameID " + gameID + " — no lobby mapping yet");
                         return;
                     }
 
-                    Lobby lob = serverManager.getLobbyFromID(lobbyID);
+                    Lobby lob = serverManager.getLobbyFromLobbyID(lobbyID);
                     if (lob == null) {
                         System.err.println("[HOST] Stale mapping: lobby " + lobbyID + " not found for game " + gameID + ". Cleaning up.");
                         serverManager.removeGameMapping(gameID);

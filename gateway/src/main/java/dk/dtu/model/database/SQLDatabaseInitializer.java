@@ -1,4 +1,4 @@
-package dk.dtu.model;
+package dk.dtu.model.database;
 
 /*
 Author(s): Asger
@@ -49,8 +49,28 @@ public class SQLDatabaseInitializer {
                         )
                     """;
 
+            String createGamesTable = """
+                        CREATE TABLE IF NOT EXISTS games (
+                            SaveID CHAR(36) PRIMARY KEY,
+                            Snapshot JSON NOT NULL
+                        )
+                    """;
+
+            String createSavesTable = """
+                        CREATE TABLE IF NOT EXISTS saves (
+                            UserID CHAR(36),
+                            SaveID CHAR(36),
+                            PRIMARY KEY (UserID, SaveID),
+                            FOREIGN KEY (UserID) REFERENCES users(UserID),
+                            FOREIGN KEY (SaveID) REFERENCES games(SaveID)
+                        )
+                    """;
+
             stmt.executeUpdate(createUserTable);
-            System.out.println("Table created successfully");
+            stmt.executeUpdate(createGamesTable);
+            stmt.executeUpdate(createSavesTable);
+
+            System.out.println("Tables created successfully");
 
         } catch (SQLException e) {
             System.out.println("Error when creating tables");

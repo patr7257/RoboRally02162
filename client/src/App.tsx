@@ -14,6 +14,7 @@ import { closeSocket } from "./utils/ws";
 import JoinLobby from './lobby/JoinLobby';
 import LobbyCreation from './lobby/LobbyCreation';
 import "./ui/registerEffects";
+import LoadLobby from './lobby/LoadLobby';
 
 declare global {
   interface Window {
@@ -107,6 +108,7 @@ function App() {
         <Route path="/lobbyScene" element={<Lobby />} />
         <Route path="/lobbyJoinScene" element={<JoinLobby />} />
         <Route path="/lobbyCreationScene" element={<LobbyCreation />} />
+        <Route path="/lobbyLoadScene" element={<LoadLobby />} />
       </Routes>
     </Router>
   );

@@ -5,15 +5,13 @@ Author(s): Niklas
  */
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import dk.dtu.interfaces.UserDatabase;
-import dk.dtu.model.DynamicUserDatabase;
+import dk.dtu.model.database.DynamicUserDatabase;
 
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;

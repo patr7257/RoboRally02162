@@ -1,0 +1,120 @@
+import { useNavigate } from "react-router-dom";
+import Layout from "./Layout";
+import React, { useState } from "react";
+
+
+/** 
+@author Bjarke Søderhamn Petersen
+@author Karl Johannes Agerbo
+@author Benjamin Benyo Endahl Hansen
+*/
+
+interface Lobby {
+  lobbyID: string;
+  [key: string]: any;
+}
+
+export default function LoadLobby() {
+  const navigate = useNavigate();
+  const userID: string | null = localStorage.getItem("userID");
+  const [lobbyId, setLobbyId] = useState<string>("");
+  const [savedGames, setSavedGames] = useState<Lobby[]>([]);
+  const [error, setError] = useState<string>("");
+  const API_BASE_URL = process.env.REACT_APP_API_BASE_URL;
+
+
+  const seeSavedGames = async () => {
+    setError("");
+    try {
+      const response = await fetch(API_BASE_URL+"/api/game/seeSavedGames", {
+        method: "Post",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({userID: userID}),
+      });
+
+      const data = await response.text();
+      if (response.ok) {
+        setSavedGames(JSON.parse(data));
+      } else {
+        setError("An error occurred. Try again.");
+      }
+    } catch (err) {
+      console.error("Login error:", err);
+      setError("Network error. Try again.");
+    }
+  };
+
+  const loadGame = async (saveId: string):Promise<boolean>=> {
+    setError("");
+    try {
+      const response = await fetch(API_BASE_URL+"/api/game/loadGame", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ userID: userID, saveID: saveId }),
+      });
+
+      const data = await response.text();
+      console.log("data received: " + data);
+      
+      if (response.status === 201) {
+        localStorage.setItem("id", data);
+        setLobbyId(data);
+        return true;
+      } else  if (response.status === 403) { //FORBIDDEN
+          setError("Lobby is locked, unable to join.");
+          return false;
+      }
+      else{
+        setError("An error occurred. Try again.");
+        return false;
+      }
+    } catch (err) {
+      console.error("Join error:", err);
+      setError("Network error. Try again.");
+      return false;
+    }
+  };
+
+  return (
+  <Layout>
+    <div className="panel-container">
+      <h1 className="panel-title">Mission Access Terminal</h1>
+
+      <div className="control-panel">
+        <button className="metal-button" onClick={seeSavedGames}>
+          See Saved Games
+        </button>
+
+        <button className="metal-button" onClick={() => navigate("/lobbyScene")}>
+          Return to Command Center
+        </button>
+
+        {savedGames.length > 0 && (
+          <div className="lobbies-terminal">
+            <h2 className="terminal-title">Saved Games</h2>
+            <ul className="terminal-list">
+              {savedGames.map((game, index) => (
+                <li key={index} className="terminal-item">
+                  <span className="terminal-id">{game.saveID.slice(-5)}</span>
+                  <button
+                    className="metal-button small"
+                    onClick={async () => {
+                      if (await loadGame(game.saveID)) {
+                        navigate("/lobbyCreationScene");
+                      }
+                    }}
+                  >
+                    Continue
+                  </button>
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
+
+        {error && <p className="error-text">{error}</p>}
+      </div>
+    </div>
+  </Layout>
+);
+}

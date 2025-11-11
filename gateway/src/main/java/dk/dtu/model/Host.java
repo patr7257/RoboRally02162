@@ -4,6 +4,7 @@ package dk.dtu.model;
 Author(s): Niklas, Karl
  */
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import dk.dtu.util.JsonUtil;
 import org.springframework.stereotype.Component;
@@ -41,7 +42,31 @@ public class Host { //TODO: maybe make singleton
         );
 
         String response = restTemplate.postForObject(
-                hostURL+"startGame", // TODO: agree on port
+                hostURL + "startGame", // TODO: agree on port
+                body,
+                String.class
+        );
+
+        String gameID = JsonUtil.parser(response).get("gameID").asText();
+
+        return UUID.fromString(gameID);
+    }
+
+    /**
+     @author Bjarke Søderhamn Petersen
+     @author Benjamin Benyo Endahl Hansen
+     @author Karl Johannes Agerbo
+     */
+    public UUID startLoadedGame(int amountPlayers, int boardSize, JsonNode gameInfo) {
+        RestTemplate restTemplate = new RestTemplate();
+        Map<String, Object> body = Map.of(
+                "amountPlayers", amountPlayers,
+                "boardSize", boardSize,
+                "gameInfo", gameInfo
+        );
+
+        String response = restTemplate.postForObject(
+                hostURL + "startLoadedGame", // TODO: agree on port
                 body,
                 String.class
         );
@@ -53,15 +78,33 @@ public class Host { //TODO: maybe make singleton
 
     public void endGame(UUID gameID) {
         RestTemplate restTemplate = new RestTemplate();
-        Map<String,String> body = Map.of(
+        Map<String, String> body = Map.of(
                 "gameID",gameID.toString()
         );
 
         String response = restTemplate.postForObject(
-                hostURL+"endGame",
+                hostURL + "endGame",
                 body,
                 String.class
         );
 
+    }
+
+    /**
+     @author Bjarke Søderhamn Petersen
+     @author Benjamin Benyo Endahl Hansen
+     @author Karl Johannes Agerbo
+     */
+    public JsonNode saveGame(UUID gameID) {
+        RestTemplate restTemplate = new RestTemplate();
+        Map<String, String> body = Map.of("gameID", gameID.toString());
+
+        String response = restTemplate.postForObject(
+                hostURL + "saveGame",
+                body,
+                String.class
+        );
+
+        return JsonUtil.parser(response);
     }
 }

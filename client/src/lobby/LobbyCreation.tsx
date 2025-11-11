@@ -1,4 +1,4 @@
-/*
+/**
 Author(s): Bjarke, Patrick, Niklas
 @author Asger Allin Jensen
 */

@@ -9,8 +9,9 @@ import { BoardRenderer } from "./BoardRenderer";
 import { GameControls } from "./GameControls";
 import CheckpointChecklist from "../ui/checkpointChecklist";
 import { leaveLobby } from '../lobby/LeaveLobby';
+import { saveGame } from '../lobby/SaveGame';
 
-/*
+/**
 * @author Asger Allin Jensen
 * @author Bjarke Søderhamn Petersen
 * @author Patrick Røbel
@@ -23,6 +24,12 @@ interface ReadinessData {
   msRemaining: number;
 }
 
+/**
+* @author Asger Allin Jensen
+* @author Bjarke Søderhamn Petersen
+* @author Patrick Røbel
+* @author William Pii Jæger
+*/
 export default function Board() {
   const navigate = useNavigate();
   const [userID] = useState<string>(localStorage.getItem("userID") || "");
@@ -101,6 +108,9 @@ export default function Board() {
             stopReadinessPolling();
             sendMessage({ lobbyID: lobbyId, payload: { type: "getBoard" } });
             break;
+
+          case "gameSaved":
+            navigate("/");
 
           case "ack":
             console.log("Command acknowledged:", data.payload.message);
@@ -265,16 +275,27 @@ const getRobotIDS = async () => {
     <div className="board-root">
       <div className="navigation">
         <h1>Board Scene</h1>
-        <button
-          className="go-home-btn"
-          onClick={() => {
-            leaveLobby(lobbyId, localStorage.getItem("username"), null);
-            navigate("/");
-          }}
-        >
-          Go to Homepage
-        </button>
+        <div className="boardNavigation">
+          <button
+            className="go-home-btn"
+            onClick={() => {
+              leaveLobby(lobbyId, localStorage.getItem("userID"), null);
+              navigate("/");
+            }}
+          >
+            Go to Homepage
+          </button>
+
+          <button
+            className="go-home-btn"
+            onClick={() =>
+              saveGame(lobbyId)}
+              disabled={gameState === "executing"}
+          >
+            Save and Quit
+          </button>
       </div>
+    </div>
 
       {renderMyRobotLabel()}
 

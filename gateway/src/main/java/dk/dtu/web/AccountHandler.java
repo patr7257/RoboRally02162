@@ -1,6 +1,6 @@
 package dk.dtu.web;
 
-import dk.dtu.model.DynamicUserDatabase;
+import dk.dtu.model.database.DynamicUserDatabase;
 
 /*
 Author(s): Lizette, Kajsa, Niklas

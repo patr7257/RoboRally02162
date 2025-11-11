@@ -4,7 +4,7 @@ import { getFacingArrow, getRobotColor, getRobotImage } from "../utils/boardUtil
 import { renderEffect } from "../ui/effectRegistry";
 
 
-/*
+/**
 * @author Asger Allin Jensen
 * @author Bjarke Søderhamn Petersen
 * @author Lizette Nikolajsen
@@ -28,7 +28,7 @@ const getRotationDegrees = (facing: string): number => {
   }
 };
 
-/*
+/**
 * @author Asger Allin Jensen
 * @author Bjarke Søderhamn Petersen
 * @author Lizette Nikolajsen
@@ -43,7 +43,7 @@ export const BoardTile: React.FC<BoardTileProps> = ({
     style={{
       width: tileSize,
       height: tileSize,
-      gridColumn: x + 1, 
+      gridColumn: x + 1,
       gridRow: y + 1,
       backgroundImage: `url(${process.env.PUBLIC_URL}/tileTexture.png)`,
       backgroundSize: "cover",
