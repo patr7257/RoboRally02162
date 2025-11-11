@@ -1,7 +1,9 @@
 import React from "react";
 import type { Board, Robot } from "../types/boardTypes";
 
-// Author(s) Weihao Mo
+/*
+* @author Weihao Mo
+*/
 
 function getCheckpointNumbers(board: Board): number[] {
   const set = new Set<number>();

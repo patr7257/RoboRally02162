@@ -25,8 +25,6 @@ import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
-// Author(s) William Pii Jæger
-
 @WebMvcTest(GameController.class)
 public class GameControllerTest {
 
@@ -35,6 +33,9 @@ public class GameControllerTest {
     @MockitoBean GameManager gameManager;
     @MockitoBean BoardAPI boardAPI;
 
+    /**
+     * @author William Pii Jæger
+     */
     @Test
     void startGame_returnsUuid() throws Exception {
         UUID fixed = UUID.fromString("11111111-2222-3333-4444-555555555555");
@@ -53,7 +54,9 @@ public class GameControllerTest {
                 .andExpect(jsonPath("$.gameID").value(fixed.toString()));
     }
 
-
+    /**
+     * @author Weihao Mo
+     */
     @Test
     void startGame_noDuplicate() throws Exception {
         when(gameManager.startGame(any(Board.class), any(BoardAPI.class), any(List.class)))

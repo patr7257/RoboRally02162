@@ -12,4 +12,7 @@ public interface BoardAPI {
     Outcome tryMoveOneStep(int robotId, Direction dir);
     List<Robot> getRobotsOnTile(int x, int y);
     List<Robot> getDeadRobots();
+    List<Robot> getRobots();
+    void updatePriorityList(List<Integer> priorityOrder);
+    List<Robot> getRobotsByPriority();
 }

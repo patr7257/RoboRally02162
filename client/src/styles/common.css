@@ -132,3 +132,19 @@ body {
   position: relative;
   z-index: 5;
 }
+
+.antenna {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+  z-index: 4;
+}
+
+.antenna-image {
+  width: 80%;
+  height: 80%;
+  object-fit: contain;
+}

@@ -6,10 +6,7 @@ import dk.dtu.domain.model.Board;
 import dk.dtu.domain.model.Direction;
 import dk.dtu.domain.model.Robot;
 import dk.dtu.domain.model.Tile;
-import dk.dtu.domain.rules.effects.Checkpoint;
-import dk.dtu.domain.rules.effects.RebootToken;
-import dk.dtu.domain.rules.effects.StartingTile;
-import dk.dtu.domain.rules.effects.Walls;
+import dk.dtu.domain.rules.effects.*;
 import dk.dtu.infrastructure.dto.*;
 
 import java.util.ArrayList;
@@ -62,6 +59,9 @@ public final class SnapshotMapper {
                 }
                 if (effect instanceof RebootToken rt) {
                     effects.add(new RebootTokenDto(rt.direction()));
+                }
+                if (effect instanceof Antenna at) {
+                    effects.add(new AntennaDto(at.direction()));
                 }
             }
         }

@@ -12,11 +12,11 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-// Author(s) William Pii Jæger
 
 public final class BoardApiImpl implements BoardAPI {
     private final Board board;
     private final Map<Integer, Robot> robots;
+    private List<Integer> priorityOrder = new ArrayList<>();
 
     public BoardApiImpl(Board board, List<Robot> robots) {
         this.board = board;
@@ -26,6 +26,9 @@ public final class BoardApiImpl implements BoardAPI {
         }
     }
 
+    /**
+     * @author William Pii Jæger
+     */
     private static Coord next(Coord from, Direction dir) {
         int nx = switch (dir) {
             case E -> from.x() + 1;
@@ -40,6 +43,9 @@ public final class BoardApiImpl implements BoardAPI {
         return new Coord(nx, ny);
     }
 
+    /**
+     * @author William Pii Jæger
+     */
     private boolean hasWallBetween(Coord from, Coord to) {
         if (!from.isAdjacentTo(to)) {
             return false;
@@ -66,6 +72,9 @@ public final class BoardApiImpl implements BoardAPI {
         return hasWall;
     }
 
+    /**
+     * @author William Pii Jæger
+     */
     private Robot robotAt(Coord c) {
         for (Robot r : robots.values()) {
             if (r.getX() == c.x() && r.getY() == c.y()) return r;
@@ -73,6 +82,10 @@ public final class BoardApiImpl implements BoardAPI {
         return null;
     }
 
+
+    /**
+     * @author William Pii Jæger
+     */
     @Override
     public Outcome tryMoveOneStep(int robotId, Direction dir) {
         Robot mover = this.robots.get(robotId);
@@ -134,6 +147,11 @@ public final class BoardApiImpl implements BoardAPI {
         return new Outcome.Moved(List.copyOf(moves), List.copyOf(destroys));
     }
 
+
+    /**
+     * @author William Pii Jæger
+     * @author Weihao Mo
+     */
     @Override
     public List<Robot> getRobotsOnTile(int x, int y) {
         List<Robot> result = new ArrayList<>();
@@ -145,6 +163,9 @@ public final class BoardApiImpl implements BoardAPI {
         return result;
     }
 
+    /**
+     * @author Weihao Mo
+     */
     @Override
     public List<Robot> getDeadRobots() {
         List<Robot> result = new ArrayList<>();
@@ -154,6 +175,44 @@ public final class BoardApiImpl implements BoardAPI {
             }
         }
         return result;
+    }
+
+    /**
+     * @author Weihao Mo
+     */
+    @Override
+    public List<Robot> getRobots() {
+        return new ArrayList<>(robots.values());
+    }
+
+    /**
+     * @author Weihao Mo
+     */
+    @Override
+    public void updatePriorityList(List<Integer> priorityOrder) {
+        this.priorityOrder = new ArrayList<>(priorityOrder);
+    }
+
+    /**
+     * @author Weihao Mo
+     */
+    @Override
+    public List<Robot> getRobotsByPriority() {
+        List<Robot> sortedRobots = new ArrayList<>();
+        for (Integer robotId : priorityOrder) {
+            Robot robot = robots.get(robotId);
+            if (robot != null) {
+                sortedRobots.add(robot);
+            }
+        }
+
+        for (Robot robot : robots.values()) {
+            if (!sortedRobots.contains(robot)) {
+                sortedRobots.add(robot);
+            }
+        }
+
+        return sortedRobots;
     }
 
 }

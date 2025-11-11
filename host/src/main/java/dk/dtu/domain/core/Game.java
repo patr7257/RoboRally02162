@@ -133,12 +133,14 @@ public class Game {
     public void runPhase(Phase phase, Runnable body) {
         body.run();
         for(Phase sub : Phase.values()) {
-            applyTileEffects(sub);
+            if(sub != Phase.ACTIVATE_ANTENNA) {
+                applyTileEffects(sub);
+            }
         }
     }
 
     // Author(s): William Pii Jæger, Weihao Mo
-    private void applyTileEffects(Phase phase) {
+    public void applyTileEffects(Phase phase) {
         List<Tile> tiles = phaseIndex.getOrDefault(phase, List.of());
         for (Tile tile : tiles) {
             for (TileEffect effect : tile.getEffectsForPhase(phase)) {
@@ -159,6 +161,7 @@ public class Game {
         return count;
     }
 
+    // Author(s): Weihao Mo
     public void rebootRobots() {
         for(Robot r: robots) {
             if(!r.isAlive()) {
@@ -188,7 +191,7 @@ public class Game {
 
     // Author(s): William Pii Jæger
     private void executeOneRegister() {
-        for (Robot r : robots) {
+        for (Robot r : api.getRobotsByPriority()) {
             ProgramOP op = r.pollNextOp();
             if (op == null) continue;
 

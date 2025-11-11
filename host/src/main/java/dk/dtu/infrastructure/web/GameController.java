@@ -7,10 +7,7 @@ import dk.dtu.domain.model.Direction;
 import dk.dtu.domain.model.Robot;
 import dk.dtu.domain.rules.api.BoardAPI;
 import dk.dtu.domain.rules.api.BoardApiImpl;
-import dk.dtu.domain.rules.effects.Checkpoint;
-import dk.dtu.domain.rules.effects.RebootToken;
-import dk.dtu.domain.rules.effects.Walls;
-import dk.dtu.domain.rules.effects.StartingTile;
+import dk.dtu.domain.rules.effects.*;
 import dk.dtu.infrastructure.SnapshotMapper;
 import dk.dtu.infrastructure.dto.BoardDto;
 import dk.dtu.infrastructure.dto.RobotDto;
@@ -44,7 +41,7 @@ public class GameController {
             Tile candidate;
             do {
                 x = rnd.nextInt(board.getWidth());
-                y = 2 + rnd.nextInt(board.getHeight() - 2); // Skip starting area (rows 0-1)
+                y = 2 + rnd.nextInt(board.getHeight() - 2);
                 candidate = board.getTile(x, y);
             } while (!candidate.getEffects().isEmpty() || selectedTiles.contains(candidate));
 
@@ -130,9 +127,8 @@ public class GameController {
 
     @PostMapping("/startGame")
     public synchronized StartGameResponse start(@RequestBody StartGameRequest req) {
-        // Create 10x12 board (2 starting rows + 10 game rows)
         int width = req.boardSize();
-        int totalHeight = req.boardSize() + 2; // Add 2 rows for starting area
+        int totalHeight = req.boardSize() + 2;
         
         Tile[][] tiles = new Tile[width][totalHeight];
         for (int x = 0; x < width; x++) {
@@ -145,8 +141,6 @@ public class GameController {
         List<Robot> robots = new ArrayList<>(5);
         
         Random rnd = new Random();
-        
-        // Place robots in starting area (rows 0-1) with starting tiles
         int[][] startingPositions = {
             {1, 0}, {2, 0}, {3, 0}, {4, 0}, {5, 0}, {6, 0}, {7, 0}, {8, 0},
             {1, 1}, {2, 1}, {3, 1}, {4, 1}, {5, 1}, {6, 1}, {7, 1}, {8, 1}
@@ -157,12 +151,14 @@ public class GameController {
             int y = startingPositions[i][1];
             int id = i + 1;
 
-            Direction dir = Direction.S; // All robots face south into the game area
+            Direction dir = Direction.S;
 
             robots.add(new Robot(id, x, y, dir));
-            
-            // Add starting tile effect
+
             board.getTile(x, y).addEffect(new StartingTile(id));
+
+            board.getTile(board.getWidth()/2, 0).addEffect(new Antenna(Direction.S));
+            board.getTile(board.getWidth()/2, 0).addEffect(new Walls(EnumSet.of(Direction.W,Direction.N,Direction.E,Direction.S)));
         }
 
         ArrayList<Tile> checkPointTiles = randomTiles(1, 3, board);

@@ -6,5 +6,6 @@ public enum Phase {
     UPGRADE,
     PROGRAMMING,
     ACTIVATION,
-    ACTIVATE_REBOOT
+    ACTIVATE_REBOOT,
+    ACTIVATE_ANTENNA
 }
