@@ -206,6 +206,25 @@ public class GatewaysWsHandler extends TextWebSocketHandler implements GameManag
                         withGame(meta, gameDto), payload));
             }
 
+            case "getDiscard" -> {
+                Optional<List<ProgramCard>> cardsOpt = gameManager.query(
+                        gameId,
+                        new GameQuery.GetDiscard(msg.playerId)
+                );
+
+                List<String> cardStrings = cardsOpt.get().stream()
+                        .map(pc -> pc.toString().equals("MOVE-1") ? "MOVEBACK" : pc.toString())
+                        .collect(Collectors.toList());
+
+                Optional<Game> gameOpt = gameManager.findByID(gameId);
+                GameDto gameDto = gameOpt.map(g -> SnapshotMapper.mapGame(gameId, g))
+                        .orElse(new GameDto(gameId, null));
+
+                DiscardPayload payload = new DiscardPayload("discard", cardStrings);
+                send(new OutgoingMessage<>("discard", Delivery.DIRECT,
+                        withGame(meta, gameDto), payload));
+            }
+
             case "getReadiness" -> {
                 Optional<ReadinessDto> rdOpt = gameManager.query(gameId, new GameQuery.GetReadiness());
                 if (rdOpt.isEmpty()) {

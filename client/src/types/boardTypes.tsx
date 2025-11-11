@@ -60,6 +60,10 @@ export interface HandData {
   hand: MoveType[];
 }
 
+export interface DiscardData {
+  discard: MoveType[];
+}
+
 
 export interface WebSocketMessage {
     type: string;

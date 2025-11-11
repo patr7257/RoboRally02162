@@ -4,5 +4,6 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 
 import java.util.List;
 
-public record HandPayload(@JsonProperty("context") String context, List<String> hand) {
+
+public record DiscardPayload(@JsonProperty("context") String context, List<String> discard) {
 }

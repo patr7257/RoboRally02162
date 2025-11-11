@@ -136,6 +136,11 @@ public class GameManager implements GameObserver {
                     List<ProgramCard> cards = game.getRobotHand(hand.robotId());
                     yield Optional.of((T) cards);
                 }
+                case GameQuery.GetDiscard discard -> {
+                    Game game = session.getGame();
+                    List<ProgramCard> cards = game.getRobotDiscard(discard.robotId());
+                    yield Optional.of((T) cards);
+                }
                 case GameQuery.GetReadiness ready -> {
                     Map<Integer, Boolean> submitted = new HashMap<>();
                     for (Robot robot : session.getGame().getRobots()) {

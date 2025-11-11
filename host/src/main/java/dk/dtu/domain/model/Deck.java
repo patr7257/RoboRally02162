@@ -135,7 +135,7 @@ public class Deck {
      @author Karl Johannes Agerbo
      */
     public Deque<ProgramCard> getDrawPile() {
-        return drawPile;
+        return new ArrayDeque<>(drawPile);
     }
 
     /**
@@ -143,7 +143,7 @@ public class Deck {
      @author Benjamin Benyo Endahl Hansen
      @author Karl Johannes Agerbo
      */
-    public List<ProgramCard> getDiscardPile() {
-        return discardPile;
+    public ArrayList<ProgramCard> getDiscardPile() {
+        return new ArrayList<>(discardPile);
     }
 }

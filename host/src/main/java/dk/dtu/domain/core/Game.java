@@ -104,6 +104,15 @@ public class Game {
         return List.copyOf(deckMap.get(robotID).getHand());
     }
 
+    /**
+     * @author Benjamin Benyo Endahl Hansen
+     * @author Bjarke Søderhamn Petersen
+     * @author Karl Johannes Agerbo
+     */
+    public List<ProgramCard> getRobotDiscard(int robotID) {
+        return List.copyOf(deckMap.get(robotID).getDiscardPile());
+    }
+
     // Author(s): William Pii Jæger, Weihao Mo
     public void submitProgram(PlayerID player, List<ProgramCard> picked) {
         Robot robot = robotMap.get(player);

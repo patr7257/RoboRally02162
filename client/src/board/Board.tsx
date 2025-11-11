@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { subscribe, sendMessage } from "../utils/ws";
-import { MoveType, GameData, HandData, ROBOT_COLORS } from "../types/boardTypes";
+import { MoveType, GameData, HandData, ROBOT_COLORS, DiscardData } from "../types/boardTypes";
 import { WinnerBanner } from "./WinnerBanner";
 import { BoardRenderer } from "./BoardRenderer";
 import { GameControls } from "./GameControls";
@@ -17,6 +17,8 @@ import { saveGame } from '../lobby/SaveGame';
 * @author Patrick Røbel
 * @author William Pii Jæger
 * @author Kajsa Alice Ulrika Berlstedt
+* @author Benjamin Benyo Endhal Hansen
+* @author Karl Johannes Agerbo
 */
 
 interface ReadinessData {
@@ -36,6 +38,7 @@ export default function Board() {
   const [lobbyId] = useState<string>(localStorage.getItem("id") || "");
   const [gameData, setGameData] = useState<GameData | null>(null);
   const [handData, setHandData] = useState<HandData | null>(null);
+  const [discardData, setDiscardData] = useState<DiscardData | null>(null);
   const [selectedMoves, setSelectedMoves] = useState<(MoveType | null)[]>(Array(5).fill(null));
   const [readiness, setReadiness] = useState<ReadinessData | null>(null);
   const [timeRemaining, setTimeRemaining] = useState<number>(0);
@@ -72,6 +75,12 @@ export default function Board() {
             setHasSubmitted(false);
             break;
 
+          case "discard":
+            console.log("Setting discard data:", actualData.payload || actualData);
+            const discardPayload = actualData.payload;
+            setDiscardData(discardPayload);
+            break;
+
           case "readiness":
             setReadiness(data.payload);
             setTimeRemaining(data.payload.msRemaining);
@@ -84,7 +93,7 @@ export default function Board() {
           case "programmingStarted":
             setGameState('programming');
             setHasSubmitted(false);
-
+            sendMessage({ lobbyID: lobbyId, payload: { type: "getDiscard" } });
             sendMessage({ lobbyID: lobbyId, payload: { type: "getHand" } });
 
             startReadinessPolling();
@@ -133,6 +142,7 @@ export default function Board() {
     });
 
     sendMessage({ lobbyID: lobbyId, payload: { type: "getBoard" } });
+    sendMessage({ lobbyID: lobbyId, payload: { type: "getDiscard" } });
     sendMessage({ lobbyID: lobbyId, payload: { type: "getHand" } });
     getRobotIDS();
 
@@ -159,48 +169,48 @@ export default function Board() {
   };
 
 
-const getRobotIDS = async () => {
-  console.log("Fetching robot ID for user:", userID);
+  const getRobotIDS = async () => {
+    console.log("Fetching robot ID for user:", userID);
 
-  try {
-    const response = await fetch(`${API_BASE_URL}/api/lobby/getRobot`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        lobbyID: lobbyId,
-        userID: userID
-      }),
-    });
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/lobby/getRobot`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          lobbyID: lobbyId,
+          userID: userID
+        }),
+      });
 
-    if (!response.ok) {
-      const errorText = await response.text();
-      console.error("Failed to fetch robot IDs:", errorText);
-      return;
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error("Failed to fetch robot IDs:", errorText);
+        return;
+      }
+
+      const data = await response.json();
+      console.log("Robot ID map received:", data);
+
+      const username = localStorage.getItem("username");
+      if (!username) {
+        console.warn("No username found in localStorage");
+        return;
+      }
+
+      const id = data[username];
+
+      if (id) {
+        console.log(`Your robot ID is: ${id}`);
+        setRobotID(id.toString());
+        localStorage.setItem("robotID", id.toString()); // optional persistence
+      } else {
+        console.warn(`No robot ID found for username "${username}" in`, data);
+      }
+
+    } catch (error) {
+      console.error("Error fetching robot ID:", error);
     }
-
-    const data = await response.json();
-    console.log("Robot ID map received:", data);
-
-    const username = localStorage.getItem("username");
-    if (!username) {
-      console.warn("No username found in localStorage");
-      return;
-    }
-
-    const id = data[username];
-
-    if (id) {
-      console.log(`Your robot ID is: ${id}`);
-      setRobotID(id.toString());
-      localStorage.setItem("robotID", id.toString()); // optional persistence
-    } else {
-      console.warn(`No robot ID found for username "${username}" in`, data);
-    }
-
-  } catch (error) {
-    console.error("Error fetching robot ID:", error);
-  }
-};
+  };
 
 
 
@@ -251,25 +261,25 @@ const getRobotIDS = async () => {
     return `${submitted}/${total} players ready`;
   };
 
-    const renderMyRobotLabel = (): React.ReactNode => {
-      if (!robotID) {
-        return (
-          <div className="player-info">
-            You are: <em>not assigned yet</em>
-          </div>
-        );
-      }
-
-      const idx = parseInt(String(robotID), 10);
-      const colorIndex = !Number.isNaN(idx) && idx > 0 ? (idx - 1) % ROBOT_COLORS.length : 0;
-      const color = ROBOT_COLORS[colorIndex] ?? "#000";
-
+  const renderMyRobotLabel = (): React.ReactNode => {
+    if (!robotID) {
       return (
         <div className="player-info">
-          You are: <span className="robot-label" style={{ color }}>{`Robot ${robotID}`}</span>
+          You are: <em>not assigned yet</em>
         </div>
       );
-    };
+    }
+
+    const idx = parseInt(String(robotID), 10);
+    const colorIndex = !Number.isNaN(idx) && idx > 0 ? (idx - 1) % ROBOT_COLORS.length : 0;
+    const color = ROBOT_COLORS[colorIndex] ?? "#000";
+
+    return (
+      <div className="player-info">
+        You are: <span className="robot-label" style={{ color }}>{`Robot ${robotID}`}</span>
+      </div>
+    );
+  };
 
   return (
     <div className="board-root">
@@ -349,6 +359,7 @@ const getRobotIDS = async () => {
         onSubmitMove={handleSubmitMove}
         onSelectMove={setSelectedMoves}
         hand={handData?.hand || []}
+        discard={discardData?.discard || []}
       />
       {gameData && (
         <CheckpointChecklist board={gameData.board} robots={gameData.robots} />

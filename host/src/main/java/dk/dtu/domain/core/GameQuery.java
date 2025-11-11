@@ -12,7 +12,8 @@ public sealed interface GameQuery<T> permits
         GameQuery.GetSnapshot,
         GameQuery.GetHand,
         GameQuery.GetReadiness,
-        GameQuery.GetTimeRemaining {
+        GameQuery.GetTimeRemaining,
+        GameQuery.GetDiscard {
 
     record GetSnapshot() implements GameQuery<SnapshotPayload> {
     }
@@ -24,5 +25,8 @@ public sealed interface GameQuery<T> permits
     }
 
     record GetTimeRemaining() implements GameQuery<Long> {
+    }
+
+    record GetDiscard(int robotId) implements GameQuery<List<ProgramCard>> {
     }
 }

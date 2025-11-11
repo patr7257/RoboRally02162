@@ -9,6 +9,8 @@ import "./board.css"
 * @author Lizette Nikolajsen
 * @author Patrick Røbel
 * @author William Pii Jæger
+* @author Benjamin Benyo Endahl Hansen
+* @author Karl Johannes Agerbo
 */
 
 interface GameControlsProps {
@@ -16,6 +18,7 @@ interface GameControlsProps {
   onSubmitMove: (moves: MoveType[]) => void;
   onSelectMove: (moves: (MoveType | null)[]) => void;
   hand: MoveType[];
+  discard: MoveType[];
 }
 
 export const GameControls: React.FC<GameControlsProps> = ({
@@ -23,8 +26,19 @@ export const GameControls: React.FC<GameControlsProps> = ({
   onSubmitMove,
   onSelectMove,
   hand,
+  discard,
 }) => (
   <div className="controls">
+
+    <details className="discard-dropdown">
+      <summary>Discard Pile ({discard.length})</summary>
+      <ul>
+        {discard.map((card, index) => (
+          <li key={index}>{card}</li>
+        ))}
+      </ul>
+    </details>
+
     <div>
       <MoveSelector
         moves={hand}
