@@ -1,17 +1,33 @@
 package dk.dtu.domain.rules.api;
 
+import dk.dtu.domain.core.Phase;
 import dk.dtu.domain.model.Direction;
 import dk.dtu.domain.model.Robot;
-import dk.dtu.domain.rules.Outcome;
+import dk.dtu.domain.model.Tile;
+import dk.dtu.domain.rules.*;
 
 import java.util.List;
 
-// Author(s) Weihao Mo, William Pii Jæger
-
+/**
+ * @author Weihao Mo
+ * @author William Pii Jæger
+ */
 public interface BoardAPI {
     Outcome tryMoveOneStep(int robotId, Direction dir);
+
     List<Robot> getRobotsOnTile(int x, int y);
+
+    Tile getTile(int x, int y);
+
+    boolean isInBounds(int x, int y);
+
+    boolean hasWallBetween(Coord from, Coord to);
+
+    Coord next(Coord from, Direction dir);
+
     List<Robot> getDeadRobots();
+    void addIntent(BeltIntent intent);
+    Outcome resolveIntents();
     List<Robot> getRobots();
     void updatePriorityList(List<Integer> priorityOrder);
     List<Robot> getRobotsByPriority();

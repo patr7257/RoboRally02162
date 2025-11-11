@@ -54,6 +54,12 @@ public final class SnapshotMapper {
                 if (effect instanceof Walls wl) {
                     effects.add(new WallDto(List.copyOf(wl.getEdges())));
                 }
+                if (effect instanceof BlueConveyor bc) {
+                    effects.add(new BlueConveyorDto(bc.direction(), bc.rotation()));
+                }
+                if (effect instanceof GreenConveyor gc) {
+                    effects.add(new GreenConveyorDto(gc.direction(), gc.rotation()));
+                }
                 if (effect instanceof StartingTile st) {
                     effects.add(new StartingTileDto(st.playerId()));
                 }
@@ -65,7 +71,6 @@ public final class SnapshotMapper {
                 }
             }
         }
-
         return new TileDto(List.copyOf(effects));
     }
 

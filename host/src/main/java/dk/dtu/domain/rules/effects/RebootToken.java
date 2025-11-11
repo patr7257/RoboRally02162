@@ -11,8 +11,9 @@ import dk.dtu.domain.rules.api.BoardAPI;
 import java.util.EnumSet;
 import java.util.List;
 
-// Author(s) Weihao Mo
-
+/**
+ * @author Weihao Mo
+ */
 public record RebootToken(Direction direction) implements TileEffect {
     @Override
     public void onPhase(Phase phase, Tile tile, BoardAPI api) {

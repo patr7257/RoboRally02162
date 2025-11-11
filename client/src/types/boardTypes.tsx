@@ -1,4 +1,5 @@
 export type Direction = "N" | "E" | "S" | "W";
+export type Rotation = "NONE" | "LEFT" | "RIGHT";
 
 /*
 Author(s): Asger, William, Bjarke, Niklas
@@ -6,12 +7,13 @@ Author(s): Asger, William, Bjarke, Niklas
 
 export interface BaseEffect { kind: string; id: string }
 export interface CheckpointEffect extends BaseEffect { kind: "checkpoint"; number: number }
-export interface ConveyorEffect   extends BaseEffect { kind: "conveyor"; dir: Direction; speed: 1|2 }
+export interface BlueConveyorEffect extends BaseEffect { kind: "BLUE_CONVEYOR"; direction: Direction; rotation: Rotation; }
+export interface GreenConveyorEffect extends BaseEffect { kind: "GREEN_CONVEYOR"; direction: Direction; rotation: Rotation; }
 export interface WallEffect       extends BaseEffect { kind: "walldto"; walls: Direction[]; }
 export interface RebootTokenEffect extends BaseEffect { kind: "reboot_token"; direction: Direction}
 export interface StartingTileEffect extends BaseEffect { kind: "startingtile"; playerId: number; }
 export interface AntennaEffect extends BaseEffect { kind : "antenna"; direction: Direction}
-export type TileEffect = CheckpointEffect | ConveyorEffect | WallEffect | StartingTileEffect | RebootTokenEffect | AntennaEffect;
+export type TileEffect = CheckpointEffect | BlueConveyorEffect | GreenConveyorEffect  | WallEffect | StartingTileEffect | RebootTokenEffect | AntennaEffect;
 
 export type MoveType =
     | "MOVE1"

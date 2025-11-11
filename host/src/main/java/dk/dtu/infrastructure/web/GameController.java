@@ -12,6 +12,7 @@ import dk.dtu.infrastructure.SnapshotMapper;
 import dk.dtu.infrastructure.dto.BoardDto;
 import dk.dtu.infrastructure.dto.RobotDto;
 import dk.dtu.infrastructure.dto.SnapshotPayload;
+import dk.dtu.infrastructure.utils.ConveyorBeltPatterns;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
@@ -141,6 +142,14 @@ public class GameController {
         List<Robot> robots = new ArrayList<>(5);
         
         Random rnd = new Random();
+
+        if(rnd.nextBoolean()) {
+            ConveyorBeltPatterns.applyHighOctane(board);
+        } else {
+            ConveyorBeltPatterns.applyCorridorBlitz(board);
+        }
+
+        // Place robots in starting area (rows 0-1) with starting tiles
         int[][] startingPositions = {
             {1, 0}, {2, 0}, {3, 0}, {4, 0}, {5, 0}, {6, 0}, {7, 0}, {8, 0},
             {1, 1}, {2, 1}, {3, 1}, {4, 1}, {5, 1}, {6, 1}, {7, 1}, {8, 1}

@@ -43,7 +43,7 @@ public class GameControllerTest {
                 .thenReturn(fixed);
 
         String body = """
-                {"amountPlayers":4,"boardSize":8}
+                {"amountPlayers":4,"boardSize":10}
                 """;
 
         mvc.perform(post("/startGame")

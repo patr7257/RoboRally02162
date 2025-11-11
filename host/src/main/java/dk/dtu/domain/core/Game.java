@@ -7,8 +7,7 @@ import dk.dtu.domain.rules.DestroyEvent;
 import dk.dtu.domain.rules.MoveEvent;
 import dk.dtu.domain.rules.Outcome;
 import dk.dtu.domain.rules.api.BoardAPI;
-import dk.dtu.domain.rules.effects.Checkpoint;
-import dk.dtu.domain.rules.effects.TileEffect;
+import dk.dtu.domain.rules.effects.*;
 
 import java.util.*;
 
@@ -47,17 +46,31 @@ public class Game {
 
     // Author(s): William Pii Jæger, Weihao Mo
     private Map<Phase, List<Tile>> buildPhaseIndex(Tile[][] tiles) {
-        Map<Phase, List<Tile>> idx = new HashMap<>();
-        for (Tile[] row : tiles) {
-            for (Tile tile : row) {
-                if (tile == null) continue;
-                for (TileEffect effect : tile.getEffects()) {
-                    if (effect.phases() == null) continue;
-                    for (Phase phase : effect.phases()) {
-                        idx.computeIfAbsent(phase, k -> new ArrayList<>()).add(tile);
+        final Map<Phase, LinkedHashSet<Tile>> temp = new EnumMap<>(Phase.class);
+        for (Phase p : Phase.values()) {
+            temp.put(p, new LinkedHashSet<>());
+        }
+
+        if (tiles != null) {
+            for (Tile[] row : tiles) {
+                if (row == null) continue;
+                for (Tile tile : row) {
+                    if (tile == null) continue;
+                    for (TileEffect e : tile.getEffects()) {
+                        var phases = e.phases();
+                        if (phases == null) continue;
+                        for (Phase p : phases) {
+                            temp.get(p).add(tile);
+                        }
                     }
                 }
             }
+        }
+
+        final Map<Phase, List<Tile>> idx = new EnumMap<>(Phase.class);
+        for (Phase p : Phase.values()) {
+            final LinkedHashSet<Tile> set = temp.get(p);
+            idx.put(p, new ArrayList<>(set));
         }
         return idx;
     }
@@ -131,6 +144,9 @@ public class Game {
 
     // Author(s): William Pii Jæger, Weihao Mo
     public void runPhase(Phase phase, Runnable body) {
+        if (phase == Phase.ACTIVATION) {
+            for (Robot r : robots) r.setMovedOnActivation(false);
+        }
         body.run();
         for(Phase sub : Phase.values()) {
             if(sub != Phase.ACTIVATE_ANTENNA) {
@@ -139,12 +155,59 @@ public class Game {
         }
     }
 
+    /**
+     *
+     * @author William Pii Jæger
+     * @author Weihao Mo
+     */
+    public void executeRegisterMovesOnly() {
+        for (Robot r : robots) r.setMovedOnActivation(false);
+        executeOneRegister();
+        evaluateWinConditions();
+        notifyGameUpdate();
+    }
+
+    /**
+     *
+     * @author William Pii Jæger
+     */
+    public void applyBoardEffectsAfterRegister() {
+        runAllTilePhases();
+        evaluateWinConditions();
+        notifyGameUpdate();
+    }
+
+    /**
+     *
+     * @author William Pii Jæger
+     * @author Weihao Mo
+     */
+    private void runAllTilePhases() {
+        for (Phase sub : Phase.values()) {
+            applyTileEffects(sub);
+        }
+    }
+
     // Author(s): William Pii Jæger, Weihao Mo
     public void applyTileEffects(Phase phase) {
         List<Tile> tiles = phaseIndex.getOrDefault(phase, List.of());
+
         for (Tile tile : tiles) {
             for (TileEffect effect : tile.getEffectsForPhase(phase)) {
                 effect.onPhase(phase, tile, api);
+            }
+        }
+
+        Outcome out = api.resolveIntents();
+
+        if (out instanceof Outcome.Moved moved) {
+            for (MoveEvent e : moved.moves()) {
+                robotsMap.get(e.robotId()).setPosition(e.to().x(), e.to().y());
+            }
+            for (DestroyEvent d : moved.destroys()) {
+                Robot r = robotsMap.get(d.robotId());
+                r.clearRegisters();
+                r.setDead();
             }
         }
     }
@@ -152,7 +215,7 @@ public class Game {
     // Author(s): Weihao Mo
     private int countCheckpoints(Map<Phase, List<Tile>> idx) {
         int count = 0;
-        List<Tile> activationTiles = idx.getOrDefault(Phase.ACTIVATION, List.of());
+        List<Tile> activationTiles = phaseIndex.getOrDefault(Phase.ACTIVATE_CHECKPOINTS, List.of());
         for (Tile tile : activationTiles) {
             for (TileEffect effect : tile.getEffects()) {
                 if (effect instanceof Checkpoint) count++;

@@ -3,7 +3,7 @@ Author(s): Bjarke, Asger, Patrick
 */
 
 
-import { Direction, MoveType } from "./boardTypes";
+import { Direction, MoveType} from "./boardTypes";
 
 export const ROBOT_COLORS = [
   "#3b82f6", // blue

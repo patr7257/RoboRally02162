@@ -36,4 +36,21 @@ public enum Direction {
         }
         return null;
     }
+
+    public int dx(Direction d) {
+        return switch (d) {
+            case E -> 1;
+            case W -> -1;
+            case N -> 0;
+            case S -> 0;
+        };
+    }
+    public int dy(Direction d) {
+        return switch (d) {
+            case E -> 0;
+            case W -> 0;
+            case N -> -1;
+            case S -> 1;
+        };
+    }
 }

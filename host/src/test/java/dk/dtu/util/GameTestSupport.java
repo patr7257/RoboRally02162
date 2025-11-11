@@ -12,7 +12,7 @@ import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-public final class GameTestSupport {
+public class GameTestSupport {
 
     public static List<Robot> lineRobots(int startId, int startX, int y, int count, Direction facing) {
         List<Robot> out = new ArrayList<>(count);

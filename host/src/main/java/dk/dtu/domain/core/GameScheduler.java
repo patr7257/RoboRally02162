@@ -14,6 +14,8 @@ public class GameScheduler implements RoundPacer {
     private static final long REGISTER_DELAY_MS = 800;
     private static final long PRE_ROUND_DELAY_MS = 300;
     private static final long NEXT_WINDOW_MS = 60_000L;
+    private static final long EFFECT_DELAY_MS = 500;
+
 
     private final ScheduledExecutorService scheduler;
     private final List<RoundPacerListener> listeners = new CopyOnWriteArrayList<>();
@@ -99,23 +101,39 @@ public class GameScheduler implements RoundPacer {
             try {
                 Game game = session.getGame();
 
-                game.executeRegister(reg);
+                game.executeRegisterMovesOnly();
 
-                if (game.getWinner().isPresent()) {
-                    session.setState(GameState.FINISHED);
-                    listeners.forEach(l -> l.onGameFinished(session));
-                    session.cancelStepTask();
-                    return;
-                }
+                ScheduledFuture<?> effectsTask = scheduler.schedule(() -> {
+                    try {
+                        // We could potentially inject the register round here, perhaps?
+                        // This way we can tell the effects that need to know the register they are in
+                        // I think there was some special conveyor that needed that information
+                        game.applyBoardEffectsAfterRegister();
 
-                if (reg < 5) {
-                    runRegister(session, reg + 1);
-                } else {
-                    game.dealNewHands();
-                    game.rebootRobots();
-                    session.cancelStepTask();
-                    scheduleProgrammingPhase(session, NEXT_WINDOW_MS);
-                }
+                        if (game.getWinner().isPresent()) {
+                            session.setState(GameState.FINISHED);
+                            listeners.forEach(l -> l.onGameFinished(session));
+                            session.cancelStepTask();
+                            return;
+                        }
+
+                        if (reg < 5) {
+                            runRegister(session, reg + 1);
+                        } else {
+                            game.dealNewHands();
+                            game.rebootRobots();
+                            session.cancelStepTask();
+                            scheduleProgrammingPhase(session, NEXT_WINDOW_MS);
+                        }
+                    } catch (Exception e) {
+                        System.err.println("Error in effects of register " + reg + ": " + e.getMessage());
+                        e.printStackTrace();
+                        session.cancelStepTask();
+                        scheduleProgrammingPhase(session, NEXT_WINDOW_MS);
+                    }
+                }, EFFECT_DELAY_MS, TimeUnit.MILLISECONDS);
+
+                session.setStepTask(effectsTask);
             } catch (Exception e) {
                 System.err.println("Error in register " + reg + ": " + e.getMessage());
                 e.printStackTrace();

@@ -14,6 +14,7 @@ public class Robot {
     private int x, y;
     private Direction direction;
     private int nextCheckpoint = 1;
+    private transient boolean movedOnActivation;
     private Boolean isAlive = true;
 
     private final Deque<ProgramOP> registers = new ArrayDeque<>();
@@ -93,6 +94,9 @@ public class Robot {
         this.y = y;
     }
 
+
+    public boolean movedOnActivation() { return movedOnActivation; }
+    public void setMovedOnActivation(boolean v) { movedOnActivation = v; }
     public void setAlive() {
         isAlive = true;
     }
