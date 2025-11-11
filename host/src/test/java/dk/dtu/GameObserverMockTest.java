@@ -40,8 +40,7 @@ class GameObserverMockTest {
         PlayerID winner = new PlayerID(1);
         game.declareWinner(winner);
 
-        verify(observer,times(1)).onWinnerDeclared(winner);
-
+        verify(observer, times(1)).onWinnerDeclared(game, winner);
 
     }
 

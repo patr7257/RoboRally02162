@@ -19,4 +19,7 @@ public interface GameManagerObserver {
 
     default void onGameFinished(Game game, UUID gameID) {
     }
+
+    default void onWinnerDeclared(Game game, UUID gameID, PlayerID winner) {
+    }
 }

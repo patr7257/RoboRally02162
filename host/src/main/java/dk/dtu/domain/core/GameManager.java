@@ -215,9 +215,33 @@ public class GameManager implements GameObserver {
         }
     }
 
+
     // Author(s): Weihao Mo
     @Override
-    public void onWinnerDeclared(PlayerID winner) {
+    public void onWinnerDeclared(Game game,PlayerID winner) {
+        UUID gameId = null;
+        GameSession session = null;
+
+        for (Map.Entry<UUID, GameSession> entry : activeSessions.entrySet()) {
+            if (entry.getValue().getGame() == game) {
+                gameId = entry.getKey();
+                session = entry.getValue();
+                break;
+            }
+        }
+
+        if (gameId != null && session != null) {
+            for (GameManagerObserver obs : observers) {
+                obs.onWinnerDeclared(game, gameId, winner);
+            }
+
+            if (session.getState() != GameState.FINISHED) {
+                session.cancelAutoExecuteTask();
+                session.cancelStepTask();
+                session.setState(GameState.FINISHED);
+                broadcastGameFinished(session);
+            }
+        }
     }
 
     // Author(s): William Pii Jæger, Niklas, Bjarke

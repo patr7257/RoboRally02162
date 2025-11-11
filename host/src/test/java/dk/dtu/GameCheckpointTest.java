@@ -30,7 +30,7 @@ class GameCheckpointTest {
 
         AtomicReference<PlayerID> observedWinner = new AtomicReference<>();
         game.addObserver(new GameObserver() {
-            @Override public void onWinnerDeclared(PlayerID winner) { observedWinner.set(winner); }
+            @Override public void onWinnerDeclared(Game g,PlayerID winner) { observedWinner.set(winner); }
             @Override public void onGameUpdate(Game g) { }
         });
 
@@ -66,7 +66,7 @@ class GameCheckpointTest {
 
         AtomicReference<PlayerID> observedWinner = new AtomicReference<>();
         game.addObserver(new GameObserver() {
-            @Override public void onWinnerDeclared(PlayerID winner) { observedWinner.set(winner); }
+            @Override public void onWinnerDeclared(Game g,PlayerID winner) { observedWinner.set(winner); }
             @Override public void onGameUpdate(Game g) { }
         });
 
@@ -102,7 +102,7 @@ class GameCheckpointTest {
 
         AtomicReference<PlayerID> observedWinner = new AtomicReference<>();
         game.addObserver(new GameObserver() {
-            @Override public void onWinnerDeclared(PlayerID winner) { observedWinner.set(winner); }
+            @Override public void onWinnerDeclared(Game g,PlayerID winner) { observedWinner.set(winner); }
             @Override public void onGameUpdate(Game g) { }
         });
 

@@ -78,7 +78,7 @@ class GameConveyorTest {
         Game game = new Game(board, api, robots);
         AtomicReference<PlayerID> observedWinner = new AtomicReference<>();
         game.addObserver(new GameObserver() {
-            @Override public void onWinnerDeclared(PlayerID winner) { observedWinner.set(winner); }
+            @Override public void onWinnerDeclared(Game game,PlayerID winner) { observedWinner.set(winner); }
             @Override public void onGameUpdate(Game g) { }
         });
 
@@ -104,7 +104,7 @@ class GameConveyorTest {
         Game game = new Game(board, api, robots);
         AtomicReference<PlayerID> observedWinner = new AtomicReference<>();
         game.addObserver(new GameObserver() {
-            @Override public void onWinnerDeclared(PlayerID winner) { observedWinner.set(winner); }
+            @Override public void onWinnerDeclared(Game game,PlayerID winner) { observedWinner.set(winner); }
             @Override public void onGameUpdate(Game g) { }
         });
 

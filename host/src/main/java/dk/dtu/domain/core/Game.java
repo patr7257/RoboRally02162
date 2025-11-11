@@ -314,7 +314,7 @@ public class Game {
     // Author(s): Weihao Mo
     private void notifyWinner(PlayerID win) {
         for (GameObserver obs : observers) {
-            obs.onWinnerDeclared(win);
+            obs.onWinnerDeclared(this,win);
         }
     }
 
