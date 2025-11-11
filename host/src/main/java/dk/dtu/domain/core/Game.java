@@ -184,7 +184,9 @@ public class Game {
      */
     private void runAllTilePhases() {
         for (Phase sub : Phase.values()) {
-            applyTileEffects(sub);
+            if(sub != Phase.ACTIVATE_ANTENNA) {
+                applyTileEffects(sub);
+            }
         }
     }
 
