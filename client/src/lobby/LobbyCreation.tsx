@@ -19,34 +19,40 @@ export default function LobbyCreation() {
 
   const API_BASE_URL = process.env.REACT_APP_API_BASE_URL;
 
-  const unsubscribe = subscribe((message: string) => {
-    console.log("Received message:", message);
+  useEffect(() => {
+    const unsubscribe = subscribe((message: string) => {
+      console.log("Received message:", message);
 
-    try {
-      const data = JSON.parse(message);
-      console.log("Parsed data:", data);
+      try {
+        const data = JSON.parse(message);
+        console.log("Parsed data:", data);
 
-      if (data.action === "Readiness") {
-        let readyMap = data.payload;
-
-        if (typeof readyMap === "string") {
-          readyMap = JSON.parse(readyMap);
+        if (data.action === "Readiness") {
+          let readyMap = data.payload;
+          if (typeof readyMap === "string") {
+            readyMap = JSON.parse(readyMap);
+          }
+          setPlayersReady(readyMap);
         }
 
-        setPlayersReady(readyMap);
+        if (data.type === "game" && data.payload?.action === "start") {
+          console.log("Game started!");
+          navigate("/boardScene");
+        } else if (data.type === "lobby" && data.action === "start_denied") {
+          console.warn("Cannot start game:", data.payload.reason);
+          setError(data.payload.reason);
+        }
+      } catch {
+        console.log("Raw text message:", message);
       }
+    });
 
-      if (data.type === "game" && data.payload?.action === "start") {
-        console.log("Game started!");
-        navigate("/boardScene");
-      } else if (data.type === "lobby" && data.action === "start_denied") {
-        console.warn("Cannot start game:", data.payload.reason);
-        setError(data.payload.reason);
-      }
-    } catch {
-      console.log("Raw text message:", message);
-    }
-  });
+    return () => {
+      console.log("Unsubscribing from lobby websocket");
+      unsubscribe?.();
+    };
+  }, [navigate]);
+
 
 
   useEffect(() => {
