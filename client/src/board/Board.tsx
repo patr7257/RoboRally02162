@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { subscribe, sendMessage } from "../utils/ws";
-import { MoveType, GameData, HandData } from "../types/boardTypes";
+import { MoveType, GameData, HandData, ROBOT_COLORS } from "../types/boardTypes";
 import { WinnerBanner } from "./WinnerBanner";
 import { BoardRenderer } from "./BoardRenderer";
 import { GameControls } from "./GameControls";
@@ -15,6 +15,7 @@ import { leaveLobby } from '../lobby/LeaveLobby';
 * @author Bjarke Søderhamn Petersen
 * @author Patrick Røbel
 * @author William Pii Jæger
+* @author Kajsa Alice Ulrika Berlstedt
 */
 
 interface ReadinessData {
@@ -22,14 +23,9 @@ interface ReadinessData {
   msRemaining: number;
 }
 
-/*
-* @author Asger Allin Jensen
-* @author Bjarke Søderhamn Petersen
-* @author Patrick Røbel
-* @author William Pii Jæger
-*/
 export default function Board() {
   const navigate = useNavigate();
+  const [userID] = useState<string>(localStorage.getItem("userID") || "");
   const [lobbyId] = useState<string>(localStorage.getItem("id") || "");
   const [gameData, setGameData] = useState<GameData | null>(null);
   const [handData, setHandData] = useState<HandData | null>(null);
@@ -38,6 +34,8 @@ export default function Board() {
   const [timeRemaining, setTimeRemaining] = useState<number>(0);
   const [gameState, setGameState] = useState<'waiting' | 'programming' | 'executing' | 'finished'>('waiting');
   const [hasSubmitted, setHasSubmitted] = useState<boolean>(false);
+  const [robotID, setRobotID] = useState<string>("");
+  const API_BASE_URL = process.env.REACT_APP_API_BASE_URL;
 
   useEffect(() => {
     const unsubscribe = subscribe((message: string) => {
@@ -126,6 +124,7 @@ export default function Board() {
 
     sendMessage({ lobbyID: lobbyId, payload: { type: "getBoard" } });
     sendMessage({ lobbyID: lobbyId, payload: { type: "getHand" } });
+    getRobotIDS();
 
     return () => {
       stopReadinessPolling();
@@ -148,6 +147,52 @@ export default function Board() {
       readinessInterval = null;
     }
   };
+
+
+const getRobotIDS = async () => {
+  console.log("Fetching robot ID for user:", userID);
+
+  try {
+    const response = await fetch(`${API_BASE_URL}/api/lobby/getRobot`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        lobbyID: lobbyId,
+        userID: userID
+      }),
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error("Failed to fetch robot IDs:", errorText);
+      return;
+    }
+
+    const data = await response.json();
+    console.log("Robot ID map received:", data);
+
+    const username = localStorage.getItem("username");
+    if (!username) {
+      console.warn("No username found in localStorage");
+      return;
+    }
+
+    const id = data[username];
+
+    if (id) {
+      console.log(`Your robot ID is: ${id}`);
+      setRobotID(id.toString());
+      localStorage.setItem("robotID", id.toString()); // optional persistence
+    } else {
+      console.warn(`No robot ID found for username "${username}" in`, data);
+    }
+
+  } catch (error) {
+    console.error("Error fetching robot ID:", error);
+  }
+};
+
+
 
   const handleSubmitMove = (moves: MoveType[]) => {
     if (moves.length === 0) {
@@ -196,6 +241,26 @@ export default function Board() {
     return `${submitted}/${total} players ready`;
   };
 
+    const renderMyRobotLabel = (): React.ReactNode => {
+      if (!robotID) {
+        return (
+          <div className="player-info">
+            You are: <em>not assigned yet</em>
+          </div>
+        );
+      }
+
+      const idx = parseInt(String(robotID), 10);
+      const colorIndex = !Number.isNaN(idx) && idx > 0 ? (idx - 1) % ROBOT_COLORS.length : 0;
+      const color = ROBOT_COLORS[colorIndex] ?? "#000";
+
+      return (
+        <div className="player-info">
+          You are: <span className="robot-label" style={{ color }}>{`Robot ${robotID}`}</span>
+        </div>
+      );
+    };
+
   return (
     <div className="board-root">
       <div className="navigation">
@@ -210,6 +275,8 @@ export default function Board() {
           Go to Homepage
         </button>
       </div>
+
+      {renderMyRobotLabel()}
 
       <div className="game-state-info">
         <div className="state-badge">
@@ -246,7 +313,9 @@ export default function Board() {
             Start Programming Phase
           </button>
         )}
+
       </div>
+
 
       {gameData?.game?.winner != null && (
         <WinnerBanner winnerId={gameData.game.winner} />

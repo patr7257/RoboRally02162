@@ -1,6 +1,6 @@
 package dk.dtu.dto;
 /*
-Author(s): Lizette
+Author(s): Lizette, Kajsa
  */
 
 public class AuthResponse {

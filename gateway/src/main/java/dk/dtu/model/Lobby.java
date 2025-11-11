@@ -90,7 +90,7 @@ public class Lobby {
         this.locked = true; // lock before starting
 
         try {
-            this.gameID = host.startGame(players.size(), 10);
+            this.gameID = host.startGame(players.size(), 10); // TODO: Change the boardsize to be decided by the client
             notifyObservers(LobbyUpdateReason.GAME_STARTED);
 
             ObjectNode root = JsonUtil.createObjectNode();
@@ -275,6 +275,19 @@ public class Lobby {
         root.set("payload", payload);
 
         broadcastToClients(root);
+    }
+
+    //@author Asger Allin Jensen & Kajsa Alice Ulrika Berlstedt
+    public String getUserIDS () {
+        return userToPlayer.keySet().toString();
+    }
+    public Map<String, String> getUsernamePlayerIDMaps() {
+        Map<String, String> result = new HashMap<>();
+        for (Client c : players.values()) {
+            result.put(c.getUsername(),userToPlayer.get(c.getUserID()));
+
+        }
+        return result;
     }
 
 }

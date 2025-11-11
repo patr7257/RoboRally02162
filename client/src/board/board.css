@@ -24,6 +24,17 @@
   margin-bottom: 10px;
 }
 
+.player-info {
+  margin: 8px 0;
+  font-weight: 600;
+  text-align: left;
+}
+
+.robot-label {
+  font-weight: 700;
+  margin-left: 4px;
+}
+
 .board-grid {
   border: 3px solid #000;      
   background-color: #111;       

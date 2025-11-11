@@ -171,4 +171,25 @@ public class LobbyAPI {
             default -> ResponseEntity.status(HttpStatus.BAD_REQUEST).body("UNKNOWN_ERROR");
         };
     }
+
+    // @author Asger Allin Jensen
+    // @author Kajsa Alice Ulrika Berlstedt
+    @PostMapping("/lobby/getRobot")
+    public ResponseEntity<String> getRobot(@RequestBody LobbyUserRequest req) {
+        String lobbyID = req.lobbyID;
+        String userID = req.userID;
+        Client client = serverManager.getClient(userID);
+        if (client == null) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("USER_NOT_CONNECTED");
+        }
+        Lobby lob = serverManager.getLobbyFromID(lobbyID);
+        if (lob == null) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("LOBBY_NOT_FOUND");
+        }
+        Map<String, String> result = lob.getUsernamePlayerIDMaps();
+        System.out.println("api call");
+        String json = JsonUtil.toJson(result);
+        System.out.println(json);
+        return ResponseEntity.ok(json);
+    }
 }
