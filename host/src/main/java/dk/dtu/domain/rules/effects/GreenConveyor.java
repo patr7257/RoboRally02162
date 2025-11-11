@@ -2,6 +2,7 @@ package dk.dtu.domain.rules.effects;
 
 import dk.dtu.domain.core.Phase;
 import dk.dtu.domain.model.Direction;
+import dk.dtu.domain.model.Rotation;
 import dk.dtu.domain.model.Tile;
 import dk.dtu.domain.rules.BeltIntent;
 import dk.dtu.domain.rules.Coord;

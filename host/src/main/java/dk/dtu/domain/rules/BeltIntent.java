@@ -1,7 +1,6 @@
 package dk.dtu.domain.rules;
 
-import dk.dtu.domain.rules.Coord;
-import dk.dtu.domain.rules.effects.Rotation;
+import dk.dtu.domain.model.Rotation;
 
 public record BeltIntent(
         int robotId,

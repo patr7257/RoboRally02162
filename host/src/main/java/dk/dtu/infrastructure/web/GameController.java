@@ -1,12 +1,14 @@
 package dk.dtu.infrastructure.web;
 
 import dk.dtu.domain.core.GameManager;
-import dk.dtu.domain.model.Board;
-import dk.dtu.domain.model.Tile;
-import dk.dtu.domain.model.Direction;
-import dk.dtu.domain.model.Robot;
+import dk.dtu.domain.model.*;
 import dk.dtu.domain.rules.api.BoardAPI;
 import dk.dtu.domain.rules.api.BoardApiImpl;
+import dk.dtu.domain.rules.effects.Checkpoint;
+import dk.dtu.domain.rules.effects.RebootToken;
+import dk.dtu.domain.rules.effects.Gear;
+import dk.dtu.domain.rules.effects.Walls;
+import dk.dtu.domain.rules.effects.StartingTile;
 import dk.dtu.domain.rules.effects.*;
 import dk.dtu.infrastructure.SnapshotMapper;
 import dk.dtu.infrastructure.dto.BoardDto;
@@ -35,20 +37,22 @@ public class GameController {
     public record EndGameResponse(boolean endedGame) {}
 
     private ArrayList<Tile> randomTiles(int floor, int ceil, Board board) {
-        Random rnd = new Random();
-        ArrayList<Tile> selectedTiles = new ArrayList<>();
-        for (int i = floor; i <= ceil; i++) {
-            int x, y;
-            Tile candidate;
-            do {
-                x = rnd.nextInt(board.getWidth());
-                y = 2 + rnd.nextInt(board.getHeight() - 2);
-                candidate = board.getTile(x, y);
-            } while (!candidate.getEffects().isEmpty() || selectedTiles.contains(candidate));
+        int toPick = Math.max(0, ceil - floor + 1);
+        ArrayList<Tile> pool = new ArrayList<>();
 
-            selectedTiles.add(candidate);
+        for (int x = 0; x < board.getWidth(); x++) {
+            for (int y = 0; y < board.getHeight(); y++) {
+                Tile t = board.getTile(x, y);
+                if (t.getEffects().isEmpty()) pool.add(t);
+            }
         }
-        return selectedTiles;
+
+        if (pool.size() < toPick) {
+            throw new IllegalStateException("Not enough empty tiles to place " + toPick + " items");
+        }
+
+        Collections.shuffle(pool, new Random());
+        return new ArrayList<>(pool.subList(0, toPick));
     }
 
     private ArrayList<Tile> randomTilesWithoutFacingWallsAndEdges(Board board) {
@@ -130,7 +134,7 @@ public class GameController {
     public synchronized StartGameResponse start(@RequestBody StartGameRequest req) {
         int width = req.boardSize();
         int totalHeight = req.boardSize() + 2;
-        
+
         Tile[][] tiles = new Tile[width][totalHeight];
         for (int x = 0; x < width; x++) {
             for (int y = 0; y < totalHeight; y++) {
@@ -140,7 +144,7 @@ public class GameController {
 
         Board board = new Board(width, totalHeight, tiles);
         List<Robot> robots = new ArrayList<>(5);
-        
+
         Random rnd = new Random();
 
         if(rnd.nextBoolean()) {
@@ -149,12 +153,13 @@ public class GameController {
             ConveyorBeltPatterns.applyCorridorBlitz(board);
         }
 
+
         // Place robots in starting area (rows 0-1) with starting tiles
         int[][] startingPositions = {
             {1, 0}, {2, 0}, {3, 0}, {4, 0}, {5, 0}, {6, 0}, {7, 0}, {8, 0},
             {1, 1}, {2, 1}, {3, 1}, {4, 1}, {5, 1}, {6, 1}, {7, 1}, {8, 1}
         };
-        
+
         for (int i = 0; i < req.amountPlayers() && i < startingPositions.length; i++) {
             int x = startingPositions[i][0];
             int y = startingPositions[i][1];
@@ -164,6 +169,8 @@ public class GameController {
 
             robots.add(new Robot(id, x, y, dir));
 
+
+            // Add starting tile effect
             board.getTile(x, y).addEffect(new StartingTile(id));
 
             board.getTile(board.getWidth()/2, 0).addEffect(new Antenna(Direction.S));
@@ -183,6 +190,12 @@ public class GameController {
             t.addEffect(new Walls(EnumSet.of(d)));
         }
 
+        ArrayList<Tile> gearTiles = randomTiles(0, 5, board);
+        Rotation[] gearDirs = { Rotation.RIGHT, Rotation.LEFT };
+
+        for (Tile t : gearTiles) {
+            t.addEffect(new Gear(gearDirs[rnd.nextInt(gearDirs.length)]));
+        }
 
         ArrayList<Tile> rebootTiles = randomTilesWithoutFacingWallsAndEdges(board);
 

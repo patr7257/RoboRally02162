@@ -266,6 +266,32 @@ button, .button-container {
   position: relative;
   z-index: 10; 
 }
+
+.gear {
+  background-image: url('../../public/Gear.svg');
+  background-size: 80%;
+  background-repeat: no-repeat;
+  background-position: center;
+  opacity: 0.7;
+}
+
+.gear.dir-cw {
+  animation: rotate-cw 2s linear infinite;
+}
+
+.gear.dir-ccw {
+  animation: rotate-ccw 2s linear infinite;
+}
+
+@keyframes rotate-cw {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+@keyframes rotate-ccw {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(-360deg); }
+}
 /* Move Selector Drag & Drop Styles */
 .moveSelectorContainer {
   width: 100%;

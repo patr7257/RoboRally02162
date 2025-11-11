@@ -2,6 +2,7 @@ package dk.dtu.util;
 
 import dk.dtu.domain.model.Board;
 import dk.dtu.domain.model.Direction;
+import dk.dtu.domain.model.Rotation;
 import dk.dtu.domain.model.Tile;
 import dk.dtu.domain.rules.effects.*;
 import dk.dtu.domain.rules.effects.Checkpoint;

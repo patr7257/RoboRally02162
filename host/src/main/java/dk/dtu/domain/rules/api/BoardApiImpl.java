@@ -1,9 +1,6 @@
 package dk.dtu.domain.rules.api;
 
-import dk.dtu.domain.model.Board;
-import dk.dtu.domain.model.Direction;
-import dk.dtu.domain.model.Robot;
-import dk.dtu.domain.model.Tile;
+import dk.dtu.domain.model.*;
 import dk.dtu.domain.rules.*;
 import dk.dtu.domain.rules.effects.*;
 

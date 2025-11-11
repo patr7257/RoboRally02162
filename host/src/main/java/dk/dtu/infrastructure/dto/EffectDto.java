@@ -15,6 +15,6 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo;
         })
 // ConveyorDto, LasterDto ect
 // Keeping here for future use
-public sealed interface EffectDto permits AntennaDto, BlueConveyorDto, CheckpointDto, GreenConveyorDto, RebootTokenDto, StartingTileDto, WallDto {
+public sealed interface EffectDto permits CheckpointDto, GearDto, WallDto, RebootTokenDto, StartingTileDto, AntennaDto, BlueConveyorDto, GreenConveyorDto {
     String kind();
 }

@@ -1,3 +1,3 @@
-package dk.dtu.domain.rules.effects;
+package dk.dtu.domain.model;
 
 public enum Rotation { NONE, LEFT, RIGHT }

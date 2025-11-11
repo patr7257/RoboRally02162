@@ -10,10 +10,11 @@ export interface CheckpointEffect extends BaseEffect { kind: "checkpoint"; numbe
 export interface BlueConveyorEffect extends BaseEffect { kind: "BLUE_CONVEYOR"; direction: Direction; rotation: Rotation; }
 export interface GreenConveyorEffect extends BaseEffect { kind: "GREEN_CONVEYOR"; direction: Direction; rotation: Rotation; }
 export interface WallEffect       extends BaseEffect { kind: "walldto"; walls: Direction[]; }
+export interface GearEffect       extends BaseEffect { kind: "geardto"; rotation: Rotation; }
 export interface RebootTokenEffect extends BaseEffect { kind: "reboot_token"; direction: Direction}
 export interface StartingTileEffect extends BaseEffect { kind: "startingtile"; playerId: number; }
 export interface AntennaEffect extends BaseEffect { kind : "antenna"; direction: Direction}
-export type TileEffect = CheckpointEffect | BlueConveyorEffect | GreenConveyorEffect  | WallEffect | StartingTileEffect | RebootTokenEffect | AntennaEffect;
+export type TileEffect = CheckpointEffect | BlueConveyorEffect | GreenConveyorEffect  | WallEffect | StartingTileEffect | RebootTokenEffect | AntennaEffect | GearEffect;
 
 export type MoveType =
     | "MOVE1"

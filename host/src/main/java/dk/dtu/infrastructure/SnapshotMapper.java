@@ -6,6 +6,11 @@ import dk.dtu.domain.model.Board;
 import dk.dtu.domain.model.Direction;
 import dk.dtu.domain.model.Robot;
 import dk.dtu.domain.model.Tile;
+import dk.dtu.domain.rules.effects.Checkpoint;
+import dk.dtu.domain.rules.effects.RebootToken;
+import dk.dtu.domain.rules.effects.StartingTile;
+import dk.dtu.domain.rules.effects.Gear;
+import dk.dtu.domain.rules.effects.Walls;
 import dk.dtu.domain.rules.effects.*;
 import dk.dtu.infrastructure.dto.*;
 
@@ -69,8 +74,12 @@ public final class SnapshotMapper {
                 if (effect instanceof Antenna at) {
                     effects.add(new AntennaDto(at.direction()));
                 }
+                if (effect instanceof Gear gr) {
+                    effects.add(new GearDto(gr.rotation()));
+                }
             }
         }
+
         return new TileDto(List.copyOf(effects));
     }
 

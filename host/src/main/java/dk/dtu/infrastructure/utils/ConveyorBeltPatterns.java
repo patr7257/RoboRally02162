@@ -2,9 +2,10 @@ package dk.dtu.infrastructure.utils;
 
 import dk.dtu.domain.model.Board;
 import dk.dtu.domain.model.Direction;
+import dk.dtu.domain.model.Rotation;
 import dk.dtu.domain.rules.effects.BlueConveyor;
 import dk.dtu.domain.rules.effects.GreenConveyor;
-import dk.dtu.domain.rules.effects.Rotation;
+
 /**
  * @author Weihao Mo
  */

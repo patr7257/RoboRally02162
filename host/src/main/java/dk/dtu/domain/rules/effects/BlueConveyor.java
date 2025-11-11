@@ -5,6 +5,7 @@ import java.util.*;
 import dk.dtu.domain.core.Phase;
 import dk.dtu.domain.model.Direction;
 import dk.dtu.domain.model.Robot;
+import dk.dtu.domain.model.Rotation;
 import dk.dtu.domain.model.Tile;
 import dk.dtu.domain.rules.*;
 import dk.dtu.domain.rules.api.BoardAPI;
