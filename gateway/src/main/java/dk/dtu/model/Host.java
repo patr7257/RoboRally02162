@@ -24,16 +24,23 @@ public class Host { //TODO: maybe make singleton
     private String hostURL = "http://localhost:2948/";
 
     public Host(){};
+    /**
+     * @author Niklas Emil Lysdal
+     */
     public void setSession(WebSocketSession session) {
         this.session = session;
         this.queue = new MessageQueue(session);
     }
-
+    /**
+     * @author Niklas Emil Lysdal
+     */
     public void handleMessage(ObjectNode msg) {
         queue.enqueue(msg);
         queue.flush();
     }
-
+    /**
+     * @author Niklas Emil Lysdal
+     */
     public UUID startGame(int amountPlayers, int boardSize) {
         RestTemplate restTemplate = new RestTemplate();
         Map<String, Integer> body = Map.of(
@@ -75,7 +82,9 @@ public class Host { //TODO: maybe make singleton
 
         return UUID.fromString(gameID);
     }
-
+    /**
+     * @author Niklas Emil Lysdal
+     */
     public void endGame(UUID gameID) {
         RestTemplate restTemplate = new RestTemplate();
         Map<String, String> body = Map.of(

@@ -1,0 +1,95 @@
+.terminal-table-header {
+    padding-right:  1.5rem;
+    padding-left: 1rem;
+    font-size: 1.6rem;
+	color:white;
+}
+.terminal-table-button-header {
+    width: 7rem;
+    white-space: nowrap;
+}
+
+.lobbies-terminal {
+	background: linear-gradient(145deg, #111, #2b2b2b);
+	border: 0.03 solid #000;
+	border-radius: 10px;
+	padding:1rem;
+	width: 85%;
+	max-width: 60rem;
+	margin-top: 14px;
+    
+	box-shadow:
+		inset 0 2px 4px rgba(0, 0, 0, 0.8),
+		0 0 18px rgba(0, 255, 80, 0.4);
+}
+
+.terminal-table {
+    table-layout:fixed;
+    width:100%;
+    padding-left:0.8rem;
+}
+/*overall container*/
+.lobbies-panel {
+	display: flex; 
+	flex-direction: column;
+	align-items: center;
+	gap: 1rem;
+	
+	/* space between buttons */
+	padding: 2rem 0.1rem;
+	width: 50rem;
+
+	background: repeating-linear-gradient(45deg,
+			#facc15,
+			#facc15 12px,
+			#000 12px,
+			#000 24px);
+	border: 4px solid #111;
+	border-radius: 18px;
+
+	box-shadow:
+		inset 0 3px 6px rgba(0, 0, 0, 0.7),
+		0 0 24px rgba(255, 215, 0, 0.4);
+	/* steady yellow glow */
+
+	position: relative;
+}
+
+
+.lobby-item {
+	
+	background: radial-gradient(circle at top left, #000 0%, #222 100%);
+	
+	border: 0.01rem solid #333;
+	color: #00ff6a;
+	font-family: "Courier New", monospace;
+	font-weight: bold;
+    font-size: 1.5rem;
+	text-shadow: 0 0 6px rgba(0, 255, 60, 0.8);
+	box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.6);
+}
+
+.text-red {
+    background: radial-gradient(circle at top left, #000 0%, #222 100%);
+    border: 0.01rem solid #333;
+ 
+    color: #ff0033; 
+    
+    font-family: "Courier New", monospace;
+    font-weight: bold;
+    font-size: 1.5rem;
+    
+    text-shadow: 0 0 6px rgba(255, 0, 51, 0.8);
+    
+    box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.6);
+}
+
+.lobby-table-name,
+.lobby-table-players,
+.lobby-table-status,
+.lobby-item td { 
+    padding-top: 0.65rem;   
+    padding-bottom: 0.75rem; 
+
+    vertical-align: middle; 
+}

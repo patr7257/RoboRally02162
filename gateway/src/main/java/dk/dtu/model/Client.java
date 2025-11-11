@@ -16,7 +16,9 @@ public class Client {
     private final User user;
     private final WebSocketSession session;
     private final MessageQueue queue;
-
+    /**
+     * @author Niklas Emil Lysdal
+     */
     public Client(User user, WebSocketSession session) {
         this.sessionID = session.getId();
         this.user = user;

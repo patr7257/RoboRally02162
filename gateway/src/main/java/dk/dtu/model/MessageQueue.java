@@ -18,7 +18,6 @@ import java.util.concurrent.ScheduledExecutorService;
 public class MessageQueue {
     private final BlockingQueue<ObjectNode> queue = new LinkedBlockingQueue<>();
     private final WebSocketSession session;
-    //private final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
     private final Object lock = new Object();
 
     public MessageQueue(WebSocketSession session) {

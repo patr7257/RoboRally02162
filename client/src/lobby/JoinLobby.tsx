@@ -3,10 +3,12 @@ Author(s): Bjarke, Niklas, Asger
 */
 import { useNavigate } from "react-router-dom";
 import Layout from "./Layout";
-import React, { useState } from "react";
-
+import React, { useState, useEffect } from "react";
+import { lobbyInfo } from "../types/lobbyTypes";
+import "../styles/joinLobby.css";
+import { subscribe } from "../utils/ws";
 interface Lobby {
-  lobbyID: string;
+  lobbyInfo: lobbyInfo;
   [key: string]: any;
 }
 
@@ -18,49 +20,89 @@ export default function JoinLobby() {
   const [error, setError] = useState<string>("");
   const API_BASE_URL = process.env.REACT_APP_API_BASE_URL;
 
-
-  const findLobby = async () => {
+  /**
+   * @author Niklas Emil Lysdal
+   */
+  const updateLobbyList = async () => {
     setError("");
+
     try {
-      const response = await fetch(API_BASE_URL+"/api/lobby/seeLobbies", {
-        method: "GET",
+      const response = await fetch(API_BASE_URL + "/api/lobby/seeLobbies", {
+        method: "POST",
         headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ userID: localStorage.getItem("userID") }),
       });
 
-      const data = await response.text();
+      const data:lobbyInfo[] = await response.json();
+      console.log("received lobby data:", data);
       if (response.ok) {
-        localStorage.setItem("lobbies", data);
-        setLobbies(JSON.parse(data));
+        const parsedData: Lobby[] = data.map((input: any) => ({
+          lobbyInfo: {
+            lobbyID: input.lobbyID,
+            capacity: input.capacity,
+            playerCount: input.playerCount,
+            lobbyName: input.lobbyName,
+            status: input.isRunning
+          },
+          ...input
+        }))
+
+
+        setLobbies(parsedData);
       } else {
         setError("An error occurred. Try again.");
       }
     } catch (err) {
-      console.error("Login error:", err);
+      console.error("SeeLobbies error:", err);
+
       setError("Network error. Try again.");
     }
   };
-
-  const joinLobby = async (id: string):Promise<boolean>=> {
+    /**
+   * @author Niklas Emil Lysdal
+   */
+  useEffect(() => {
+    updateLobbyList();
+    const unsubscribe = subscribe((message: string) => {
+      try {
+        const data = JSON.parse(message);
+        console.log("Parsed data:", data);
+        if (data.type === "lobbies" && data.action === "updatedLobbies") {
+          updateLobbyList();
+          return;
+        }
+      } catch {
+        console.log("Raw text message:", message);
+      }
+    });
+    return () => {
+      unsubscribe();
+    }
+  },[]);
+    /**
+   * @author Niklas Emil Lysdal
+   */
+  const joinLobby = async (id: string): Promise<boolean> => {
     setError("");
     try {
-      const response = await fetch(API_BASE_URL+"/api/lobby/join", {
+      const response = await fetch(API_BASE_URL + "/api/lobby/join", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ userID: userID, lobbyID: id }),
       });
 
-      const data = await response.text();
+      const data:string = await response.text();
       console.log("data received: " + data);
-      
+
       if (response.status === 201) {
-        localStorage.setItem("id", data);
-        setLobbyId(id);
+        setLobbyId(data);
+        localStorage.setItem("id",data);
         return true;
-      } else  if (response.status === 403) { //FORBIDDEN
-          setError("Lobby is locked, unable to join.");
-          return false;
+      } else if (response.status === 403) { //FORBIDDEN
+        setError("Lobby is locked, unable to join.");
+        return false;
       }
-      else{
+      else {
         setError("An error occurred. Try again.");
         return false;
       }
@@ -71,46 +113,72 @@ export default function JoinLobby() {
     }
   };
 
+
+
+
+
   return (
-  <Layout>
-    <div className="panel-container">
-      <h1 className="panel-title">Mission Access Terminal</h1>
+    <Layout>
+      <div className="panel-container">
+        <h1 className="panel-title">Mission Access Terminal</h1>
 
-      <div className="control-panel">
-        <button className="metal-button" onClick={findLobby}>
-          Scan for Active Lobbies
-        </button>
+        <div className="lobbies-panel">
+          <button className="metal-button" onClick={updateLobbyList}>
+            Scan for Active Lobbies
+          </button>
 
-        <button className="metal-button" onClick={() => navigate("/lobbyScene")}>
-          Return to Command Center
-        </button>
+          <button className="metal-button" onClick={() => navigate("/lobbyScene")}>
+            Return to Command Center
+          </button>
 
-        {lobbies.length > 0 && (
-          <div className="lobbies-terminal">
-            <h2 className="terminal-title">Available Lobbies</h2>
-            <ul className="terminal-list">
-              {lobbies.map((lobby, index) => (
-                <li key={index} className="terminal-item">
-                  <span className="terminal-id">ID: {lobby.lobbyID}</span>
-                  <button
-                    className="metal-button small"
-                    onClick={async () => {
-                      if (await joinLobby(lobby.lobbyID)) {
-                        navigate("/lobbyCreationScene");
-                      }
-                    }}
-                  >
-                    Join
-                  </button>
-                </li>
-              ))}
-            </ul>
-          </div>
-        )}
+          {lobbies.length > 0 && (
+            <div className="lobbies-terminal">
+              <h2 className="terminal-title">Available Lobbies</h2>
+              <table className="terminal-table">
 
-        {error && <p className="error-text">{error}</p>}
+                <thead>
+                  <tr>
+                    <th className="terminal-table-header">Name</th>
+                    <th className="terminal-table-header">Players</th>
+                    <th className="terminal-table-header"> Status</th>
+                    <th className="terminal-table-button-header"></th> {/* for the join button*/}
+
+                  </tr>
+                </thead>
+
+                <tbody>
+                  {lobbies.map((lobby, index) => {
+                    const isFull = lobby.lobbyInfo.playerCount===lobby.lobbyInfo.capacity;
+                    const isRunning = lobby.lobbyInfo.status;
+                    const isDisabled = isFull || isRunning; 
+                    const rowClassName = isDisabled ? "lobby-item text-red" : "lobby-item";
+                    return (
+                    <tr key={index} className={rowClassName}>
+                      <td className="lobby-table-name">{lobby.lobbyInfo.lobbyName}</td>
+                      <td className="lobby-table-players"> {lobby.lobbyInfo.playerCount}/{lobby.lobbyInfo.capacity}</td>
+                      <td className="lobby-table-status">{lobby.lobbyInfo.status ? 'Running' : 'Preparing'}</td>
+                      <td>
+                        <button
+                          className="metal-button small"
+                          onClick={async () => {
+                            if (await joinLobby(lobby.lobbyInfo.lobbyID)) {
+                              navigate("/lobbyCreationScene");
+                            }
+                          }}
+                        >
+                          Join
+                        </button>
+                      </td>
+                    </tr>
+                  )})}
+                </tbody>
+              </table>
+            </div>
+          )}
+
+          {error && <p className="error-text">{error}</p>}
+        </div>
       </div>
-    </div>
-  </Layout>
-);
+    </Layout>
+  );
 }

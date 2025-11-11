@@ -3,15 +3,20 @@ Author(s): Niklas
 */
 export { leaveLobby };
 const API_BASE_URL = process.env.REACT_APP_API_BASE_URL;
-
+  /**
+   * @author Niklas Emil Lysdal
+   */
 const leaveLobby = async (
-  lobbyId: string,
-  userID: string | null, //to be changed to UUID
+  lobbyId: string  | undefined, //allow callers to attempt with invalid data, to skip checks elsewhere.
+  userID: string | null, 
   setError: ((msg: string) => void) | null //allow to not have error handling
 ): Promise<void> => {
   if (setError) setError("");
   if (userID === null) {
     throw new Error("Attempted to leave lobby without providing username");
+  }
+  if (lobbyId===null) {
+       throw new Error("Attempted to leave lobby without providing lobbyID");
   }
   try {
     // TODO: ensure server verifies caller is the lobby owner before deleting

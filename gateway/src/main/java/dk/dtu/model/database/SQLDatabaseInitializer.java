@@ -30,7 +30,8 @@ public class SQLDatabaseInitializer {
             System.out.println("Database ready (created or already exists)");
 
         } catch (SQLException e) {
-            System.out.println("Error when creating database");
+            System.err.println("Error with database: " + e.getMessage());
+            //e.printStackTrace();
         }
     }
 

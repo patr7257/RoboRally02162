@@ -1,15 +1,15 @@
 package dk.dtu.model;
 
-/*
-Author(s): Niklas
- */
+
 
 public class User {
 
     private String name;
     private String userID;
     private String passwordHash; // the BCrypt of client SHA-256
-
+    /**
+     * @author Niklas Emil Lysdal
+     */
     public User(String userID, String name, String passwordHash) {
         this.name = name;
         this.userID = userID; //TODO: change to be a generated userID.

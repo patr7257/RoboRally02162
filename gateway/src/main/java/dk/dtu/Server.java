@@ -96,7 +96,7 @@ public class Server implements WebSocketConfigurer { // TODO: after host connect
                     System.err.println("=== ERROR IN MESSAGE HANDLING ===");
                     System.err.println("Session ID: " + session.getId());
                     System.err.println("Error: " + e.getMessage());
-                    e.printStackTrace();
+                    //e.printStackTrace();
                     System.err.println("================================");
                 }
                 //System.out.println("Message handling completed for: " + session.getId());
@@ -108,7 +108,7 @@ public class Server implements WebSocketConfigurer { // TODO: after host connect
                 System.err.println("Session ID: " + session.getId());
                 System.err.println("User: " + getUserFromSession(session));
                 System.err.println("Error: " + exception.getMessage());
-                exception.printStackTrace();
+                //exception.printStackTrace();
                 System.err.println("=====================");
             }
 
@@ -176,7 +176,7 @@ public class Server implements WebSocketConfigurer { // TODO: after host connect
                     lob.handleHostMessage(json);
                 } catch (Exception e) {
                     System.err.println("[HOST] handleMessage error: " + e.getMessage());
-                    e.printStackTrace();
+                   // e.printStackTrace();
                 }
             }
 

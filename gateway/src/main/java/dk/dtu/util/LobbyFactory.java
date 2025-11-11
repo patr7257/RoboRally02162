@@ -17,8 +17,14 @@ public  class LobbyFactory {
     private static int nextLobbyID = 0;
     private static int nextRecreatedLobbyID = 0;
 
-    public Lobby createLobby(Client creator, Host host) {
-        return new Lobby(nextLobbyID++ + "" , creator, host);
+    public LobbyFactory(){}
+
+    /**
+     * @author Niklas Emil Lysdal
+     * @return New Lobby Object using  ID incrementer.
+     */
+    public Lobby createLobby(Client creator, Host host, String lobbyName,int capacity) {
+        return new Lobby(lobbyName, nextLobbyID++ + "", creator, host, capacity);
     }
 
     /**
@@ -29,4 +35,5 @@ public  class LobbyFactory {
     public Lobby recreateLobby(Client c, Host host, Map<String, String> userToPlayer, UUID saveID) {
         return new Lobby("R" + nextRecreatedLobbyID++, c, host, userToPlayer, saveID);
     }
+
 }

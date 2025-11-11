@@ -368,17 +368,11 @@ public class GameDatabaseTests {
         Thread.sleep(50);
 
         WebSocketSession wsSession = connectWebSocket(token, port);
+        Thread.sleep(50);
         sessions.add(wsSession);
 
-        Thread.sleep(50);
-        String lobbyID = mockMvc.perform(post("/api/lobby/create")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(mapper.writeValueAsString(Map.of("userID", token))))
-                .andExpect(status().isCreated())
-                .andExpect(content().string(Matchers.notNullValue()))
-                .andReturn()
-                .getResponse()
-                .getContentAsString();
+        String lobbyID = LobbyRESTTests.createLobby(token, "testName","6",mapper,mockMvc);
+
 
         for (int i = 2; i <= 3; i++) {
             String usernameLoop = username + i;

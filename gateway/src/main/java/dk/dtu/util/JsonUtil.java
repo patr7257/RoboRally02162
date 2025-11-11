@@ -19,7 +19,10 @@ public class JsonUtil {
     private static final ObjectMapper mapper = new ObjectMapper();
 
     private JsonUtil() {}
-
+    /**
+     * @author Niklas Emil Lysdal
+     * @return Returns string Json representation of object
+     */
     public static String toJson(Object obj) {
         try {
             return mapper.writeValueAsString(obj);
@@ -27,7 +30,11 @@ public class JsonUtil {
             throw new RuntimeException(e);
         }
     }
-
+    /**
+     * @author Niklas Emil Lysdal
+     * @return  JsonNode representation of string
+     * @throws RuntimeException if the string is an invalid json.
+     */
     public static JsonNode parser(String json) {
         try {
             return mapper.readTree(json);
@@ -35,6 +42,7 @@ public class JsonUtil {
             throw new RuntimeException(e);
         }
     }
+
 
     public static JsonNode toTree(Object list) {
         return mapper.valueToTree(list);
@@ -48,7 +56,10 @@ public class JsonUtil {
             throw new RuntimeException(e);
         }
     }
-
+    /**
+     * @author Niklas Emil Lysdal
+     * @return Object node to be used to create json tree
+     */
     public static ObjectNode createObjectNode() {
         return mapper.createObjectNode();
     }

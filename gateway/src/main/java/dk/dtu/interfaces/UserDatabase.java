@@ -6,7 +6,9 @@ Author(s): Niklas
 
 
 import dk.dtu.model.User;
-
+/**
+ * @author Niklas Emil Lysdal
+ */
 public interface UserDatabase {
     public User createUser(String name, String passwordHash);
     public User findUserById(String id);

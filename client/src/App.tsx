@@ -12,6 +12,7 @@ import React, { useState } from "react";
 import Layout from "./lobby/Layout";
 import { closeSocket } from "./utils/ws";
 import JoinLobby from './lobby/JoinLobby';
+import LobbyCreator from './lobby/LobbyCreator';
 import LobbyCreation from './lobby/LobbyCreation';
 import "./ui/registerEffects";
 import LoadLobby from './lobby/LoadLobby';
@@ -107,7 +108,8 @@ function App() {
         <Route path="/boardScene" element={<Board />} />
         <Route path="/lobbyScene" element={<Lobby />} />
         <Route path="/lobbyJoinScene" element={<JoinLobby />} />
-        <Route path="/lobbyCreationScene" element={<LobbyCreation />} />
+        <Route path="/lobbyCreatorScene" element={<LobbyCreator />} />
+        <Route path= "/lobbyCreationScene" element={<LobbyCreation />}/>
         <Route path="/lobbyLoadScene" element={<LoadLobby />} />
       </Routes>
     </Router>

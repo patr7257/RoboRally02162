@@ -60,21 +60,18 @@ public class AccountHandler {
                     .body(new AuthResponse("unsuccessful", "username and password required", null, null));
         }
         if (!userDatabase.existsNamePassword(req.username, req.passwordHash)) {
-            System.out.println("NO SUCH USER");
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
                     .body(new AuthResponse("unsuccessful", "User not found", null, null));
         }
 
         User user = userDatabase.findUserByNamePassword(req.username,req.passwordHash); // must return stored hash
         if (user == null || user.getPasswordHash() == null) {
-            System.out.println("NO SUCH USER 2");
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
                     .body(new AuthResponse("unsuccessful", "User not found", null, null));
         }
 
         boolean ok = encoder.matches(req.passwordHash, user.getPasswordHash());
         if (!ok) {
-            System.out.println("INVALID CREDENTIALS");
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
                     .body(new AuthResponse("unsuccessful", "Invalid credentials", null, null));
         }

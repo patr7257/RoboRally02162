@@ -20,29 +20,8 @@ export default function Lobby() {
   }, []);
   */
   
-  const createLobby = async () => {
-    setError("");
-    try {
-      const response = await fetch(API_BASE_URL+"/api/lobby/create", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ userID: userID }),
-      });
+ 
 
-      const data = await response.text();
-      console.log("data recived: " + data);
-      if (response.status === 201) {
-        localStorage.setItem("id", data);
-        setLobbyId(data);
-      } else {
-        setError("An error occurred. Try again.");
-      }
-    } catch (err) {
-      console.error("Login error:", err);
-      setError("Network error. Try again.");
-    }
-  };
-//lobby menu
   return (
     <Layout>
       <h1>Command Center</h1>
@@ -51,8 +30,7 @@ export default function Lobby() {
     <button
       className="metal-button"
       onClick={async () => {
-        await createLobby();
-        navigate("/lobbyCreationScene");
+        navigate("/lobbyCreatorScene");
       }}
     >
       Create Lobby
@@ -71,6 +49,7 @@ export default function Lobby() {
     </button>
   </div>
 </div>
+
     </Layout>
   );
 }

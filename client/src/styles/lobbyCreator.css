@@ -1,0 +1,136 @@
+/*
+Author(s): Niklas
+*/
+
+
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  width: 400px;
+  margin: 2rem auto;
+}
+
+.form-row {
+  display: grid;
+  grid-template-columns: 200px 1fr;
+  align-items: center;
+  gap: 1rem;
+}
+
+.form-row label {
+  color: white;
+  font-weight: bold;
+  text-align: right;
+}
+
+.form-row input {
+  width: 100%;
+  max-width: 260px;
+  padding: 10px 12px;
+  margin: 8px 0;
+  font-size: 1rem;
+  font-weight: 600;
+  color: #f0f0f0;
+
+  background: #1e1e1e;
+  border: 2px solid #666;
+  border-radius: 6px;
+
+  box-shadow:
+    inset 0 1px 3px rgba(255, 255, 255, 0.1),
+    0 0 6px rgba(0, 0, 0, 0.5);
+
+  outline: none;
+  transition: all 0.2s ease;
+}
+
+.form-row input::placeholder {
+  color: rgba(255, 255, 255, 0.6);
+}
+
+.form-row input:focus {
+  background-color: transparent;
+  color: white;
+  border: 1px solid #facc15;
+  border-radius: 6px;
+  padding: 0.5rem;
+  font-size: 1.3rem;
+  width: 100%;
+  border-color: #facc15;
+  box-shadow:
+    0 0 8px rgba(250, 204, 21, 0.6),
+    inset 0 1px 3px rgba(255, 255, 255, 0.15);
+  background: #222;
+
+}
+
+
+
+
+.error-text label {
+  color: red;
+}
+
+.lobby-settings {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(145deg, #151515, #2e2e2e);
+  border: 3px solid #000;
+  border-radius: 10px;
+  padding: 16px 28px;
+  width: 450px;
+  box-shadow:
+    inset 0 3px 6px rgba(0, 0, 0, 0.9),
+    0 0 18px rgba(255, 230, 0, 0.5),
+    0 0 8px rgba(0, 0, 0, 0.8);
+  margin-bottom: 26px;
+  position: relative;
+
+}
+
+.lobby-settings-panel {
+
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 22px;
+  /* space between buttons */
+  padding: 30px;
+  width: 550px;
+
+  background: repeating-linear-gradient(45deg,
+      #facc15,
+      #facc15 12px,
+      #000 12px,
+      #000 24px);
+  border: 4px solid #111;
+  border-radius: 18px;
+
+  box-shadow:
+    inset 0 3px 6px rgba(0, 0, 0, 0.7),
+    0 0 24px rgba(255, 215, 0, 0.4);
+  /* steady yellow glow */
+
+  position: relative;
+}
+
+.settings-buttons {
+  display: flex;
+  gap: 40px;
+  justify-content: center;
+}
+
+.error-text {
+  color: #FF0000 !important;
+  font-weight: bold;
+  text-shadow:
+    0 0 3px #000,
+    -2px -2px 0 #000,
+    2px -2px 0 #000,
+    -2px 2px 0 #000,
+    2px 2px 0 #000;
+}

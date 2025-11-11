@@ -6,7 +6,8 @@ Author(s): Karl, Benjamin, Niklas
 
 import com.fasterxml.jackson.databind.JsonNode;
 
-import dk.dtu.dto.LobbyJson;
+import dk.dtu.dto.LobbyPrivateJson;
+import dk.dtu.dto.LobbyPublicJson;
 import dk.dtu.dto.LobbyUserRequest;
 import dk.dtu.dto.OperationResult;
 import dk.dtu.interfaces.GameDatabase;
@@ -33,7 +34,9 @@ public class LobbyAPI {
         this.serverManager = serverManager;
         this.gameDatabase = gameDatabase;
     }
-
+    /**
+     * @author Niklas Emil Lysdal
+     */
     @PostMapping("/lobby/create") // returns lobbyID.
     public ResponseEntity<String> createLobby(@RequestBody JsonNode json) { // TODO: add authorization
 
@@ -44,20 +47,48 @@ public class LobbyAPI {
         if(userID.isEmpty()){
             return ResponseEntity.status(HttpStatus.FORBIDDEN).body("USERID_IS_EMPTY");
         }
-        Client creator = serverManager.getClient(userID); // TODO: make check that person is connected to websocket
+        if (!serverManager.validateUserID(userID)) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("INVALID_USER_ID");
+        }
+
+        Client creator = serverManager.getClient(userID);
         if(creator == null){
-            return ResponseEntity.status(HttpStatus.FORBIDDEN).body("CLIENT_IS_NULL");
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body("MISSING_WEBSOCKET_CONNECTION");
         }
         // check if in clients
+        if (!json.has("lobbyName" )|| json.get("lobbyName").asText().isBlank()) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("MISSING_LOBBY_NAME");
+        }
+        String lobbyName = json.get("lobbyName").asText();
+        //TODO: check valid lobbyName
 
-        Lobby lob = serverManager.createLobby(creator);
+        if (!json.has("capacity") || json.get("capacity").asText().isBlank()) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("MISSING_CAPACITY");
+        }
+        int capacity;
+        try {
+            capacity = json.get("capacity").asInt();
+             if (capacity<1 || capacity>6 ) {
+                 throw new Exception ("INVALID_CAPACITY");
+             }
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("INVALID_CAPACITY");
+        }
+        Lobby lob;
+        try {
+            lob = serverManager.createLobby(creator, lobbyName, capacity);
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.status(HttpStatus.CONFLICT).body("LOBBY_NAME_ALREADY_EXISTS");
+        }
 
         return ResponseEntity.status(HttpStatus.CREATED).body(lob.getLobbyID());
     }
-
+    /**
+     * @author Niklas Emil Lysdal
+     */
     @PostMapping("/lobby/join")
     public ResponseEntity<String> joinLobby(@RequestBody LobbyUserRequest req) {
-        String lobbyID = req.lobbyID;
+        String lobbyID =req.lobbyID;
         if(lobbyID.isEmpty()){
             return ResponseEntity.status(HttpStatus.FORBIDDEN).body("LOBBY_ID_IS_EMPTY");
         }
@@ -89,7 +120,9 @@ public class LobbyAPI {
             return ResponseEntity.status(HttpStatus.CONFLICT).body("UNKNOWN_ERROR");
         }
     }
-
+    /**
+     * @author Niklas Emil Lysdal
+     */
     @PostMapping("/lobby/start") // TODO: add check that websocket connection is running
     public ResponseEntity<String> startLobby(@RequestBody JsonNode json) {
         // UUID lobbyID = UUID.fromString(json.get("lobbyID").asText());
@@ -109,17 +142,52 @@ public class LobbyAPI {
         }
 
     }
-
-    @GetMapping("/lobby/seeLobbies")
-    public ResponseEntity<String> seeLobbies() { //only re
-        List<LobbyJson> result = new ArrayList<>();
-        for (Lobby lobby : serverManager.getLobbiesListCopy().stream().filter(entry -> !entry.isLocked()).toList()) {
-                result.add(lobby.asJson());
+    /**
+     * @author Niklas Emil Lysdal
+     */
+    @PostMapping("/lobby/seeLobbies")
+    public ResponseEntity<String> seeLobbies(@RequestBody JsonNode json) { //only re
+        if (!json.has("userID")) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("MISSING_USER_ID");
         }
-        String json = JsonUtil.toJson(result);
-        return ResponseEntity.ok(json);
+        String userID = json.get("userID").asText();
+        if (!serverManager.validateUserID(userID)) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("INVALID_USER_ID");
+        }
+
+        List<LobbyPublicJson> result = new ArrayList<>();
+        for (Lobby lobby : serverManager.getLobbiesListCopy()) {
+                result.add(lobby.asPublicJson());
+        }
+        String response = JsonUtil.toJson(result);
+
+        return ResponseEntity.ok(response);
     }
 
+    /**
+     * @author Niklas Emil Lysdal
+     */
+    @PostMapping("/lobby/lobbyInfo")
+    public ResponseEntity<?> getLobbyInfo(@RequestBody LobbyUserRequest req) {
+        String userID = req.userID;
+
+        Client client = serverManager.getClient(userID);
+        if (client == null) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("USER_NOT_CONNECTED");
+        }
+        String lobbyID = req.lobbyID;
+        Lobby lob = serverManager.getLobbyFromLobbyID(lobbyID);
+        if (lob == null) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("LOBBY_NOT_FOUND");
+        }
+        if (!lob.hasParticipant(userID)) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("USER_NOT_IN_LOBBY");
+        }
+        return ResponseEntity.status(HttpStatus.OK).body(lob.asPrivateJson());
+    }
+    /**
+     * @author Niklas Emil Lysdal
+     */
     @PostMapping("/lobby/leave")
     public ResponseEntity<String> leaveLobby(@RequestBody LobbyUserRequest req) {
         String userID = req.userID;
@@ -141,8 +209,10 @@ public class LobbyAPI {
         };
     }
 
-    /// @author Asger
-    /// @author Niklas
+    /**
+    @author Asger
+    @author Niklas
+     */
     @PostMapping("/lobby/markReady")
     public ResponseEntity<String> markReady(@RequestBody LobbyUserRequest req) {
         String userID = req.userID;
@@ -166,8 +236,10 @@ public class LobbyAPI {
         };
     }
 
-    // @author Asger
-    // @author Niklas
+    /**
+     @author Asger
+     @author Niklas
+     */
     @PostMapping("/lobby/markNotReady")
     public ResponseEntity<String> markNotReady(@RequestBody LobbyUserRequest req) {
         String userID = req.userID;

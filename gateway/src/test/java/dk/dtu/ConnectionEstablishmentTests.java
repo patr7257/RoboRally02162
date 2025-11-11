@@ -21,9 +21,6 @@ import org.springframework.web.socket.WebSocketHttpHeaders;
 import org.springframework.web.socket.WebSocketSession;
 import org.springframework.web.socket.client.standard.StandardWebSocketClient;
 import org.springframework.web.socket.handler.AbstractWebSocketHandler;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.timeout;
-import static org.mockito.ArgumentMatchers.any;
 import java.net.URI;
 import java.util.HashMap;
 import java.util.Map;
@@ -31,8 +28,6 @@ import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assert.assertThat;
-import static org.mockito.Mockito.timeout;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -58,7 +53,9 @@ public class ConnectionEstablishmentTests {
         clientSocket = new StandardWebSocketClient();
         hostSocket = new StandardWebSocketClient();
     }
-
+    /**
+     * @author Niklas Emil Lysdal
+     */
     @Test
     void connectHostSuccessful() throws Exception {
         ArrayBlockingQueue<WebSocketSession> sessions = new ArrayBlockingQueue<>(1);
@@ -91,7 +88,9 @@ public class ConnectionEstablishmentTests {
             }
         }
     }
-
+    /**
+     * @author Niklas Emil Lysdal
+     */
     @Test
     void connectClientSuccessful() throws Exception {
         // create user
@@ -145,7 +144,9 @@ public class ConnectionEstablishmentTests {
             }
         }
     }
-
+    /**
+     * @author Niklas Emil Lysdal
+     */
     @Test
     void connectClientUnsuccessfulNoAuth() throws Exception {
 
@@ -178,12 +179,11 @@ public class ConnectionEstablishmentTests {
             assertThat(e.getCause().getMessage()).contains("401"); // missing authorization
         }
     }
-
+    /**
+     * @author Niklas Emil Lysdal
+     */
     @Test
     void connectClientUnsuccessfulInvalidAuth() throws Exception {
-
-        // TODO: establish connection
-        // TODO: test connection (should fail)
 
         ArrayBlockingQueue<WebSocketSession> sessions = new ArrayBlockingQueue<>(1);
 

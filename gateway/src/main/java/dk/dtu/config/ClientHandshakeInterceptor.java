@@ -28,7 +28,9 @@ public class ClientHandshakeInterceptor implements HandshakeInterceptor {
     public ClientHandshakeInterceptor(DynamicUserDatabase userDatabase) {
         this.userDatabase = userDatabase;
     }
-
+    /**
+     * @author Niklas Emil Lysdal
+     */
     @Override
     public boolean beforeHandshake(ServerHttpRequest request,
                                     ServerHttpResponse response,
@@ -61,7 +63,9 @@ public class ClientHandshakeInterceptor implements HandshakeInterceptor {
         response.setStatusCode(HttpStatus.UNAUTHORIZED); // 401
         return false;
     }
-
+    /**
+     * @author Niklas Emil Lysdal
+     */
     @Override
     public void afterHandshake(ServerHttpRequest request,
                                 ServerHttpResponse response,

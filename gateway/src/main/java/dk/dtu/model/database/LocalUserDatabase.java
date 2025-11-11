@@ -85,7 +85,9 @@ public class LocalUserDatabase implements UserDatabase {
 
         return false; //user doesnt exist.
     }
-
+    /**
+     * @author Niklas Emil Lysdal
+     */
     @Override
     public synchronized boolean wipeUserDatabase() { //clears user database
         try {

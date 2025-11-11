@@ -1,7 +1,8 @@
 package dk.dtu.dto;
 
-/* Authors: Niklas
-*/
+/**
+ * @author Niklas Emil Lysdal
+ */
 public class OperationResult
 {
     private String status;

@@ -3,36 +3,68 @@ Author(s): Bjarke, Patrick, Niklas
 @author Asger Allin Jensen
 */
 
+
 import { useNavigate } from "react-router-dom";
 import Layout from "./Layout";
-import { useEffect } from "react";
+import { useEffect, useCallback } from "react";
 import React, { useState } from "react";
 import { subscribe } from "../utils/ws";
 import { leaveLobby } from './LeaveLobby';
+import { fullLobbyInfo, DEFAULT_FULL_LOBBY_INFO } from '../types/lobbyTypes';
 export default function LobbyCreation() {
   const navigate = useNavigate();
   const userID: string | null = localStorage.getItem("userID");
-  const [lobbyId, setLobbyId] = useState<string>(localStorage.getItem("id") || "");
   const [error, setError] = useState<string>("");
+
+  const [fullLobbyInfo, setFullLobbyInfo] = useState<fullLobbyInfo>(DEFAULT_FULL_LOBBY_INFO);
+
   const [isReady, setIsReady] = useState<boolean>(false); //local readiness for button
   const [playersReady, setPlayersReady] = useState<{ [username: string]: boolean }>({}); // total readiness
 
   const API_BASE_URL = process.env.REACT_APP_API_BASE_URL;
+    /**
+   * @author Niklas Emil Lysdal
+   */
+  const updateLobbyInfo = useCallback(async () => {
+    try {
+      console.log("updating lobby info using id:" + localStorage.getItem("id"));
+      const response = await fetch(API_BASE_URL + "/api/lobby/lobbyInfo", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ lobbyID: localStorage.getItem("id"), userID: userID }),
+      });
+      if (!response.ok) {
+        throw new Error("Server returned error when  getting lobby info");
+      }
 
+      const parsedData = await response.json();
+      const lobbyInfo: fullLobbyInfo = parsedData as fullLobbyInfo;
+
+
+      setFullLobbyInfo(lobbyInfo);
+      setPlayersReady(lobbyInfo.readinessMap);
+      console.log("lobbyID from parsed:" + fullLobbyInfo?.lobbyID);
+    } catch (err) {
+      console.error("updateLobbyInfo error lobby error:", err);
+      console.log("lobbyID from parsed:" + fullLobbyInfo?.lobbyID);
+      if (setError) setError("Network error. Try Again.");
+    }
+  }, [userID, setFullLobbyInfo, setPlayersReady, setError, API_BASE_URL]);
+    /**
+   * @author Niklas Emil Lysdal
+   */
   useEffect(() => {
+    updateLobbyInfo();
     const unsubscribe = subscribe((message: string) => {
       console.log("Received message:", message);
 
       try {
         const data = JSON.parse(message);
-        console.log("Parsed data:", data);
 
-        if (data.action === "Readiness") {
-          let readyMap = data.payload;
-          if (typeof readyMap === "string") {
-            readyMap = JSON.parse(readyMap);
-          }
-          setPlayersReady(readyMap);
+        if (data.type === "lobby" && data.action === "lobbyUpdate") {
+          console.log("updating lobby info based on notification");
+          updateLobbyInfo();
+          return;
         }
 
         if (data.type === "game" && data.payload?.action === "start") {
@@ -45,41 +77,17 @@ export default function LobbyCreation() {
       } catch {
         console.log("Raw text message:", message);
       }
+
     });
-
     return () => {
-      console.log("Unsubscribing from lobby websocket");
-      unsubscribe?.();
-    };
-  }, [navigate]);
-
-
-
-  useEffect(() => {
-    const initializeReadiness = async () => {
-      try {
-        // Mark as not ready to trigger a readiness broadcast
-        const response = await fetch(`${API_BASE_URL}/api/lobby/markNotReady`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            userID: userID,
-            lobbyID: lobbyId,
-          }),
-        });
-
-        if (response.status === 204) {
-          console.log("Initial readiness state triggered");
-        }
-      } catch (err) {
-        console.error("Error initializing readiness:", err);
-      }
-    };
-
-    if (lobbyId && userID) {
-      initializeReadiness();
+      unsubscribe();
     }
-  }, [lobbyId, userID, API_BASE_URL]);
+  }, [navigate,updateLobbyInfo])
+
+
+
+
+
 
   const handleToggleReadiness = async () => {
     setError("");
@@ -92,7 +100,7 @@ export default function LobbyCreation() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           userID: userID,
-          lobbyID: lobbyId,
+          lobbyID: fullLobbyInfo?.lobbyID,
         }),
       });
 
@@ -112,11 +120,15 @@ export default function LobbyCreation() {
 
   const startGame = async () => {
     setError("");
+    if (fullLobbyInfo === null || fullLobbyInfo === undefined) {
+      setError("Something went wrong.")
+      return;
+    }
     try {
       const response = await fetch(API_BASE_URL + '/api/lobby/start', {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ lobbyID: lobbyId }),
+        body: JSON.stringify({ lobbyID: localStorage.getItem("id") }),
       });
     } catch (err) {
       console.error("Login error:", err);
@@ -125,31 +137,49 @@ export default function LobbyCreation() {
   };
 
 
+
+
+  /**
+   * @author Niklas Emil Lysdal
+   */
   return (
     <Layout>
       <div className="panel-container">
+        <h1 className="panel-title">Mission Setup</h1>
         <div className="lobby-panels-row">
           <div className="readiness-panel">
-            <h2>Players</h2>
+            <h2>Players: {fullLobbyInfo?.playerCount}/{fullLobbyInfo?.capacity}</h2> {/*unsure if this can be misinterpreted as players ready.*/}
+
+             <div className = "players-list-scroller">
+
             <ul>
               {Object.entries(playersReady).map(([name, ready]) => (
-                <li key={name} className={ready ? "ready" : "not-ready"}>
+                <li key={name} className={`player-slot ${ready ? "ready" : "not-ready"}`}>
                   {name}: {ready ? "Ready" : "Not Ready"}
                 </li>
               ))}
+              {[...Array(fullLobbyInfo.capacity - Object.keys(playersReady).length)].map((_, index) => (
+              <li key={`empty-${index}`} className="player-slot empty-slot">
+               ---------
+              </li>
+
+              ))}
+
             </ul>
+            </div>
           </div>
+
+
 
           <div className="control-panel">
             <div className="lobby-id-display">
-              <span className="lobby-id-label">LOBBY ID</span>
-              <span className="lobby-id-value">{lobbyId}</span>
+              <span className="lobby-name-label">LOBBY</span>
+              <span className="lobby-name-value">{fullLobbyInfo.lobbyName ? fullLobbyInfo.lobbyName : (fullLobbyInfo.lobbyID ? fullLobbyInfo!.lobbyID :  "Error")}</span>
             </div>
 
-            <button className="metal-button" onClick={startGame}>
+            <button className="metal-button" onClick={() => startGame()}>
               Start Game
             </button>
-
             <button className="metal-button" onClick={handleToggleReadiness}>
               {isReady ? "Not Ready" : "Ready"}
             </button>
@@ -157,7 +187,7 @@ export default function LobbyCreation() {
             <button
               className="metal-button"
               onClick={async () => {
-                await leaveLobby(lobbyId, userID, setError);
+                await leaveLobby(fullLobbyInfo?.lobbyID, userID, setError);
                 navigate("/lobbyJoinScene");
               }}
             >
@@ -167,7 +197,7 @@ export default function LobbyCreation() {
             <button
               className="metal-button"
               onClick={async () => {
-                await leaveLobby(lobbyId, userID, setError);
+                await leaveLobby(fullLobbyInfo?.lobbyID, userID, setError);
                 navigate("/lobbyScene");
               }}
             >

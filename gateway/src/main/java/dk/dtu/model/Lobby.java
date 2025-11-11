@@ -10,7 +10,8 @@ package dk.dtu.model;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import dk.dtu.dto.LobbyJson;
+import dk.dtu.dto.LobbyPublicJson;
+import dk.dtu.dto.LobbyPrivateJson;
 import dk.dtu.observer.LobbyObserver;
 import dk.dtu.util.JsonUtil;
 import dk.dtu.dto.OperationResult;
@@ -21,13 +22,13 @@ import java.util.stream.Collectors;
 
 public class Lobby {
     private final String lobbyID;
+    private String lobbyName;
     private final Map<String, Client> players = new HashMap<>();
     private final Host host;
     private final HashSet<LobbyObserver> observers = new HashSet<>();
     private boolean locked;
-    // TODO: might need to store the creator of the lobby. As playerID can no longer
-    // be used to determine this.
-
+    //TODO: might need to store the creator of the lobby. As playerID can no longer be used to determine this.
+    private boolean isRunning = false;
     private UUID gameID;
     private final UUID saveID;
     private final Map<String, String> userToPlayer;
@@ -35,21 +36,25 @@ public class Lobby {
     private final Map<String, Boolean> playerReadinessMap = new HashMap<>();
     private final Map<String, Boolean> userNameReadinessMap = new HashMap<>();
     private int nextPlayerID = 1;
+    private int capacity = 6; //TODO: get this number from either host or client
     public final boolean loadedLobby;
 
     ExecutorService broadcastPool = Executors.newCachedThreadPool();
-
-    public Lobby(String lobbyID, Client creator, Host host) {
+    /**
+     * @author Niklas Emil Lysdal
+     */
+    public Lobby(String lobbyName, String lobbyID, Client creator, Host host,int capacity) {
         Objects.requireNonNull(creator, "creator must not be null");
         Objects.requireNonNull(host, "host must not be null");
         this.lobbyID = lobbyID;
+        this.lobbyName = lobbyName;
         this.host = host;
+        this.capacity=capacity;
         this.userToPlayer = new HashMap<>();
         this.saveID = UUID.randomUUID();
         loadedLobby = false;
         addPlayer(creator);
     }
-
     /**
      @author Bjarke Søderhamn Petersen
      @author Benjamin Benyo Endahl Hansen
@@ -61,21 +66,28 @@ public class Lobby {
         this.host = host;
         this.saveID = saveID;
         loadedLobby = true;
+        this.capacity=userToPlayer.size();
         addPlayer(c);
     }
-
-    public OperationResult addPlayer(Client client) {
+    /**
+     * @author Niklas Emil Lysdal
+     */
+    public synchronized OperationResult addPlayer(Client client) {
         if (locked) {
             return new OperationResult("lobby_locked");
-        } else {
-            players.put(client.getUserID(), client);
-            playerReadinessMap.put(client.getUserID(), false);
-            userNameReadinessMap.put(client.getUsername(), false);
-            handleUserReadyState();
-            return new OperationResult("success");
         }
+        if( players.size()>=capacity) {
+            return new OperationResult("lobby_full");
+        }
+        players.put(client.getUserID(), client);
+        playerReadinessMap.put(client.getUserID(), false);
+        userNameReadinessMap.put(client.getUsername(), false);
+        notifyClients();
+        return new OperationResult("success");
     }
-
+    /**
+     * @author Niklas Emil Lysdal
+     */
     public OperationResult removeClientByUID(String uid) {
         Client removed = players.remove(uid);
         if (removed == null) {
@@ -94,16 +106,15 @@ public class Lobby {
 
             String playerID = userToPlayer.get(uid);
             playerToUser.remove(playerID);
-
             if (!loadedLobby) userToPlayer.remove(uid);
-
-            handleUserReadyState();
+            notifyClients();
 
             return new OperationResult("success");
         }
     }
-
-
+    /**
+     * @author Niklas Emil Lysdal
+     */
 
     public void startGame(JsonNode gameInfo) throws Exception {
         if (!areAllPlayersReady()) {
@@ -124,6 +135,7 @@ public class Lobby {
             } else {
                 this.gameID = host.startGame(players.size(), 10); // TODO: Change the boardsize to be decided by the client
             }
+            this.isRunning = true;
             notifyObservers(LobbyUpdateReason.GAME_STARTED);
 
             ObjectNode root = JsonUtil.createObjectNode();
@@ -154,6 +166,9 @@ public class Lobby {
         return gameSnapshot;
     }
 
+    /**
+     * @author Niklas Emil Lysdal
+     */
     public void handleClientMessage(String userID, JsonNode json) {
         ObjectNode root = JsonUtil.createObjectNode();
         root.put("gameID", this.gameID.toString());
@@ -161,7 +176,9 @@ public class Lobby {
         root.set("payload", json.get("payload"));
         host.handleMessage(root);
     }
-
+    /**
+     * @author Niklas Emil Lysdal
+     */
     public void handleHostMessage(JsonNode json) {
         ObjectNode root = JsonUtil.createObjectNode();
         root.put("type", json.get("type"));
@@ -186,7 +203,9 @@ public class Lobby {
                 break;
         }
     }
-
+    /**
+     * @author Niklas Emil Lysdal
+     */
     private void initPlayerUserMaps() {
         for (Client client : players.values()) {
             userToPlayer.put(client.getUserID(), nextPlayerID + "");
@@ -214,6 +233,9 @@ public class Lobby {
         return userToPlayer.keySet().equals(players.keySet());
     }
 
+    /**
+     * @author Niklas Emil Lysdal
+     */
     private void broadcastToClients(ObjectNode msg) {
         for (Client c : players.values()) {
             broadcastPool.submit(() -> c.handleMessage(msg));
@@ -223,6 +245,8 @@ public class Lobby {
     public UUID getGameID() {
         return gameID;
     }
+
+    public String getLobbyName() {return this.lobbyName;}
 
     public String getLobbyID() {
         return lobbyID;
@@ -251,7 +275,9 @@ public class Lobby {
     public boolean isLocked() {
         return locked;
     }
-
+    /**
+     * @author Niklas Emil Lysdal
+     */
     public List<String> getPlayerIDs() throws Exception {
         if (!locked) {
             throw new Exception("GAME_NOT_STARTED");
@@ -259,18 +285,24 @@ public class Lobby {
         return new ArrayList<>(userToPlayer.values());
     }
 
-    public boolean isOccupied() {
-        return players.size() >= 6; // TODO: We need to ask the host for this number
+    public boolean isOccupied(){
+        return players.size() >= capacity;
     }
-
+    /**
+     * @author Niklas Emil Lysdal
+     */
     public void addObserver(LobbyObserver observer) {
         observers.add(observer);
     }
-
+    /**
+     * @author Niklas Emil Lysdal
+     */
     public void removeObserver(LobbyObserver observer) {
         observers.remove(observer);
     }
-
+    /**
+     * @author Niklas Emil Lysdal
+     */
     private void notifyObservers(LobbyUpdateReason reason) {
         for (LobbyObserver observer : observers) {
             observer.handleUpdate(reason, this);
@@ -301,8 +333,18 @@ public class Lobby {
         }
     }
 
-    public LobbyJson asJson() {
-        return new LobbyJson(this.lobbyID); // TODO: construct lobby json.
+
+    /**
+     * @author Niklas Emil Lysdal
+     */
+    public LobbyPublicJson asPublicJson() {
+       return new LobbyPublicJson(this.lobbyName,this.lobbyID,capacity,players.size(),this.isRunning);
+    }
+    /**
+     * @author Niklas Emil Lysdal
+     */
+    public LobbyPrivateJson asPrivateJson() {
+        return new LobbyPrivateJson(this.lobbyName,this.lobbyID,capacity,players.size(),this.isRunning,userNameReadinessMap);
     }
 
     /**
@@ -312,8 +354,10 @@ public class Lobby {
         return loadedLobby;
     }
 
-    // @author Asger Allin Jensen
-    // @author Niklas Emil Lysdal
+    /**
+    @author Asger Allin Jensen
+     @author Niklas Emil Lysdal
+     */
     public OperationResult playerMarkedAsReady(String uid) {
         Client client = players.get(uid);
         if (client == null) {
@@ -321,7 +365,7 @@ public class Lobby {
         }
         playerReadinessMap.put(uid, true);
         userNameReadinessMap.put(client.getUsername(), true);
-        handleUserReadyState();
+        notifyClients();
         return new OperationResult("success");
     }
 
@@ -334,29 +378,35 @@ public class Lobby {
         }
         playerReadinessMap.put(uid, false);
         userNameReadinessMap.put(client.getUsername(), false);
-        handleUserReadyState();
+        notifyClients();
         return new OperationResult("success");
     }
 
-    // @author Asger Allin Jensen
-    // @author Niklas Emil Lysdal
-    private OperationResult handleUserReadyState() {
+
+    /**
+    @author Asger Allin Jensen
+     @author Niklas Emil Lysdal
+    */
+     //notify participants that lobby info has updated
+    public OperationResult notifyClients () {
         ObjectNode root = JsonUtil.createObjectNode();
+        root.put("type", "lobby");
         root.put("lobbyID", lobbyID);
-        root.put("action", "Readiness");
-        ObjectNode payloadNode = JsonUtil.createObjectNode();
-        for (Map.Entry<String, Boolean> entry : userNameReadinessMap.entrySet()) {
-            payloadNode.put(entry.getKey(), entry.getValue());
-        }
-        root.set("payload", payloadNode);
+        root.put("action", "lobbyUpdate");
         broadcastToClients(root);
-
         return new OperationResult("success");
     }
+    /**
+     * @author Niklas Emil Lysdal
+     */
+    public boolean hasParticipant(String uid) {
+        return players.containsKey(uid);
+    }
 
-    // @author Asger Allin Jensen
+    /**
+    @author Asger Allin Jensen
+    */
     private boolean areAllPlayersReady() {
-        System.out.println("PlayerReadinessMap: "+playerReadinessMap+"\nPlayers: "+players.keySet());
         if (players.isEmpty()) {
             return false;
         }
@@ -370,7 +420,9 @@ public class Lobby {
         return true;
     }
 
-    // @author Asger Allin Jensen
+    /**
+    @author Asger Allin Jensen
+    */
     private void broadcastNotReadyMessage() {
         ObjectNode root = JsonUtil.createObjectNode();
         root.put("type", "lobby");

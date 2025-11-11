@@ -1,26 +1,35 @@
 package dk.dtu;
 
-import com.fasterxml.jackson.databind.JsonNode;
 
-/**
+/*
+Author(s): Karl, Benjamin
 @author Asger Allin Jensen
-@autor Benjamin Benyo
-@autor Karl Agerbo
+@author Benjamin Benyo
+@author Karl Agerbo
  */
 
+
+
+
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.JsonNode;
+
+
+import dk.dtu.Util.TokenWebsocketContainer;
+
 
 import dk.dtu.model.database.DynamicUserDatabase;
 import dk.dtu.model.Lobby;
 import dk.dtu.shared.ServerManager;
 import dk.dtu.util.JsonUtil;
-
 import org.hamcrest.Matchers;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.Mock;
 import org.springframework.beans.factory.annotation.Autowired;
+
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.server.LocalServerPort;
@@ -42,13 +51,13 @@ import java.util.Map;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicBoolean;
+
 import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assert.assertThat;
+
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -87,29 +96,30 @@ public class LobbyRESTTests {
     }
 
 
-    @Test
-    public void testCreateLobby() throws Exception {
-        String username = "TestUser";
+        /**
+         * @author Niklas Emil Lysdal
+         */
+        @Test
+        public void testCreateLobby() throws Exception {
+                String username = "TestUser";
 
-        String token = createAndLoginUser(username, mapper, mockMvc);
+                TokenWebsocketContainer tokenWebsocket = createAndConnectUser(username,mapper,mockMvc,port);
+                String token = tokenWebsocket.getUserIDToken();
+                WebSocketSession wsSession = tokenWebsocket.getSession();
 
-        // We sleep here after creating the user.
-        // This is probably a result of concurrency?
-        // Making the thread sleep fixed the automatic tests on gitHub.
-        Thread.sleep(50);
 
-        WebSocketSession wsSession = connectWebSocket(token, port);
-
-        Thread.sleep(50);
-
-        String lobbyID = mockMvc.perform(post("/api/lobby/create")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(mapper.writeValueAsString(Map.of("userID", token))))
-                .andExpect(status().isCreated())
-                .andExpect(content().string(Matchers.notNullValue()))
-                .andReturn()
-                .getResponse()
-                .getContentAsString();
+                Map<String, String> createBodyMap1 = new HashMap<>();
+                createBodyMap1.put("userID", token);
+                createBodyMap1.put("capacity", "6");
+                createBodyMap1.put("lobbyName", "testName");
+                String lobbyID = mockMvc.perform(post("/api/lobby/create")
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(mapper.writeValueAsString(createBodyMap1)))
+                                .andExpect(status().isCreated())
+                                .andExpect(content().string(Matchers.notNullValue()))
+                                .andReturn()
+                                .getResponse()
+                                .getContentAsString();
 
         // UUID lobbyUUID = UUID.fromString(lobbyID);
 
@@ -121,30 +131,25 @@ public class LobbyRESTTests {
     }
     // TODO: add test case for failure
 
-    @Test
-    public void testJoinLobbySuccess() throws Exception {
-        String hostUser = "HostUser";
-        String hostToken = createAndLoginUser(hostUser, mapper, mockMvc);
+        /**
+         * @author Niklas Emil Lysdal
+         */
+        @Test
+        public void testJoinLobbySuccess() throws Exception {
+                String hostUser = "HostUser";
+                TokenWebsocketContainer tokenWebsocket = createAndConnectUser(hostUser,mapper,mockMvc,port);
+                String hostToken = tokenWebsocket.getUserIDToken();
+                WebSocketSession hostSession = tokenWebsocket.getSession();
 
-        Thread.sleep(50);
+                String lobbyID = createLobby(hostToken,"testName","6",mapper, mockMvc);
 
-        WebSocketSession hostSession = connectWebSocket(hostToken, port);
 
-        Thread.sleep(50);
+                String clientUser = "ClientUser";
+                TokenWebsocketContainer tokenWebsocket2 = createAndConnectUser(clientUser,mapper,mockMvc,port);
+                String clientToken = tokenWebsocket2.getUserIDToken();
+                WebSocketSession clientSession = tokenWebsocket2.getSession();
 
-        String lobbyID = mockMvc.perform(post("/api/lobby/create")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(mapper.writeValueAsString(Map.of("userID", hostToken))))
-                .andExpect(status().isCreated())
-                .andReturn()
-                .getResponse()
-                .getContentAsString();
 
-        // UUID lobbyUUID = UUID.fromString(lobbyID);
-
-        String clientUser = "ClientUser";
-        String clientToken = createAndLoginUser(clientUser, mapper, mockMvc);
-        WebSocketSession clientSession = connectWebSocket(clientToken, port);
 
         Map<String, Object> joinBody = new HashMap<>();
         joinBody.put("userID", clientToken);
@@ -164,39 +169,28 @@ public class LobbyRESTTests {
         hostSession.close();
         clientSession.close();
 
-    }
+        }
+        /**
+         * @author Niklas Emil Lysdal
+         */
+        @Test
+        public void testJoinLobbyLockedLobby() throws Exception {
+                String hostUser = "HostUser";
+                TokenWebsocketContainer tokenWebsocket = createAndConnectUser(hostUser,mapper,mockMvc,port);
+                String hostToken = tokenWebsocket.getUserIDToken();
+                WebSocketSession hostSession = tokenWebsocket.getSession();
+                String lobbyID = createLobby(hostToken,"testName","6",mapper, mockMvc);
 
-    @Test
-    public void testJoinLobbyLockedLobby() throws Exception {
-        String hostUser = "HostUser";
-        String hostToken = createAndLoginUser(hostUser, mapper, mockMvc);
 
-        Thread.sleep(50);
 
-        WebSocketSession hostSession = connectWebSocket(hostToken, port);
 
-        Thread.sleep(50);
+                String clientUser = "ClientUser";
+                TokenWebsocketContainer tokenWebsocket2 = createAndConnectUser(clientUser,mapper,mockMvc,port);
+                String clientToken = tokenWebsocket2.getUserIDToken();
+                WebSocketSession clientSession = tokenWebsocket2.getSession();
 
-        String lobbyID = mockMvc.perform(post("/api/lobby/create")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(mapper.writeValueAsString(Map.of("userID", hostToken))))
-                .andExpect(status().isCreated())
-                .andReturn()
-                .getResponse()
-                .getContentAsString();
+                markReady(hostToken,lobbyID);
 
-        // UUID lobbyUUID = UUID.fromString(lobbyID);
-
-        String clientUser = "ClientUser";
-        String clientToken = createAndLoginUser(clientUser, mapper, mockMvc);
-        WebSocketSession clientSession = connectWebSocket(clientToken, port);
-
-        Map<String, Object> readyBody = new HashMap<>();
-        readyBody.put("userID", hostToken);
-        readyBody.put("lobbyID", lobbyID);
-        mockMvc.perform(post("/api/lobby/markReady")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(mapper.writeValueAsString(readyBody)));
 
         mockMvc.perform(post("/api/lobby/start")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -213,28 +207,20 @@ public class LobbyRESTTests {
                 .andExpect(status().isForbidden())
                 .andExpect(content().string("LOBBY_LOCKED"));
 
-    }
+        }
+        /**
+         * @author Niklas Emil Lysdal
+         */
+        @Test
+        public void testJoinLobbyUserNotConnected() throws Exception {
+                String hostUser = "HostUser";
+                TokenWebsocketContainer tokenWebsocket = createAndConnectUser(hostUser,mapper,mockMvc,port);
+                String hostToken = tokenWebsocket.getUserIDToken();
+                WebSocketSession hostSession = tokenWebsocket.getSession();
 
-    @Test
-    public void testJoinLobbyUserNotConnected() throws Exception {
-        String hostUser = "HostUser";
-        String hostToken = createAndLoginUser(hostUser, mapper, mockMvc);
+                String lobbyID = createLobby(hostToken,"testName", "6",mapper,mockMvc);
 
-        Thread.sleep(50);
 
-        WebSocketSession hostSession = connectWebSocket(hostToken, port);
-
-        Thread.sleep(50);
-
-        String lobbyID = mockMvc.perform(post("/api/lobby/create")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(mapper.writeValueAsString(Map.of("userID", hostToken))))
-                .andExpect(status().isCreated())
-                .andReturn()
-                .getResponse()
-                .getContentAsString();
-
-        // UUID lobbyUUID = UUID.fromString(lobbyID);
 
         String clientUser = "ClientUser";
         String clientToken = createAndLoginUser(clientUser, mapper, mockMvc);
@@ -250,32 +236,27 @@ public class LobbyRESTTests {
                 .andExpect(status().isNotFound())
                 .andExpect(content().string("USER_NOT_CONNECTED"));
 
-    }
+        }
+        /**
+         * @author Niklas Emil Lysdal
+         */
+        @Test
+        public void testJoinLobbyLobbyNotFound() throws Exception {
+                String hostUser = "HostUser";
+                TokenWebsocketContainer tokenWebsocket = createAndConnectUser(hostUser,mapper,mockMvc,port);
+                String hostToken = tokenWebsocket.getUserIDToken();
+                WebSocketSession hostSession = tokenWebsocket.getSession();
 
-    @Test
-    public void testJoinLobbyLobbyNotFound() throws Exception {
-        String hostUser = "HostUser";
-        String hostToken = createAndLoginUser(hostUser, mapper, mockMvc);
+                String lobbyID = createLobby(hostToken,"testName","6",mapper, mockMvc);
 
-        Thread.sleep(50);
 
-        WebSocketSession hostSession = connectWebSocket(hostToken, port);
-
-        Thread.sleep(50);
-
-        String lobbyID = mockMvc.perform(post("/api/lobby/create")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(mapper.writeValueAsString(Map.of("userID", hostToken))))
-                .andExpect(status().isCreated())
-                .andReturn()
-                .getResponse()
-                .getContentAsString();
 
         // UUID lobbyUUID = UUID.fromString(lobbyID);
 
-        String clientUser = "ClientUser";
-        String clientToken = createAndLoginUser(clientUser, mapper, mockMvc);
-        WebSocketSession clientSession = connectWebSocket(clientToken, port);
+                String clientUser = "ClientUser";
+                TokenWebsocketContainer tokenWebsocket2 = createAndConnectUser(clientUser,mapper,mockMvc,port);
+                String clientToken = tokenWebsocket2.getUserIDToken();
+                WebSocketSession clientSession = tokenWebsocket2.getSession();
 
         Map<String, Object> joinBody = new HashMap<>();
         joinBody.put("userID", clientToken);
@@ -290,187 +271,148 @@ public class LobbyRESTTests {
         hostSession.close();
         clientSession.close();
 
-    }
+        }
+        /**
+         * @author Niklas Emil Lysdal
+         */
+        @Test
+        public void testStartLobby() throws Exception {
+                String hostUser = "HostUser";
+                TokenWebsocketContainer tokenWebsocket = createAndConnectUser(hostUser,mapper,mockMvc,port);
+                String hostToken = tokenWebsocket.getUserIDToken();
+                WebSocketSession hostSession = tokenWebsocket.getSession();
 
-    @Test
-    public void testStartLobby() throws Exception {
-        String hostUser = "HostUser";
-        String hostToken = createAndLoginUser(hostUser, mapper, mockMvc);
+                String lobbyID = createLobby(hostToken,"testName","6",mapper, mockMvc);
 
-        Thread.sleep(50);
 
-        WebSocketSession hostSession = connectWebSocket(hostToken, port);
-
-        Thread.sleep(50);
-
-        String lobbyID = mockMvc.perform(post("/api/lobby/create")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(mapper.writeValueAsString(Map.of("userID", hostToken))))
-                .andExpect(status().isCreated())
-                .andReturn()
-                .getResponse()
-                .getContentAsString();
 
         // UUID lobbyUUID = UUID.fromString(lobbyID);
 
-        Map<String, Object> readyBody = new HashMap<>();
-        readyBody.put("userID", hostToken);
-        readyBody.put("lobbyID", lobbyID);
-        mockMvc.perform(post("/api/lobby/markReady")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(mapper.writeValueAsString(readyBody)));
+               markReady(hostToken,lobbyID);
+
 
         mockMvc.perform(post("/api/lobby/start")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(mapper.writeValueAsString(Map.of("lobbyID", lobbyID))))
                         .andExpect(status().isOk());
 
-        assertThat(server.getGameToLobbyForTest().values())
-                .contains(lobbyID);
+                assertThat(server.getGameToLobbyForTest().values())
+                                .contains(lobbyID);
 
-        String expectedGameId = "123e4567-e89b-12d3-a456-426614174000";
+                String expectedGameId = "123e4567-e89b-12d3-a456-426614174000";
 
         assertThat(server.getGameToLobbyForTest())
                 .containsEntry(expectedGameId, lobbyID);
 
-        hostSession.close();
-    }
+                hostSession.close();
+        }
+        /**
+         * @author Niklas Emil Lysdal
+         */
+        @Test
+        public void seeLobbiesTest() throws Exception {
+                String username = "TestUser";
+                TokenWebsocketContainer tokenWebsocket = createAndConnectUser(username,mapper,mockMvc,port);
+                String token = tokenWebsocket.getUserIDToken();
+                WebSocketSession wsSession = tokenWebsocket.getSession();
 
-    @Test
-    public void seeLobbiesTest() throws Exception {
-        String username = "TestUser";
-        String token = createAndLoginUser(username, mapper, mockMvc);
+                String lobbyID = createLobby(token,"testName","6",mapper, mockMvc);
+                String lobbyID2 = createLobby(token,"testName2","6",mapper, mockMvc);
+                String lobbyID3 = createLobby(token,"testName3","6",mapper, mockMvc);
 
-        Thread.sleep(50);
+                markReady(token,lobbyID2);
+                startLobby(lobbyID2);
 
-        WebSocketSession wsSession = connectWebSocket(token, port);
+                JsonNode jsonResult = JsonUtil.parser(mockMvc.perform(post("/api/lobby/seeLobbies")
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(mapper.writeValueAsString(Map.of("userID", token))))
+                                .andExpect(status().isOk())
+                                .andReturn()
+                                .getResponse()
+                                .getContentAsString());
+                JsonNode element0 = jsonResult.get(0);
+                assertThat(element0.get("lobbyID").asText()).isEqualTo(lobbyID);
+                assertThat(element0.get("lobbyName").asText()).isEqualTo("testName");
+                assertThat(element0.get("capacity").asInt()).isEqualTo(6);
+                assertThat(element0.get("playerCount").asInt()).isEqualTo(1);
+                assertThat(!element0.get("isRunning").asBoolean());
 
-        Thread.sleep(50);
+                JsonNode element1 = jsonResult.get(1);
+                assertThat(element1.get("lobbyID").asText()).isEqualTo(lobbyID2);
+                assertThat(element1.get("lobbyName").asText()).isEqualTo("testName2");
+                assertThat(element1.get("capacity").asInt()).isEqualTo(6);
+                assertThat(element1.get("playerCount").asInt()).isEqualTo(1);
+                assertThat(element1.get("isRunning").asBoolean());
 
-        String lobbyID1 = mockMvc.perform(post("/api/lobby/create")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(mapper.writeValueAsString(Map.of("userID", token))))
-                .andExpect(status().isCreated())
-                .andExpect(content().string(Matchers.notNullValue()))
-                .andReturn()
-                .getResponse()
-                .getContentAsString();
+                JsonNode element2 = jsonResult.get(2);
+                assertThat(element2.get("lobbyID").asText()).isEqualTo(lobbyID3);
+                assertThat(element2.get("lobbyName").asText()).isEqualTo("testName3");
+                assertThat(element2.get("capacity").asInt()).isEqualTo(6);
+                assertThat(element2.get("playerCount").asInt()).isEqualTo(1);
+                assertThat(!element2.get("isRunning").asBoolean());
 
-        String lobbyID2 = mockMvc.perform(post("/api/lobby/create")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(mapper.writeValueAsString(Map.of("userID", token))))
-                .andExpect(status().isCreated())
-                .andExpect(content().string(Matchers.notNullValue()))
-                .andReturn()
-                .getResponse()
-                .getContentAsString();
+                assertThat(jsonResult.path(3).isNull());
+                wsSession.close();
+        }
+        /**
+         * @author Niklas Emil Lysdal
+         */
+        @Test
+        public void leaveLobbySuccessfulTest() throws Exception {
+                // create and login user
+                String username1 = "TestUser1";
+                TokenWebsocketContainer tokenWebsocket = createAndConnectUser(username1,mapper,mockMvc,port);
+                String token1 = tokenWebsocket.getUserIDToken();
+                WebSocketSession wsSession1 = tokenWebsocket.getSession();
 
-        Map<String, Object> readyBody = new HashMap<>();
-        readyBody.put("userID", token);
-        readyBody.put("lobbyID", lobbyID2);
-        mockMvc.perform(post("/api/lobby/markReady")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(mapper.writeValueAsString(readyBody)));
+                // create and login user 2
+                String username2 = "TestUser2";
+                TokenWebsocketContainer tokenWebsocket2 = createAndConnectUser(username2,mapper,mockMvc,port);
+                String token2 = tokenWebsocket2.getUserIDToken();
+                WebSocketSession wsSession2 = tokenWebsocket2.getSession();
+                // create lobby
 
-        mockMvc.perform(post("/api/lobby/start")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(mapper.writeValueAsString(Map.of("lobbyID", lobbyID2))))
-                        .andExpect(status().isOk());
+                String lobbyID = createLobby(token1, "testName", "6",mapper, mockMvc);
+                joinLobby(token2, lobbyID);
 
-        String lobbyID3 = mockMvc.perform(post("/api/lobby/create")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(mapper.writeValueAsString(Map.of("userID", token))))
-                .andExpect(status().isCreated())
-                .andExpect(content().string(Matchers.notNullValue()))
-                .andReturn()
-                .getResponse()
-                .getContentAsString();
+                // user 2 join lobby
 
-        String expectedJson = "[{\"lobbyID\":\"" + lobbyID1 + "\"}, {\"lobbyID\":\"" + lobbyID3 + "\"}]";
 
-        mockMvc.perform(get("/api/lobby/seeLobbies")
-                        .contentType(MediaType.APPLICATION_JSON))
-                .andExpect(status().isOk())
-                .andExpect(content().json(expectedJson));
+                // user 2 leave lobby
+                Map<String, Object> leaveBody = new HashMap<>();
+                leaveBody.put("userID", token2);
+                leaveBody.put("lobbyID", lobbyID);
 
-        wsSession.close();
-    }
+                mockMvc.perform(post("/api/lobby/leave")
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(mapper.writeValueAsString(leaveBody)))
+                        .andExpect(status().isNoContent());
+                // check not in registry (should be good enough. no need to check websocket
+                // directly.)
+                Lobby lob = serverManager.getLobbyFromLobbyID(lobbyID);
+                Assertions.assertFalse(lob.getPlayers().containsKey(username2));
+                wsSession1.close();
+                wsSession2.close();
+        }
+        /**
+         * @author Niklas Emil Lysdal
+         */
+        @Test
+        public void leaveLobbyPlayerNotInLobbyTest() throws Exception {
+                // create and login user 1
+                String username1 = "TestUser1";
+                TokenWebsocketContainer tokenWebsocket = createAndConnectUser(username1,mapper,mockMvc,port);
+                String token1 = tokenWebsocket.getUserIDToken();
+                WebSocketSession wsSession1 = tokenWebsocket.getSession();
 
-    @Test
-    public void leaveLobbySuccessfulTest() throws Exception {
-        // create and login user
-        String username1 = "TestUser1";
-        String token1 = createAndLoginUser(username1, mapper, mockMvc);
-        Thread.sleep(50);
-        WebSocketSession wsSession1 = connectWebSocket(token1, port);
-        Thread.sleep(50);
-        // create and login user 2
-        String username2 = "TestUser2";
+                String lobbyID = createLobby(token1, "testName", "6",mapper, mockMvc);
 
-        String token2 = createAndLoginUser(username2, mapper, mockMvc);
-        Thread.sleep(50);
-        WebSocketSession wsSession2 = connectWebSocket(token2, port);
-        Thread.sleep(50);
-        // create lobby
-        String lobbyID = mockMvc.perform(post("/api/lobby/create")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(mapper.writeValueAsString(Map.of("userID", token1))))
-                .andExpect(status().isCreated())
-                .andExpect(content().string(Matchers.notNullValue()))
-                .andReturn()
-                .getResponse()
-                .getContentAsString();
-        // user 2 join lobby
-        Map<String, Object> joinBody = new HashMap<>();
-        joinBody.put("userID", token2);
-        joinBody.put("lobbyID", lobbyID);
 
-        mockMvc.perform(post("/api/lobby/join")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(mapper.writeValueAsString(joinBody)))
-                .andExpect(status().isCreated())
-                .andExpect(content().string(lobbyID));
-        // user 2 leave lobby
-        Map<String, Object> leaveBody = new HashMap<>();
-        leaveBody.put("userID", token2);
-        leaveBody.put("lobbyID", lobbyID);
-
-        mockMvc.perform(post("/api/lobby/leave")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(mapper.writeValueAsString(leaveBody)))
-                .andExpect(status().isNoContent());
-        // check not in registry (should be good enough. no need to check websocket
-        // directly.)
-        Lobby lob = serverManager.getLobbyFromLobbyID(lobbyID);
-        Assertions.assertFalse(lob.getPlayers().containsKey(username2));
-
-    }
-
-    @Test
-    public void leaveLobbyPlayerNotInLobbyTest() throws Exception {
-        // create and login user 1
-        String username1 = "TestUser1";
-        String token1 = createAndLoginUser(username1, mapper, mockMvc);
-        Thread.sleep(50);
-        WebSocketSession wsSession1 = connectWebSocket(token1, port);
-        Thread.sleep(50);
-
-        // create lobby
-        String lobbyID = mockMvc.perform(post("/api/lobby/create")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(mapper.writeValueAsString(Map.of("userID", token1))))
-                .andExpect(status().isCreated())
-                .andExpect(content().string(Matchers.notNullValue()))
-                .andReturn()
-                .getResponse()
-                .getContentAsString();
-
-        // create and login user 2
-        String username2 = "TestUser2";
-        String token2 = createAndLoginUser(username2, mapper, mockMvc);
-        Thread.sleep(50);
-        WebSocketSession wsSession2 = connectWebSocket(token2, port);
-        Thread.sleep(50);
+                // create and login user 2
+                String username2 = "TestUser2";
+                TokenWebsocketContainer tokenWebsocket2 = createAndConnectUser(username2,mapper,mockMvc,port);
+                String token2 = tokenWebsocket2.getUserIDToken();
+                WebSocketSession wsSession2 = tokenWebsocket2.getSession();
 
         Map<String, Object> leaveBody = new HashMap<>();
         leaveBody.put("userID", token2);
@@ -481,141 +423,98 @@ public class LobbyRESTTests {
                 .andExpect(status().isConflict())
                 .andExpect(content().string(Matchers.is("USER_NOT_IN_LOBBY")));
 
-    }
+                wsSession1.close();
+                wsSession2.close();
+        }
+        /**
+         * @author Niklas Emil Lysdal
+         */
+        @Test
+        public void leaveLobbyEmptyLobbyTest() throws Exception {
+                // test that lobby is deleted after becoming empty
+                // create and login user 1
+                String username1 = "TestUser1";
+                TokenWebsocketContainer tokenWebsocket = createAndConnectUser(username1,mapper,mockMvc,port);
+                String token1 = tokenWebsocket.getUserIDToken();
+                WebSocketSession wsSession1 = tokenWebsocket.getSession();
 
-    @Test
-    public void leaveLobbyEmptyLobbyTest() throws Exception {
-        // test that lobby is deleted after becoming empty
-        // create and login user 1
-        String username1 = "TestUser1";
-        String token1 = createAndLoginUser(username1, mapper, mockMvc);
-        Thread.sleep(50);
-        WebSocketSession wsSession1 = connectWebSocket(token1, port);
-        Thread.sleep(50);
+                String lobbyID = createLobby(token1, "testName", "6",mapper, mockMvc);
 
-        // create lobby
-        String lobbyID = mockMvc.perform(post("/api/lobby/create")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(mapper.writeValueAsString(Map.of("userID", token1))))
-                .andExpect(status().isCreated())
-                .andExpect(content().string(Matchers.notNullValue()))
-                .andReturn()
-                .getResponse()
-                .getContentAsString();
-        Map<String, Object> leaveBody = new HashMap<>();
-        leaveBody.put("userID", token1);
-        leaveBody.put("lobbyID", lobbyID);
-        mockMvc.perform(post("/api/lobby/leave")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(mapper.writeValueAsString(leaveBody)))
-                .andExpect(status().isNoContent());
-        Lobby lob = serverManager.getLobbyFromLobbyID(lobbyID);
-        Assertions.assertNull(lob);
-    }
 
-    @Test
-    public void leaveLobbyPlayerIDTests() throws Exception {
-        // create and login user
-        String username1 = "TestUser1";
-        String token1 = createAndLoginUser(username1, mapper, mockMvc);
-        Thread.sleep(50);
-        WebSocketSession wsSession1 = connectWebSocket(token1, port);
-        Thread.sleep(50);
 
-        // create and login user 2
-        String username2 = "TestUser2";
-        String token2 = createAndLoginUser(username2, mapper, mockMvc);
-        Thread.sleep(50);
-        WebSocketSession wsSession2 = connectWebSocket(token2, port);
-        Thread.sleep(50);
-        String username3 = "TestUser3";
-        String token3 = createAndLoginUser(username3, mapper, mockMvc);
-        Thread.sleep(50);
-        WebSocketSession wsSession3 = connectWebSocket(token3, port);
-        Thread.sleep(50);
+                Map<String, Object> leaveBody = new HashMap<>();
+                leaveBody.put("userID", token1);
+                leaveBody.put("lobbyID", lobbyID);
+                mockMvc.perform(post("/api/lobby/leave")
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(mapper.writeValueAsString(leaveBody)))
+                                .andExpect(status().isNoContent());
+                Lobby lob = serverManager.getLobbyFromLobbyID(lobbyID);
+                Assertions.assertNull(lob);
+        }
+        /**
+         * @author Niklas Emil Lysdal
+         */
+        @Test
+        public void leaveLobbyPlayerIDTests() throws Exception {
+                // create and login user
+                String username1 = "TestUser1";
+                TokenWebsocketContainer tokenWebsocket = createAndConnectUser(username1,mapper,mockMvc,port);
+                String token1 = tokenWebsocket.getUserIDToken();
+                WebSocketSession wsSession1 = tokenWebsocket.getSession();
 
-        // create lobby
+                // create and login user 2
+                String username2 = "TestUser2";
+                TokenWebsocketContainer tokenWebsocket2 = createAndConnectUser(username2,mapper,mockMvc,port);
+                String token2 = tokenWebsocket2.getUserIDToken();
+                WebSocketSession wsSession2 = tokenWebsocket2.getSession();
 
-        String lobbyID = mockMvc.perform(post("/api/lobby/create")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(mapper.writeValueAsString(Map.of("userID", token1))))
-                .andExpect(status().isCreated())
-                .andExpect(content().string(Matchers.notNullValue()))
-                .andReturn()
-                .getResponse()
-                .getContentAsString();
+                String username3 = "TestUser3";
+                TokenWebsocketContainer tokenWebsocket3 = createAndConnectUser(username3,mapper,mockMvc,port);
+                String token3 = tokenWebsocket3.getUserIDToken();
+                WebSocketSession wsSession3 = tokenWebsocket3.getSession();
 
-        // user2 join lobby
-        Map<String, Object> joinBody2 = new HashMap<>();
-        joinBody2.put("userID", token2);
-        joinBody2.put("lobbyID", lobbyID);
-        mockMvc.perform(post("/api/lobby/join")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(mapper.writeValueAsString(joinBody2)))
-                .andExpect(status().isCreated())
-                .andExpect(content().string(lobbyID));
-        // user3 join lobby
-        Map<String, Object> joinBody3 = new HashMap<>();
-        joinBody3.put("userID", token3);
-        joinBody3.put("lobbyID", lobbyID);
-        mockMvc.perform(post("/api/lobby/join")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(mapper.writeValueAsString(joinBody3)))
-                .andExpect(status().isCreated())
-                .andExpect(content().string(lobbyID));
+                String lobbyID = createLobby(token1, "testName", "6",mapper, mockMvc);
+                // create lobby
 
-        Map<String, Object> readyBody1 = new HashMap<>();
-        readyBody1.put("userID", token1);
-        readyBody1.put("lobbyID", lobbyID);
-        mockMvc.perform(post("/api/lobby/markReady")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(mapper.writeValueAsString(readyBody1)));
+                joinLobby(token2,lobbyID);
+                joinLobby(token3,lobbyID);
 
-        Map<String, Object> readyBody2 = new HashMap<>();
-        readyBody2.put("userID", token2);
-        readyBody2.put("lobbyID", lobbyID);
-        mockMvc.perform(post("/api/lobby/markReady")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(mapper.writeValueAsString(readyBody2)));
+                markReady(token1,lobbyID);
+                markReady(token3,lobbyID);
 
-        Map<String, Object> readyBody3 = new HashMap<>();
-        readyBody3.put("userID", token3);
-        readyBody3.put("lobbyID", lobbyID);
-        mockMvc.perform(post("/api/lobby/markReady")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(mapper.writeValueAsString(readyBody3)));
 
         // user2 leave lobby
         Map<String, Object> leaveBody = new HashMap<>();
         leaveBody.put("userID", token2);
         leaveBody.put("lobbyID", lobbyID);
 
-        mockMvc.perform(post("/api/lobby/leave")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(mapper.writeValueAsString(leaveBody)))
-                .andExpect(status().isNoContent());
-        // start game
-        mockMvc.perform(post("/api/lobby/start")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(mapper.writeValueAsString(Map.of("lobbyID", lobbyID))))
-                .andExpect(status().isOk());
+                mockMvc.perform(post("/api/lobby/leave")
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(mapper.writeValueAsString(leaveBody)))
+                                .andExpect(status().isNoContent());
+                // start game
+                startLobby(lobbyID);
 
-        // get playerID ID's
-        Lobby lob = serverManager.getLobbyFromLobbyID(lobbyID);
-        List<String> ids = lob.getPlayerIDs();
-        // check that IDs are 1 and 2
-        assertThat(ids).containsOnly("1", "2");
 
-    }
+                // get playerID ID's
+                Lobby lob = serverManager.getLobbyFromLobbyID(lobbyID);
+                List<String> ids = lob.getPlayerIDs();
+                // check that IDs are 1 and 2
+                assertThat(ids).containsOnly("1", "2");
 
-    @Test
-    public void createUsernameIsEmptyTest() throws Exception {
-        // create and login user
-        String username1 = "TestUser1";
-        String token1 = createAndLoginUser(username1, mapper, mockMvc);
-        Thread.sleep(50);
-        WebSocketSession wsSession1 = connectWebSocket(token1, port);
-        Thread.sleep(50);
+                wsSession1.close();
+                wsSession2.close();
+                wsSession3.close();
+        }
+
+        @Test
+        public void createUsernameIsEmptyTest() throws Exception {
+                // create and login user
+                String username1 = "TestUser1";
+                TokenWebsocketContainer tokenWebsocket = createAndConnectUser(username1,mapper,mockMvc,port);
+                String token1 = tokenWebsocket.getUserIDToken();
+                WebSocketSession wsSession1 = tokenWebsocket.getSession();
 
         String lobbyID = mockMvc.perform(post("/api/lobby/create")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -629,71 +528,59 @@ public class LobbyRESTTests {
         assertThat(lobbyID).isEqualTo("USERID_IS_EMPTY");
     }
 
-    @Test
-    public void createClientIsNullTest() throws Exception {
-        String username1 = "TestUser1";
-        String token1 = createAndLoginUser(username1, mapper, mockMvc);
-        Thread.sleep(50);
-        WebSocketSession wsSession1 = connectWebSocket(token1, port);
-        Thread.sleep(50);
+        @Test
+        public void createClientIsNullTest() throws Exception {
+                String username1 = "TestUser1";
+                TokenWebsocketContainer tokenWebsocket = createAndConnectUser(username1,mapper,mockMvc,port);
+                String token1 = tokenWebsocket.getUserIDToken();
+                WebSocketSession wsSession1 = tokenWebsocket.getSession();
 
-        String lobbyID = mockMvc.perform(post("/api/lobby/create")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(mapper.writeValueAsString(Map.of("userID", "testUser2"))))
-                .andExpect(status().isForbidden())
-                .andExpect(content().string(Matchers.notNullValue()))
-                .andReturn()
-                .getResponse()
-                .getContentAsString();
+                String username2 = "TestUser2";
+                String token2 = createAndLoginUser(username2,mapper,mockMvc);
 
-        assertThat(lobbyID).isEqualTo("CLIENT_IS_NULL");
-    }
+                String lobbyID = mockMvc.perform(post("/api/lobby/create")
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(mapper.writeValueAsString(Map.of("userID", token2))))
+                                .andExpect(status().isForbidden())
+                                .andExpect(content().string(Matchers.notNullValue()))
+                                .andReturn()
+                                .getResponse()
+                                .getContentAsString();
 
-    @Test
-    public void joinLobbyIDIsEmptyTest() throws Exception {
-        String username1 = "TestUser1";
-        String token1 = createAndLoginUser(username1, mapper, mockMvc);
-        Thread.sleep(50);
-        WebSocketSession wsSession1 = connectWebSocket(token1, port);
-        Thread.sleep(50);
+                assertThat(lobbyID).isEqualTo("MISSING_WEBSOCKET_CONNECTION");
+                wsSession1.close();
+        }
 
-        String lobbyID = mockMvc.perform(post("/api/lobby/create")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(mapper.writeValueAsString(Map.of("userID", token1))))
-                .andExpect(status().isCreated())
-                .andExpect(content().string(Matchers.notNullValue()))
-                .andReturn()
-                .getResponse()
-                .getContentAsString();
+        @Test
+        public void joinLobbyIDIsEmptyTest() throws Exception {
+                String username1 = "TestUser1";
+                TokenWebsocketContainer tokenWebsocket = createAndConnectUser(username1,mapper,mockMvc,port);
+                String token1 = tokenWebsocket.getUserIDToken();
+                WebSocketSession wsSession1 = tokenWebsocket.getSession();
 
-        Map<String, Object> joinBody = new HashMap<>();
-        joinBody.put("username", username1);
-        joinBody.put("lobbyID", "");
-        String msg = mockMvc.perform(post("/api/lobby/join")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(mapper.writeValueAsString(joinBody)))
-                .andExpect(status().isForbidden()).andReturn().getResponse().getContentAsString();
+                createLobby(token1, "testName", "6",mapper, mockMvc);
 
-        assertThat(msg).isEqualTo("LOBBY_ID_IS_EMPTY");
+                Map<String, Object> joinBody = new HashMap<>();
+                joinBody.put("username", token1);
+                joinBody.put("lobbyID", "");
+                String msg = mockMvc.perform(post("/api/lobby/join")
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(mapper.writeValueAsString(joinBody)))
+                                .andExpect(status().isForbidden()).andReturn().getResponse().getContentAsString();
 
-    }
+                assertThat(msg).isEqualTo("LOBBY_ID_IS_EMPTY");
+                wsSession1.close();
+        }
 
-    @Test
-    public void joinLobbyUserIDIsEmptyTest() throws Exception {
-        String username1 = "TestUser1";
-        String token1 = createAndLoginUser(username1, mapper, mockMvc);
-        Thread.sleep(50);
-        WebSocketSession wsSession1 = connectWebSocket(token1, port);
-        Thread.sleep(50);
+        @Test
+        public void joinLobbyUserIDIsEmptyTest() throws Exception {
+                String username1 = "TestUser1";
+                TokenWebsocketContainer tokenWebsocket = createAndConnectUser(username1,mapper,mockMvc,port);
+                String token1 = tokenWebsocket.getUserIDToken();
+                WebSocketSession wsSession1 = tokenWebsocket.getSession();
 
-        String lobbyID = mockMvc.perform(post("/api/lobby/create")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(mapper.writeValueAsString(Map.of("userID", token1))))
-                .andExpect(status().isCreated())
-                .andExpect(content().string(Matchers.notNullValue()))
-                .andReturn()
-                .getResponse()
-                .getContentAsString();
+                String lobbyID = createLobby(token1, "testName", "6",mapper, mockMvc);
+
 
         Map<String, Object> joinBody = new HashMap<>();
         joinBody.put("userID", "");
@@ -716,39 +603,27 @@ public class LobbyRESTTests {
 
         // create and login user
 
-        String token1 = createAndLoginUser(usernamePrefix + "1", mapper, mockMvc);
-        Thread.sleep(50);
-        WebSocketSession wsSession1 = connectWebSocket(token1, port);
-        Thread.sleep(50);
-        sessions.add((wsSession1));
+                TokenWebsocketContainer tokenWebsocket1 = createAndConnectUser(usernamePrefix+"1",mapper,mockMvc,port);
+                String token1 = tokenWebsocket1.getUserIDToken();
+                WebSocketSession wsSession1 = tokenWebsocket1.getSession();
+                sessions.add((wsSession1));
 
-        // create lobby
-        String lobbyID = mockMvc.perform(post("/api/lobby/create")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(mapper.writeValueAsString(Map.of("userID", token1))))
-                .andExpect(status().isCreated())
-                .andExpect(content().string(Matchers.notNullValue()))
-                .andReturn()
-                .getResponse()
-                .getContentAsString();
+                String lobbyID = createLobby(token1, "testName", ""+maxPlayers,mapper, mockMvc);
 
-        for (int i = 2; i <= maxPlayers; i++) {
-            String username = usernamePrefix + i;
-            String token = createAndLoginUser(username, mapper, mockMvc);
-            Thread.sleep(50);
-            WebSocketSession wsSession = connectWebSocket(token, port);
-            Thread.sleep(50);
-            sessions.add(wsSession);
 
-            Map<String, Object> joinBody = new HashMap<>();
-            joinBody.put("userID", token);
-            joinBody.put("lobbyID", lobbyID);
-            mockMvc.perform(post("/api/lobby/join")
-                            .contentType(MediaType.APPLICATION_JSON)
-                            .content(mapper.writeValueAsString(joinBody)))
-                    .andExpect(status().isCreated())
-                    .andExpect(content().string(lobbyID));
-        }
+                for (int i = 2; i <= maxPlayers; i++) {
+                        String username = usernamePrefix + i;
+
+
+                        TokenWebsocketContainer tokenWebsocket = createAndConnectUser(username,mapper,mockMvc,port);
+                        String token = tokenWebsocket.getUserIDToken();
+                        WebSocketSession wsSession = tokenWebsocket.getSession();
+
+                        sessions.add(wsSession);
+
+                        joinLobby(token,lobbyID);
+
+                }
 
         String token7 = createAndLoginUser(usernamePrefix + "7", mapper, mockMvc);
         WebSocketSession wsSession7 = connectWebSocket(token7, port);
@@ -774,11 +649,19 @@ public class LobbyRESTTests {
 
     }
 
-    /// @author Asger Allin Jensen
-    /// @author Niklas Emil Lysdal
-    @Test
-    public void mixtureReadinessTest() throws Exception {
-            ArrayBlockingQueue<WebSocketSession> sessions = new ArrayBlockingQueue<>(2);
+        /**
+         *   @author Asger Allin Jensen
+         *   @author Niklas Emil Lysdal
+         */
+        @Test
+        public void mixtureReadinessTest() throws Exception {
+                ArrayBlockingQueue<WebSocketSession> sessions = new ArrayBlockingQueue<>(2);
+                int expectedUpdates = 5; // creation, join x2, mark ready x2
+                int expectedLobbies = 2;
+                final CountDownLatch latch = new CountDownLatch(expectedLobbies+expectedUpdates); //(new lobby, notify, notify)
+                //expected messages: creation x2 (1 for each player), add player x1 for creation, add player x1 for player 2, update x2 for ready
+                final AtomicInteger lobbiesMessages = new AtomicInteger(0);
+                final AtomicInteger updateMessages = new AtomicInteger(0);
 
             var handler = new AbstractWebSocketHandler() {
 
@@ -787,61 +670,128 @@ public class LobbyRESTTests {
                             sessions.offer(session);
                     }
 
-                    @Override
-                    public void handleMessage(WebSocketSession session, WebSocketMessage<?> message) {
-                            String jsonText = message.getPayload().toString();
-                            JsonNode json = JsonUtil.parser(jsonText);
+                        @Override
+                        public void handleMessage(WebSocketSession session, WebSocketMessage<?> message) {
 
-                            assertThat(json.get("type").asText()).isEqualTo("lobby");
-                            assertThat(json.get("action").asText()).isEqualTo("readiness");
+                                try {
+                                        String jsonText = message.getPayload().toString();
+                                        JsonNode json = JsonUtil.parser(jsonText);
+                                        if (json.get("type").asText().equals("lobbies") && json.get("action").asText().equals("updatedLobbies"))  {
+                                                lobbiesMessages.incrementAndGet();
 
-                            try {
-                                    Map<String, Boolean> payload = new ObjectMapper()
-                                                    .readValue(json.get("payload").toString(), HashMap.class);
-                                    assertThat(payload).containsKey("TestUser1");
-                                    assertThat(payload.get("TestUser1")).isTrue();
-                                    assertThat(payload).containsKeys("TestUser2");
-                                    assertThat(payload.get("TestUser2")).isFalse();
-                            } catch (Exception e) {
-                                    Assertions.fail("Failed to parse readiness payload: " + e.getMessage());
-                            }
-                    }
+
+                                        } else if (json.get("type").asText().equals("lobby") && json.get("action").asText().equals("lobbyUpdate")) {
+                                                updateMessages.incrementAndGet();
+
+                                        }
+                                } catch (Exception e) {
+
+                                } finally {
+                                        latch.countDown();
+                                }
+
+
+                        }
 
             };
 
-            // create and login user 1
-            String username1 = "TestUser1";
-            String token1 = createAndLoginUser(username1, mapper, mockMvc);
-            Thread.sleep(50);
-            WebSocketSession wsSession1 = connectWebSocket(token1, handler, sessions);
-            Thread.sleep(50);
+                // create and login user 1
+                String username1 = "TestUser1";
+                TokenWebsocketContainer tokenWebsocket = createAndConnectUser(username1,handler,sessions,mapper,mockMvc,port);
+                String token1 = tokenWebsocket.getUserIDToken();
+                WebSocketSession wsSession1 = tokenWebsocket.getSession();
 
-            // create and login user 2
-            String username2 = "TestUser2";
-            String token2 = createAndLoginUser(username2, mapper, mockMvc);
-            Thread.sleep(50);
-            WebSocketSession wsSession2 = connectWebSocket(token2, handler, sessions);
-            Thread.sleep(50);
 
-            // create lobby
-            String lobbyID = mockMvc.perform(post("/api/lobby/create")
+                String username2 = "TestUser2";
+                TokenWebsocketContainer tokenWebsocket2 = createAndConnectUser(username2,handler,sessions,mapper,mockMvc,port);
+                String token2 = tokenWebsocket2.getUserIDToken();
+                WebSocketSession wsSession2 = tokenWebsocket2.getSession();
+
+                String lobbyID = createLobby(token1,"testName", "6",mapper, mockMvc);
+
+
+                joinLobby(token2,lobbyID);
+
+                Map<String, Object> readyBody = new HashMap<>();
+                readyBody.put("userID", token1);
+                readyBody.put("lobbyID", lobbyID);
+
+            mockMvc.perform(post("/api/lobby/markReady")
                             .contentType(MediaType.APPLICATION_JSON)
-                            .content(mapper.writeValueAsString(Map.of("userID", token1))))
-                            .andExpect(status().isCreated())
-                            .andExpect(content().string(Matchers.notNullValue()))
-                            .andReturn()
-                            .getResponse()
-                            .getContentAsString();
+                            .content(mapper.writeValueAsString(readyBody)))
+                            .andExpect(status().isNoContent());
 
-            // add player 2 to lobby
-            Map<String, Object> joinBody = new HashMap<>();
-            joinBody.put("userID", token2);
-            joinBody.put("lobbyID", lobbyID);
 
-            mockMvc.perform(post("/api/lobby/join")
-                            .contentType(MediaType.APPLICATION_JSON)
-                            .content(mapper.writeValueAsString(joinBody)))
-                            .andExpect(status().isCreated());
+                boolean success = latch.await(5, TimeUnit.SECONDS);
+                if (!success) {
+                        Assertions.fail("LATCH timeout");
+                }
+                assertThat(lobbiesMessages.get()).isEqualTo(expectedLobbies);
+                assertThat(updateMessages.get()).isEqualTo(expectedUpdates);
+
+                JsonNode jsonResult1 = getLobbyInfo(token1, lobbyID);
+                assertThat(jsonResult1.get("lobbyID").asText()).isEqualTo(lobbyID);
+                JsonNode readiness1 = jsonResult1.get("readinessMap");
+                assertThat(!readiness1.get("TestUser1").asBoolean());
+                assertThat(readiness1.get("TestUser2").asBoolean());
+
+                wsSession1.close();
+                wsSession2.close();
+        }
+
+        /**
+         *   @author Asger Allin Jensen
+         *   @author Niklas Emil Lysdal
+         */
+        @Test
+        public void onePlayerReadinessTest() throws Exception {
+                ArrayBlockingQueue<WebSocketSession> sessions = new ArrayBlockingQueue<>(2);
+                int expectedUpdates = 2; //initial add, and each ready/unready
+                int expectedLobbies = 1;
+                final CountDownLatch latch = new CountDownLatch(expectedUpdates+expectedLobbies); //(new lobby (including initial notify), notify, notify)
+                final AtomicInteger updateMessages = new AtomicInteger(0);
+                final AtomicInteger lobbiesMessages = new AtomicInteger(0);
+                var handler = new AbstractWebSocketHandler() {
+
+                    @Override
+                    public void afterConnectionEstablished(WebSocketSession session) throws Exception {
+                            sessions.offer(session);
+                    }
+
+                        @Override
+                        public void handleMessage(WebSocketSession session, WebSocketMessage<?> message) {
+
+                                try {
+                                        String jsonText = message.getPayload().toString();
+                                        JsonNode json = JsonUtil.parser(jsonText);
+                                        if (json.get("type").asText().equals("lobbies") && json.get("action").asText().equals("updatedLobbies"))  {
+                                                lobbiesMessages.incrementAndGet();
+
+
+                                        } else if (json.get("type").asText().equals("lobby") && json.get("action").asText().equals("lobbyUpdate")) {
+                                                updateMessages.incrementAndGet();
+
+                                        }
+                                } catch (Exception e) {
+
+                                } finally {
+                                        latch.countDown();
+                                }
+
+
+                        }
+
+            };
+
+                // create and login user 1
+
+                String username1 = "TestUser1";
+                TokenWebsocketContainer tokenWebsocket = createAndConnectUser(username1,handler,sessions,mapper,mockMvc,port);
+                String token1 = tokenWebsocket.getUserIDToken();
+                WebSocketSession wsSession1 = tokenWebsocket.getSession();
+
+                String lobbyID = createLobby(token1,"testName", "6",mapper, mockMvc);
+
 
             // mark player 1 as ready
             Map<String, Object> readyBody = new HashMap<>();
@@ -853,58 +803,71 @@ public class LobbyRESTTests {
                             .content(mapper.writeValueAsString(readyBody)))
                             .andExpect(status().isNoContent());
 
-            wsSession1.close();
-            wsSession2.close();
-    }
+                boolean success = latch.await(5, TimeUnit.SECONDS);
+                if (!success) {
+                        Assertions.fail("LATCH timeout");
+                }
+                assertThat(lobbiesMessages.get()).isEqualTo(expectedLobbies);
+                assertThat(updateMessages.get()).isEqualTo(expectedUpdates);
+                JsonNode jsonResult1 = getLobbyInfo(token1, lobbyID);
+                assertThat(jsonResult1.get("lobbyID").asText()).isEqualTo(lobbyID);
+                JsonNode readiness1 = jsonResult1.get("readinessMap");
+                assertThat(readiness1.get("TestUser1").asBoolean());
+                wsSession1.close();
+        }
 
-    // @author Asger Allin Jensen
-    @Test
-    public void onePlayerReadinessTest() throws Exception {
-            ArrayBlockingQueue<WebSocketSession> sessions = new ArrayBlockingQueue<>(2);
+        /**
+         *   @author Asger Allin Jensen
+         *   @author Niklas Emil Lysdal
+         */
 
-            var handler = new AbstractWebSocketHandler() {
+        @Test
+        public void unreadyPlayerTest() throws Exception {
+                System.out.println("UNREADY PLAYER TEST");
+                ArrayBlockingQueue<WebSocketSession> sessions = new ArrayBlockingQueue<>(2);
+                int expectedUpdates = 3; //initial add, and each ready/unready
+                int expectedLobbies = 1;
+                final AtomicInteger totalMessages = new AtomicInteger(0);
+                final CountDownLatch latch = new CountDownLatch(expectedUpdates+expectedLobbies); //(new lobby (including initial notify), notify, notify)
+                final AtomicInteger updateMessages = new AtomicInteger(0);
+                final AtomicInteger lobbiesMessages = new AtomicInteger(0);
+                var handler = new AbstractWebSocketHandler() {
 
                     @Override
                     public void afterConnectionEstablished(WebSocketSession session) throws Exception {
                             sessions.offer(session);
                     }
 
-                    @Override
-                    public void handleMessage(WebSocketSession session, WebSocketMessage<?> message) {
-                            String jsonText = message.getPayload().toString();
-                            JsonNode json = JsonUtil.parser(jsonText);
+                        @Override
+                        public void handleMessage(WebSocketSession session, WebSocketMessage<?> message) {
+                                System.out.println("UNREADY PLAYER TEST: RECEIVED MESSAGE");
+                                try {
+                                        totalMessages.incrementAndGet();
+                                        String jsonText = message.getPayload().toString();
+                                        JsonNode json = JsonUtil.parser(jsonText);
+                                        if (json.get("type").asText().equals("lobbies") && json.get("action").asText().equals("updatedLobbies"))  {
+                                                lobbiesMessages.incrementAndGet();
 
-                            assertThat(json.get("type").asText()).isEqualTo("lobby");
-                            assertThat(json.get("action").asText()).isEqualTo("readiness");
-
-                            try {
-                                    Map<String, Boolean> payload = new ObjectMapper()
-                                                    .readValue(json.get("payload").toString(), HashMap.class);
-                                    assertThat(payload).containsKey("TestUser1");
-                                    assertThat(payload.get("TestUser1")).isTrue();
-                            } catch (Exception e) {
-                                    Assertions.fail("Failed to parse readiness payload: " + e.getMessage());
-                            }
-                    }
+                                        } else if (json.get("type").asText().equals("lobby") && json.get("action").asText().equals("lobbyUpdate")) {
+                                                updateMessages.incrementAndGet();
+                                        }
+                                } catch (Exception e) {
+                                } finally {
+                                        latch.countDown();
+                                }
+                        }
 
             };
 
-            // create and login user 1
-            String username1 = "TestUser1";
-            String token1 = createAndLoginUser(username1, mapper, mockMvc);
-            Thread.sleep(50);
-            WebSocketSession wsSession1 = connectWebSocket(token1, handler, sessions);
-            Thread.sleep(50);
+                // create and login user 1
+                String username1 = "TestUser1";
+                TokenWebsocketContainer tokenWebsocket = createAndConnectUser(username1,handler,sessions,mapper,mockMvc,port);
+                String token1 = tokenWebsocket.getUserIDToken();
+                WebSocketSession wsSession1 = tokenWebsocket.getSession();
 
-            // create lobby
-            String lobbyID = mockMvc.perform(post("/api/lobby/create")
-                            .contentType(MediaType.APPLICATION_JSON)
-                            .content(mapper.writeValueAsString(Map.of("userID", token1))))
-                            .andExpect(status().isCreated())
-                            .andExpect(content().string(Matchers.notNullValue()))
-                            .andReturn()
-                            .getResponse()
-                            .getContentAsString();
+                // create lobby
+                String lobbyID = createLobby(token1,"testName", "6",mapper, mockMvc);
+
 
             // mark player 1 as ready
             Map<String, Object> readyBody = new HashMap<>();
@@ -916,80 +879,37 @@ public class LobbyRESTTests {
                             .content(mapper.writeValueAsString(readyBody)))
                             .andExpect(status().isNoContent());
 
-            wsSession1.close();
-    }
+                JsonNode jsonResult1 = getLobbyInfo(token1, lobbyID);
+                assertThat(jsonResult1.get("lobbyID").asText()).isEqualTo(lobbyID);
+                JsonNode readiness1 = jsonResult1.get("readinessMap");
+                assertThat(readiness1.get("TestUser1").asBoolean());
 
-    // @author Asger Allin Jensen
-    @Test
-    public void unreadyPlayerTest() throws Exception {
-            ArrayBlockingQueue<WebSocketSession> sessions = new ArrayBlockingQueue<>(2);
+                                // mark player 1 as unready
+                Map<String, Object> notReadyBody = new HashMap<>();
+                readyBody.put("userID", token1);
+                readyBody.put("lobbyID", lobbyID);
 
-            var handler = new AbstractWebSocketHandler() {
+                mockMvc.perform(post("/api/lobby/markNotReady")
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(mapper.writeValueAsString(readyBody)))
+                                .andExpect(status().isNoContent());
+            System.out.println("WAITING FOR LATCH");
+            boolean success = latch.await(5, TimeUnit.SECONDS);
+            if (!success) {
+                Assertions.fail("LATCH timeout");
+            }
+            assertThat(totalMessages.get()).isEqualTo(expectedUpdates+expectedLobbies);
+            assertThat(lobbiesMessages.get()).isEqualTo(expectedLobbies);
+            assertThat(updateMessages.get()).isEqualTo(expectedUpdates);
 
-                    @Override
-                    public void afterConnectionEstablished(WebSocketSession session) throws Exception {
-                            sessions.offer(session);
-                    }
-
-                    @Override
-                    public void handleMessage(WebSocketSession session, WebSocketMessage<?> message) {
-                            String jsonText = message.getPayload().toString();
-                            JsonNode json = JsonUtil.parser(jsonText);
-
-                            assertThat(json.get("type").asText()).isEqualTo("lobby");
-                            assertThat(json.get("action").asText()).isEqualTo("readiness");
-
-                            try {
-                                    Map<String, Boolean> payload = new ObjectMapper()
-                                                    .readValue(json.get("payload").toString(), HashMap.class);
-                                    assertThat(payload).containsKey("TestUser1");
-                                    assertThat(payload.get("TestUser1")).isFalse();
-                            } catch (Exception e) {
-                                    Assertions.fail("Failed to parse readiness payload: " + e.getMessage());
-                            }
-                    }
-
-            };
-
-            // create and login user 1
-            String username1 = "TestUser1";
-            String token1 = createAndLoginUser(username1, mapper, mockMvc);
-            Thread.sleep(50);
-            WebSocketSession wsSession1 = connectWebSocket(token1, handler, sessions);
-            Thread.sleep(50);
-
-            // create lobby
-            String lobbyID = mockMvc.perform(post("/api/lobby/create")
-                            .contentType(MediaType.APPLICATION_JSON)
-                            .content(mapper.writeValueAsString(Map.of("userID", token1))))
-                            .andExpect(status().isCreated())
-                            .andExpect(content().string(Matchers.notNullValue()))
-                            .andReturn()
-                            .getResponse()
-                            .getContentAsString();
-
-            // mark player 1 as ready
-            Map<String, Object> readyBody = new HashMap<>();
-            readyBody.put("userID", token1);
-            readyBody.put("lobbyID", lobbyID);
-
-            mockMvc.perform(post("/api/lobby/markReady")
-                            .contentType(MediaType.APPLICATION_JSON)
-                            .content(mapper.writeValueAsString(readyBody)))
-                            .andExpect(status().isNoContent());
-
-            // mark player 1 as unready
-            Map<String, Object> notReadyBody = new HashMap<>();
-            readyBody.put("userID", token1);
-            readyBody.put("lobbyID", lobbyID);
-
-            mockMvc.perform(post("/api/lobby/markNotReady")
-                            .contentType(MediaType.APPLICATION_JSON)
-                            .content(mapper.writeValueAsString(readyBody)))
-                            .andExpect(status().isNoContent());
+            JsonNode jsonResult2 = getLobbyInfo(token1, lobbyID);
+            assertThat(jsonResult2.get("lobbyID").asText()).isEqualTo(lobbyID);
+            JsonNode readiness2 = jsonResult2.get("readinessMap");
+            assertThat(!readiness2.get("TestUser1").asBoolean());
 
             wsSession1.close();
-    }
+
+        }
 
     public static String createAndLoginUser(String username, ObjectMapper mapper, MockMvc mockMvc) throws Exception {
             mockMvc.perform(post("/api/users/create")
@@ -1005,19 +925,94 @@ public class LobbyRESTTests {
                 .andExpect(status().isOk())
                 .andReturn();
 
-        return mapper.readTree(loginResult.getResponse().getContentAsString()).get("userID").asText(); // TODO:
-        // change
-        // to
-        // token
-        // when
-        // the
-        // clientHandshake
-        // actually
-        // checks
-        // tokens
-        // instead
-        // of
-        // userIDs.
+                return mapper.readTree(loginResult.getResponse().getContentAsString()).get("userID").asText();
+        }
+
+        /**
+         * @author Niklas Emil Lysdal
+         */
+        public static String createLobby(String userID,String lobbyName, String capacity, ObjectMapper mapper, MockMvc mockMvc) throws Exception{
+            Map<String, String> createBodyMap1 = new HashMap<>();
+            createBodyMap1.put("userID", userID);
+            createBodyMap1.put("capacity", capacity);
+            createBodyMap1.put("lobbyName", lobbyName);
+            // create lobby
+            return mockMvc.perform(post("/api/lobby/create")
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(mapper.writeValueAsString(createBodyMap1)))
+                    .andExpect(status().isCreated())
+                    .andExpect(content().string(Matchers.notNullValue()))
+                    .andReturn()
+                    .getResponse()
+                    .getContentAsString();
+
+        }
+        /**
+         * @author Niklas Emil Lysdal
+         */
+        private String joinLobby(String userID, String lobbyID) throws Exception{
+            Map<String, Object> joinBody = new HashMap<>();
+            joinBody.put("userID", userID);
+            joinBody.put("lobbyID", lobbyID);
+
+            return mockMvc.perform(post("/api/lobby/join")
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(mapper.writeValueAsString(joinBody)))
+                    .andExpect(status().isCreated())
+                    .andReturn().getResponse()
+                    .getContentAsString();
+        }
+        /**
+         * @author Niklas Emil Lysdal
+         */
+        private void markReady(String userID, String lobbyID) throws Exception{
+            Map<String, Object> readyBody = new HashMap<>();
+            readyBody.put("userID", userID);
+            readyBody.put("lobbyID", lobbyID);
+
+            mockMvc.perform(post("/api/lobby/markReady")
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(mapper.writeValueAsString(readyBody)))
+                    .andExpect(status().isNoContent());
+
+        }
+        /**
+         * @author Niklas Emil Lysdal
+         */
+        private void markNotReady(String  userID, String lobbyID) throws Exception {
+            Map<String, Object> notReadyBody = new HashMap<>();
+            notReadyBody.put("userID", userID);
+            notReadyBody.put("lobbyID", lobbyID);
+
+            mockMvc.perform(post("/api/lobby/markNotReady")
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(mapper.writeValueAsString(notReadyBody)))
+                    .andExpect(status().isNoContent());
+
+        }
+        /**
+         * @author Niklas Emil Lysdal
+         */
+        private TokenWebsocketContainer createAndConnectUser(String userName, ObjectMapper mapper, MockMvc mockMvc,int port) throws Exception{
+            String token = createAndLoginUser(userName,mapper,mockMvc);
+            //sleep for safety for concurrency.
+            Thread.sleep(50);
+            WebSocketSession session = connectWebSocket(token,port);
+            Thread.sleep(50);
+            return new TokenWebsocketContainer(session,token);
+
+        }
+        /**
+         * @author Niklas Emil Lysdal
+         */
+        private TokenWebsocketContainer createAndConnectUser(String userName,AbstractWebSocketHandler handler,ArrayBlockingQueue<WebSocketSession> sessions,ObjectMapper mapper, MockMvc mockMvc, int port) throws Exception{
+        String token = createAndLoginUser(userName,mapper,mockMvc);
+        //sleep for safety for concurrency.
+        Thread.sleep(50);
+        WebSocketSession session = connectWebSocket(token,handler,sessions,port);
+        Thread.sleep(50);
+        return new TokenWebsocketContainer(session,token);
+
     }
 
     public static WebSocketSession connectWebSocket(String token, int port) throws Exception {
@@ -1039,7 +1034,7 @@ public class LobbyRESTTests {
     }
 
     private WebSocketSession connectWebSocket(String token, AbstractWebSocketHandler handler,
-                ArrayBlockingQueue<WebSocketSession> sessions) throws Exception {
+                ArrayBlockingQueue<WebSocketSession> sessions,int port) throws Exception {
         URI uri = URI.create("ws://localhost:" + port + "/client?token=" + token);
         new StandardWebSocketClient().execute(handler, uri.toString());
 
@@ -1047,5 +1042,29 @@ public class LobbyRESTTests {
         assertThat(wsSession).isNotNull();
         return wsSession;
     }
-
+    /**
+     * @author Niklas Emil Lysdal
+     */
+    private JsonNode getLobbyInfo(String userID, String lobbyID) throws Exception {
+        Map<String,String> infoBody = new HashMap<>();
+        infoBody.put("userID", userID);
+        infoBody.put("lobbyID", lobbyID);
+        JsonNode jsonResult = JsonUtil.parser(mockMvc.perform(post("/api/lobby/lobbyInfo")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(mapper.writeValueAsString(infoBody)))
+                .andExpect(status().isOk())
+                .andReturn()
+                .getResponse()
+                .getContentAsString());
+        return jsonResult;
+    }
+    /**
+     * @author Niklas Emil Lysdal
+     */
+    private void startLobby(String lobbyID) throws Exception{
+        mockMvc.perform(post("/api/lobby/start")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(mapper.writeValueAsString(Map.of("lobbyID", lobbyID))))
+                .andExpect(status().isOk());
+    }
 }

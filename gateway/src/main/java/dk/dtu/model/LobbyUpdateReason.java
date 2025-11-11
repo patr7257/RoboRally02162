@@ -1,5 +1,7 @@
 package dk.dtu.model;
-
+/**
+ * @author Niklas Emil Lysdal
+ */
 public enum LobbyUpdateReason {
     DESTROYED,
     LOCKED,
