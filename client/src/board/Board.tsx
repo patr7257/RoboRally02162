@@ -4,7 +4,7 @@ import React, { useState, useEffect } from "react";
 import { Menu, X } from "lucide-react"; // lightweight icons
 import { useNavigate } from "react-router-dom";
 import { subscribe, sendMessage } from "../utils/ws";
-import { MoveType, GameData, HandData, ROBOT_COLORS } from "../types/boardTypes";
+import { MoveType, GameData, HandData, ROBOT_COLORS, DiscardData } from "../types/boardTypes";
 import { WinnerBanner } from "./WinnerBanner";
 import { BoardRenderer } from "./BoardRenderer";
 import { GameControls } from "./GameControls";
@@ -19,6 +19,8 @@ import { saveGame } from '../lobby/SaveGame';
 * @author Patrick Røbel
 * @author William Pii Jæger
 * @author Kajsa Alice Ulrika Berlstedt
+* @author Benjamin Benyo Endhal Hansen
+* @author Karl Johannes Agerbo
 */
 
 interface ReadinessData {
@@ -38,6 +40,7 @@ export default function Board() {
   const [lobbyId] = useState<string>(localStorage.getItem("id") || "");
   const [gameData, setGameData] = useState<GameData | null>(null);
   const [handData, setHandData] = useState<HandData | null>(null);
+  const [discardData, setDiscardData] = useState<DiscardData | null>(null);
   const [selectedMoves, setSelectedMoves] = useState<(MoveType | null)[]>(Array(5).fill(null));
   const [readiness, setReadiness] = useState<ReadinessData | null>(null);
   const [timeRemaining, setTimeRemaining] = useState<number>(0);
@@ -82,6 +85,12 @@ export default function Board() {
             setTimeRemaining(data.payload.msRemaining);
             break;
 
+          case "discard":
+            console.log("Setting discard data:", actualData.payload || actualData);
+            const discardPayload = actualData.payload;
+            setDiscardData(discardPayload);
+            break;
+
           case "timeRemaining":
             setTimeRemaining(data.payload.ms);
             break;
@@ -89,7 +98,7 @@ export default function Board() {
           case "programmingStarted":
             setGameState('programming');
             setHasSubmitted(false);
-
+            sendMessage({ lobbyID: lobbyId, payload: { type: "getDiscard" } });
             sendMessage({ lobbyID: lobbyId, payload: { type: "getHand" } });
 
             startReadinessPolling();
@@ -138,7 +147,9 @@ export default function Board() {
     });
 
     sendMessage({ lobbyID: lobbyId, payload: { type: "getBoard" } });
+    sendMessage({ lobbyID: lobbyId, payload: { type: "getDiscard" } });
     sendMessage({ lobbyID: lobbyId, payload: { type: "getHand" } });
+
     getRobotIDS();
 
     return () => {
@@ -262,39 +273,39 @@ export default function Board() {
     const entries = Object.entries(robotMap);
     if (!robotID || entries.length === 0) {
       return
-        <div className="player-info">
-          No players are assigned yet
-        </div>;
+      <div className="player-info">
+        No players are assigned yet
+      </div>;
     }
     const list = entries
-        .map(([name, idStr]) => {
-            const idNum = Number(idStr);
-            return { name, idStr: String(idStr), idNum: Number.isNaN(idNum) ? Infinity : idNum };
-            })
-            .sort((a, b) => a.idNum - b.idNum || a.name.localeCompare(b.name));
+      .map(([name, idStr]) => {
+        const idNum = Number(idStr);
+        return { name, idStr: String(idStr), idNum: Number.isNaN(idNum) ? Infinity : idNum };
+      })
+      .sort((a, b) => a.idNum - b.idNum || a.name.localeCompare(b.name));
     const meIndex = list.findIndex(item => item.name === username);
-      if (meIndex > -1) {
-        const [me] = list.splice(meIndex, 1);
-        list.unshift(me);
-      }
+    if (meIndex > -1) {
+      const [me] = list.splice(meIndex, 1);
+      list.unshift(me);
+    }
 
     return (
-        <div className="player-list">
-          {list.map(({ name, idStr, idNum }) => {
-            const colorIndex = !Number.isNaN(idNum) && idNum > 0 ? (idNum - 1) % ROBOT_COLORS.length : 0;
-            const color = ROBOT_COLORS[colorIndex] ?? "#000";
-            const isMe = name === username;
+      <div className="player-list">
+        {list.map(({ name, idStr, idNum }) => {
+          const colorIndex = !Number.isNaN(idNum) && idNum > 0 ? (idNum - 1) % ROBOT_COLORS.length : 0;
+          const color = ROBOT_COLORS[colorIndex] ?? "#000";
+          const isMe = name === username;
 
-    return (
-      <div key={name} className="player-info">
-        {isMe ? (
-        <>You are: <span className="robot-label" style={{ color }}>{`Robot ${robotID}`}</span></>
-                    ) : (
-                      <>{name}: <span className="robot-label" style={{ color }}>{`Robot ${robotID}`}</span></>
-                    )}
-                  </div>
-                );
-              })}
+          return (
+            <div key={name} className="player-info">
+              {isMe ? (
+                <>You are: <span className="robot-label" style={{ color }}>{`Robot ${robotID}`}</span></>
+              ) : (
+                <>{name}: <span className="robot-label" style={{ color }}>{`Robot ${robotID}`}</span></>
+              )}
+            </div>
+          );
+        })}
       </div>
     );
   };
@@ -401,7 +412,8 @@ export default function Board() {
             selectedMoves={selectedMoves}
             onSubmitMove={handleSubmitMove}
             onSelectMove={setSelectedMoves}
-            hand={handData?.hand || []} discard={[]}          />
+            discard={discardData?.discard || []}
+            hand={handData?.hand || []}/>
         </div>
       </div>
     </div>
