@@ -3,7 +3,7 @@ import { MoveType } from "../types/boardTypes";
 import { MoveSelector } from "./MoveSelector";
 import "./board.css"
 
-/*
+/**
 * @author Asger Allin Jensen
 * @author Bjarke Søderhamn Petersen
 * @author Lizette Nikolajsen
@@ -20,7 +20,9 @@ interface GameControlsProps {
   hand: MoveType[];
   discard: MoveType[];
 }
-
+/**
+ *  @author Asger Allin Jensen
+ * */ 
 export const GameControls: React.FC<GameControlsProps> = ({
   selectedMoves,
   onSubmitMove,
@@ -39,20 +41,12 @@ export const GameControls: React.FC<GameControlsProps> = ({
       </ul>
     </details>
 
-    <div>
-      <MoveSelector
-        moves={hand}
-        selectedMoves={selectedMoves}
-        onChange={onSelectMove}
-      />
-    </div>
-
-    <button
-      className="metal-button"
-      onClick={() => onSubmitMove(selectedMoves.filter((m): m is MoveType => m !== null))}
-      disabled={selectedMoves.some((m) => m === null)}
-    >
-      Make Move
-    </button>
+    <MoveSelector
+      moves={hand}
+      selectedMoves={selectedMoves}
+      onChange={onSelectMove}
+      onSubmitMove={onSubmitMove}
+      hasEmptySlots={selectedMoves.some((m) => m === null)}
+    />
   </div>
 );

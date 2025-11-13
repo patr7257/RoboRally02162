@@ -4,11 +4,16 @@
   "private": true,
   "dependencies": {
     "bootstrap": "^5.3.8",
+    "components": "^0.1.0",
     "framer-motion": "^12.23.24",
+    "lucide-react": "^0.553.0",
     "react": "18.3.1",
+    "react-burger-menu": "^3.1.0",
     "react-dom": "18.3.1",
     "react-router-dom": "6.26.2",
-    "react-scripts": "5.0.1"
+    "react-scripts": "5.0.1",
+    "styled": "^1.0.0",
+    "styled-components": "^6.1.19"
   },
   "devDependencies": {
     "@testing-library/jest-dom": "^6.9.1",

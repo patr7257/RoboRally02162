@@ -81,7 +81,7 @@ body {
 }
 
 :root {
-  --wall-color: #333;
+  --wall-color: #ffc21b;
   --wall-thickness: 4px;
 }
 
@@ -94,6 +94,7 @@ body {
   border-color: var(--wall-color);
   border-width: 0;
 }
+
 
 .wall.dir-n { border-top-width: var(--wall-thickness); }
 .wall.dir-e { border-right-width: var(--wall-thickness); }

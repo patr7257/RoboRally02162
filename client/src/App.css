@@ -371,35 +371,8 @@
   background-repeat: no-repeat;
 }
 
-body::before,
-body::after {
-  content: "";
-  position: fixed;
-  width: 300px;
-  height: 30px;
-  background: repeating-linear-gradient(45deg,
-      #facc15,
-      #facc15 12px,
-      #000 12px,
-      #000 24px);
-  opacity: 0.9;
-  z-index: 9999;
-  box-shadow: 0 0 16px rgba(0, 0, 0, 0.5);
-  pointer-events: none;
-  transform-origin: center;
-}
 
-body::before {
-  top: 30px;
-  left: -50px;
-  transform: rotate(-25deg);
-}
 
-body::after {
-  bottom: 60px;
-  right: -90px;
-  transform: rotate(120deg);
-}
 
 .screw {
   position: fixed;

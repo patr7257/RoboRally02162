@@ -1,4 +1,4 @@
-/*
+/**
 * @author Asger Allin Jensen
 * @author Bjarke Søderhamn Petersen
 * @author Lizette Nikolajsen

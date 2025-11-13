@@ -4,7 +4,7 @@ import { calculateBoardSize, getRobotAtPosition } from "../utils/boardUtils";
 import { BoardTile } from "./BoardTile";
 import "./board.css";
 
-/*
+/**
 * @author Asger Allin Jensen
 * @author Bjarke Søderhamn Petersen
 * @author Patrick Røbel
@@ -14,7 +14,7 @@ import "./board.css";
 interface BoardRendererProps { gameData: GameData | null; }
 
 
-/*
+/**
 * @author Asger Allin Jensen
 * @author Bjarke Søderhamn Petersen
 * @author Patrick Røbel
@@ -29,11 +29,6 @@ export const BoardRenderer: React.FC<BoardRendererProps> = ({ gameData }) => {
 
   return (
     <div className="board-wrapper">
-      <div className="board-info">
-        <p>
-          Board: {gameData.board.width}x{gameData.board.height} | Robots: {gameData.robots.length}
-        </p>
-      </div>
 
       <div
         className="board-grid"

@@ -85,12 +85,12 @@
 		inset 0 1px 3px rgba(255, 255, 255, 0.1);
 }
 
-.login-container,
-.register-container {
-	display: flex;
-	flex-direction: column;
-	gap: 8px;
-	align-items: center;
+.login-container input,
+.register-container input {
+	width: 80%;
+	max-width: 280px;
+	text-align: center;
+	box-sizing: border-box;
 }
 
 .hazard-button {
