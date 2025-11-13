@@ -2,9 +2,15 @@ package dk.dtu.domain.program;
 
 import java.util.List;
 
-// Author(s) Weihao Mo, William Pii Jæger
-
+/**
+ * @author Weihao Mo
+ * @author William Pii Jæger
+ */
 public record ProgramCard(Action action, int steps) {
+    /**
+     * @author William Pii Jæger
+     * @author Weihao Mo
+     */
     public ProgramCard {
         switch (action) {
             case MOVE -> {
@@ -16,6 +22,10 @@ public record ProgramCard(Action action, int steps) {
         }
     }
 
+    /**
+     * @author William Pii Jæger
+     * @author Weihao Mo
+     */
     public List<ProgramOP> toOps() {
         return switch (action) {
             case MOVE      -> List.of(new ProgramOP.Move(steps));
@@ -25,6 +35,9 @@ public record ProgramCard(Action action, int steps) {
         };
     }
 
+    /**
+     * @author William Pii Jæger
+     */
     @Override
     public String toString() {
         return switch (action) {

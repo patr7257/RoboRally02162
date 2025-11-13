@@ -2,6 +2,9 @@ import React from "react";
 import { registerEffect } from "../effectRegistry";
 import type { BlueConveyorEffect } from "../../types/boardTypes";
 
+/**
+ * @author Weihao Mo
+ */
 const BLUE_CONVEYOR_IMAGES: Record<string, string> = {
   NONE: "/conveyors/blue-n-none.png",
   RIGHT: "/conveyors/blue-n-right.png",

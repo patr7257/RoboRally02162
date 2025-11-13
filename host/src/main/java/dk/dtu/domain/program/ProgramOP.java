@@ -1,9 +1,12 @@
 package dk.dtu.domain.program;
 
-// Author(s) Weihao Mo, William Pii Jæger
+
 
 import dk.dtu.domain.model.Direction;
-
+/**
+ * @author Weihao Mo
+ * @author William Pii Jæger
+ */
 public sealed interface ProgramOP
         permits ProgramOP.Move, ProgramOP.RotateRight, ProgramOP.RotateLeft, ProgramOP.UTurn {
 

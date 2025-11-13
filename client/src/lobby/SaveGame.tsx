@@ -1,12 +1,17 @@
 /** 
-@author Bjarke Søderhamn Petersen
-@author Karl Johannes Agerbo
-@author Benjamin Benyo Endahl Hansen
+* @author Bjarke Søderhamn Petersen
+* @author Karl Johannes Agerbo
+* @author Benjamin Benyo Endahl Hansen
 */
 
 export { saveGame };
 const API_BASE_URL = process.env.REACT_APP_API_BASE_URL;
 
+/** 
+* @author Bjarke Søderhamn Petersen
+* @author Karl Johannes Agerbo
+* @author Benjamin Benyo Endahl Hansen
+*/
 const saveGame = async (
   lobbyId: string
 ): Promise<void> => {

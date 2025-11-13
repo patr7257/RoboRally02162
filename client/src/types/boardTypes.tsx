@@ -1,8 +1,12 @@
 export type Direction = "N" | "E" | "S" | "W";
 export type Rotation = "NONE" | "LEFT" | "RIGHT";
 
-/*
-Author(s): Asger, William, Bjarke, Niklas
+/** 
+* @author Bjarke Søderhamn Petersen
+* @author Asger Allin Jensen
+* @author William Pii Jæger
+* @author Patrick Røbel
+* @author Weihao Mo
 */
 
 export interface BaseEffect { kind: string; id: string }

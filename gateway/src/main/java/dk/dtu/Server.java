@@ -1,8 +1,5 @@
 package dk.dtu;
 
-/*
-Author(s): Niklas, Karl, Benjamin
- */
 
 import com.fasterxml.jackson.databind.JsonNode;
 import dk.dtu.model.database.SQLDatabaseInitializer;
@@ -20,6 +17,11 @@ import org.springframework.web.socket.config.annotation.*;
 
 import java.util.*;
 
+/**
+ * @author Karl Johannes Agerbo
+ * @author Benjamin Benyo Endahl Hansen
+ * @author Niklas Emil Lysdal
+ */
 @SpringBootApplication
 @EnableWebSocket
 public class Server implements WebSocketConfigurer { // TODO: after host connects remove
@@ -29,6 +31,11 @@ public class Server implements WebSocketConfigurer { // TODO: after host connect
     private WebSocketHandler clientHandler;
     private WebSocketHandler hostHandler;
 
+    /**
+     * @author Karl Johannes Agerbo
+     * @author Benjamin Benyo Endahl Hansen
+     * @author Niklas Emil Lysdal
+     */
     @Autowired
     public Server(ClientHandshakeInterceptor cliHandInt, ServerManager serverManager) {
         SQLDatabaseInitializer.initializeDatabaseComplete();
@@ -38,11 +45,19 @@ public class Server implements WebSocketConfigurer { // TODO: after host connect
         initHostHandler();
     }
 
+    /**
+     * @author Karl Johannes Agerbo
+     * @author Benjamin Benyo Endahl Hansen
+     * @author Niklas Emil Lysdal
+     */
     public static void main(String[] args) {
         SpringApplication.run(Server.class, args);
 
     }
-
+    /**
+     * @author Niklas Emil Lysdal
+     * @author Bjarke Søderhamn Petersen
+     */
     private String getTokenFromSession(WebSocketSession session) {
         String query = session.getUri().getQuery();
         if (query != null && query.startsWith("token=")) {
@@ -51,10 +66,17 @@ public class Server implements WebSocketConfigurer { // TODO: after host connect
         return "unknown";
     }
 
+
     private String getUserFromSession(WebSocketSession session) {
         return getTokenFromSession(session);
     }
 
+
+    /**
+     * @author Karl Johannes Agerbo
+     * @author Benjamin Benyo Endahl Hansen
+     * @author Niklas Emil Lysdal
+     */
     @Override
     public void registerWebSocketHandlers(WebSocketHandlerRegistry registry) {
         registry.addHandler(clientHandler, "/client").addInterceptors(clientInterceptor).setAllowedOrigins("*");
@@ -62,9 +84,21 @@ public class Server implements WebSocketConfigurer { // TODO: after host connect
         registry.addHandler(hostHandler, "/host").setAllowedOrigins("*");
     }
 
-
+    /**
+     * @author Karl Johannes Agerbo
+     * @author Benjamin Benyo Endahl Hansen
+     * @author Niklas Emil Lysdal
+     * @author Asger Allin Jensen
+     */
     private void initClientHandler() {
         clientHandler = new WebSocketHandler() { // Client
+
+            /**
+             * @author Karl Johannes Agerbo
+             * @author Benjamin Benyo Endahl Hansen
+             * @author Niklas Emil Lysdal
+             * @author Asger Allin Jensen
+             */
             @Override
             public void afterConnectionEstablished(WebSocketSession session) throws Exception {
 
@@ -79,6 +113,12 @@ public class Server implements WebSocketConfigurer { // TODO: after host connect
                 serverManager.createClient(user,session);
             }
 
+            /**
+             * @author Karl Johannes Agerbo
+             * @author Benjamin Benyo Endahl Hansen
+             * @author Niklas Emil Lysdal
+             * @author Asger Allin Jensen
+             */
             @Override
             public void handleMessage(WebSocketSession session, WebSocketMessage<?> message) throws Exception {
                 try {
@@ -102,6 +142,12 @@ public class Server implements WebSocketConfigurer { // TODO: after host connect
                 //System.out.println("Message handling completed for: " + session.getId());
             }
 
+            /**
+             * @author Karl Johannes Agerbo
+             * @author Benjamin Benyo Endahl Hansen
+             * @author Niklas Emil Lysdal
+             * @author Asger Allin Jensen
+             */
             @Override
             public void handleTransportError(WebSocketSession session, Throwable exception) throws Exception {
                 System.err.println("=== TRANSPORT ERROR ===");
@@ -112,6 +158,12 @@ public class Server implements WebSocketConfigurer { // TODO: after host connect
                 System.err.println("=====================");
             }
 
+            /**
+             * @author Karl Johannes Agerbo
+             * @author Benjamin Benyo Endahl Hansen
+             * @author Niklas Emil Lysdal
+             * @author Asger Allin Jensen
+             */
             public void afterConnectionClosed(WebSocketSession session, CloseStatus closeStatus) throws Exception {
                 System.err.println("=== WebSocket CLOSED ===");
                 System.err.println("Session ID: " + session.getId());
@@ -125,6 +177,12 @@ public class Server implements WebSocketConfigurer { // TODO: after host connect
                 System.out.println("Client disconnected: " + session.getId());
             }
 
+            /**
+             * @author Karl Johannes Agerbo
+             * @author Benjamin Benyo Endahl Hansen
+             * @author Niklas Emil Lysdal
+             * @author Asger Allin Jensen
+             */
             @Override
             public boolean supportsPartialMessages() {
                 return false;
@@ -133,8 +191,21 @@ public class Server implements WebSocketConfigurer { // TODO: after host connect
         };
     }
 
+    /**
+     * @author Karl Johannes Agerbo
+     * @author Benjamin Benyo Endahl Hansen
+     * @author Niklas Emil Lysdal
+     * @author Asger Allin Jensen
+     */
     private void initHostHandler() {
         hostHandler = new WebSocketHandler() { // host
+
+            /**
+             * @author Karl Johannes Agerbo
+             * @author Benjamin Benyo Endahl Hansen
+             * @author Niklas Emil Lysdal
+             * @author Asger Allin Jensen
+             */
             @Override
             public void afterConnectionEstablished(WebSocketSession session) throws Exception {
                 String token = getTokenFromSession(session);
@@ -146,6 +217,12 @@ public class Server implements WebSocketConfigurer { // TODO: after host connect
                 serverManager.getHost().setSession(session);
             }
 
+            /**
+             * @author Karl Johannes Agerbo
+             * @author Benjamin Benyo Endahl Hansen
+             * @author Niklas Emil Lysdal
+             * @author Asger Allin Jensen
+             */
             @Override
             public void handleMessage(WebSocketSession session, WebSocketMessage<?> message) throws Exception {
                 try {
@@ -180,16 +257,31 @@ public class Server implements WebSocketConfigurer { // TODO: after host connect
                 }
             }
 
+            /**
+             * @author Karl Johannes Agerbo
+             * @author Benjamin Benyo Endahl Hansen
+             * @author Niklas Emil Lysdal
+             */
             @Override
             public void handleTransportError(WebSocketSession session, Throwable exception) throws Exception {
 
             }
 
+            /**
+             * @author Karl Johannes Agerbo
+             * @author Benjamin Benyo Endahl Hansen
+             * @author Niklas Emil Lysdal
+             */
             @Override
             public void afterConnectionClosed(WebSocketSession session, CloseStatus closeStatus) throws Exception {
                 // TODO: handle host disconnecting (probably message all clients that server is down)
             }
 
+            /**
+             * @author Karl Johannes Agerbo
+             * @author Benjamin Benyo Endahl Hansen
+             * @author Niklas Emil Lysdal
+             */
             @Override
             public boolean supportsPartialMessages() {
                 return false;
@@ -216,7 +308,4 @@ public class Server implements WebSocketConfigurer { // TODO: after host connect
     public WebSocketHandler getHostHandler() {
         return hostHandler;
     }
-
-
-
 }

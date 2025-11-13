@@ -1,6 +1,8 @@
-/*
-Author(s): Bjarke, Asger, Patrick
-*/
+/**
+ * @author Bjarke Søderhamn Petersen
+ * @author Patrick Røbel
+ * @author Asger Allin Jensen
+ */
 
 import React, { ReactNode } from "react";
 import "./lobby.css";

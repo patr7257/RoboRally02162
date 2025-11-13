@@ -1,7 +1,3 @@
-
-/* 
-Author(s): Niklas
-*/
 import Reac, { useState, useEffect } from "react";
 import Layout from "./Layout";       // import the shared layout
 import { useNavigate } from "react-router-dom";
@@ -10,15 +6,16 @@ import "../styles/lobbyCreator.css";
 
 const API_BASE_URL = process.env.REACT_APP_API_BASE_URL;
 
+/**
+ *@author: Niklas Emil Lysdal
+ */
 export default function LobbyCreator() { //change this name
     const navigate = useNavigate();
     const [lobbyName, setLobbyName] = useState("");
     const [capacity, setCapacity] = useState("");
     const [error, setError] = useState("");
-
     
     /**
-     * 
      *@author: Niklas Emil Lysdal
      */
     const finishCreation = async () => {
@@ -115,10 +112,6 @@ export default function LobbyCreator() { //change this name
         setCapacity(value);
     }
 
-    /**
-     * 
-     *@author: Niklas Emil Lysdal
-     */
     return (
         <Layout>
             <h1> Create Lobby</h1>

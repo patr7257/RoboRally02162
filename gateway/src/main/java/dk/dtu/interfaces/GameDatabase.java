@@ -8,9 +8,9 @@ import java.util.Set;
 import java.util.UUID;
 
 /**
- @author Bjarke Søderhamn Petersen
- @author Benjamin Benyo Endahl Hansen
- @author Karl Johannes Agerbo
+ * @author Bjarke Søderhamn Petersen
+ * @author Benjamin Benyo Endahl Hansen
+ * @author Karl Johannes Agerbo
  */
 
 public interface GameDatabase {

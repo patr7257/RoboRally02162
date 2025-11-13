@@ -7,8 +7,17 @@ import java.util.ArrayDeque;
 import java.util.Deque;
 import java.util.List;
 
-// Author(s) William Pii Jæger, Weihao Mo
-
+/**
+ * Represents a robot player in the game with position, direction.
+ * <p>
+ * Each robot maintains also its current position on the board, facing direction, checkpoint progress,
+ * and a queue of program operations to execute.
+ * </p>
+ *
+ * @author William Pii Jæger
+ * @author Weihao Mo
+ * @author Karl Johannes Agerbo
+ */
 public class Robot {
     private final int id;
     private int x, y;
@@ -19,6 +28,10 @@ public class Robot {
 
     private final Deque<ProgramOP> registers = new ArrayDeque<>();
 
+    /**
+     * @author William Pii Jæger
+     * @author Weihao Mo
+     */
     public Robot(int id, int x, int y, Direction direction) {
         this.id = id;
         this.x = x;
@@ -27,7 +40,7 @@ public class Robot {
     }
 
     /**
-     @author Karl Johannes Agerbo
+     * @author Karl Johannes Agerbo
      */
     public Robot(int id, int x, int y, Direction direction, int nextCheckpoint) {
         this.id = id;
@@ -37,10 +50,15 @@ public class Robot {
         this.nextCheckpoint = nextCheckpoint;
     }
 
+    /**
+     * @author William Pii Jæger
+     * @author Weihao Mo
+     */
     public void loadProgram(List<ProgramCard> cards) {
         registers.clear();
         for (ProgramCard c : cards) registers.addAll(c.toOps());
     }
+    
     public ProgramOP pollNextOp() {
         return registers.pollFirst();
     }
@@ -49,17 +67,22 @@ public class Robot {
         return !registers.isEmpty();
     }
 
-
     public int getNextCheckpoint() {
         return nextCheckpoint;
     }
 
+    /**
+     * @author Weihao Mo
+     */
     public void advanceCheckpointIfMatches(int checkpointNumber) {
         if (checkpointNumber == nextCheckpoint) {
             nextCheckpoint++;
         }
     }
 
+    /**
+     * @author Weihao Mo
+     */
     public boolean hasWon(int totalCheckpoints) {
         return nextCheckpoint > totalCheckpoints;
     }
@@ -104,7 +127,6 @@ public class Robot {
         this.x = x;
         this.y = y;
     }
-
 
     public boolean movedOnActivation() { return movedOnActivation; }
     public void setMovedOnActivation(boolean v) { movedOnActivation = v; }

@@ -1,9 +1,5 @@
 package dk.dtu;
 
-/*
-Author(s): Niklas
- */
-
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeEach;
@@ -32,6 +28,9 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+/**
+ * @author Niklas Emil Lysdal
+ */
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
 @AutoConfigureMockMvc
@@ -53,6 +52,7 @@ public class ConnectionEstablishmentTests {
         clientSocket = new StandardWebSocketClient();
         hostSocket = new StandardWebSocketClient();
     }
+
     /**
      * @author Niklas Emil Lysdal
      */
@@ -88,6 +88,7 @@ public class ConnectionEstablishmentTests {
             }
         }
     }
+
     /**
      * @author Niklas Emil Lysdal
      */
@@ -144,6 +145,7 @@ public class ConnectionEstablishmentTests {
             }
         }
     }
+
     /**
      * @author Niklas Emil Lysdal
      */
@@ -179,6 +181,7 @@ public class ConnectionEstablishmentTests {
             assertThat(e.getCause().getMessage()).contains("401"); // missing authorization
         }
     }
+
     /**
      * @author Niklas Emil Lysdal
      */

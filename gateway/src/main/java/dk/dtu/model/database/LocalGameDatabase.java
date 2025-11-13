@@ -34,9 +34,9 @@ public class LocalGameDatabase implements GameDatabase {
     }
 
     /**
-     @author Bjarke Søderhamn Petersen
-     @author Benjamin Benyo Endahl Hansen
-     @author Karl Johannes Agerbo
+     * @author Bjarke Søderhamn Petersen
+     * @author Benjamin Benyo Endahl Hansen
+     * @author Karl Johannes Agerbo
      */
 
     @Override
@@ -45,7 +45,7 @@ public class LocalGameDatabase implements GameDatabase {
     }
 
     /**
-     @author Karl Johannes Agerbo
+     * @author Karl Johannes Agerbo
      */
     @Override
     public JsonNode getUsers(String saveID) {
@@ -53,9 +53,9 @@ public class LocalGameDatabase implements GameDatabase {
     }
 
     /**
-     @author Bjarke Søderhamn Petersen
-     @author Benjamin Benyo Endahl Hansen
-     @author Karl Johannes Agerbo
+     * @author Bjarke Søderhamn Petersen
+     * @author Benjamin Benyo Endahl Hansen
+     * @author Karl Johannes Agerbo
      */
 
     @Override
@@ -64,9 +64,9 @@ public class LocalGameDatabase implements GameDatabase {
     }
 
     /**
-     @author Bjarke Søderhamn Petersen
-     @author Benjamin Benyo Endahl Hansen
-     @author Karl Johannes Agerbo
+     * @author Bjarke Søderhamn Petersen
+     * @author Benjamin Benyo Endahl Hansen
+     * @author Karl Johannes Agerbo
      */
 
     @Override

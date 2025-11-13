@@ -12,8 +12,14 @@ import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+/**
+ * @author William Pii Jæger
+ */
 public class GameTestSupport {
 
+    /**
+     * @author William Pii Jæger
+     */
     public static List<Robot> lineRobots(int startId, int startX, int y, int count, Direction facing) {
         List<Robot> out = new ArrayList<>(count);
         for (int i = 0; i < count; i++) {
@@ -22,26 +28,41 @@ public class GameTestSupport {
         return out;
     }
 
+    /**
+     * @author William Pii Jæger
+     */
     public static void walls(Board b, int x, int y, Direction... dirs) {
         b.getTile(x, y).setEffects(List.of(new Walls(EnumSet.copyOf(List.of(dirs)))));
     }
 
+    /**
+     * @author William Pii Jæger
+     */
     public static void assertPosDir(Robot r, int x, int y, Direction d) {
         assertEquals(x, r.getX(), "x");
         assertEquals(y, r.getY(), "y");
         assertEquals(d, r.getDirection(), "dir");
     }
 
+    /**
+     * @author William Pii Jæger
+     */
     public static Outcome.Moved assertMoved(Outcome out) {
         assertInstanceOf(Outcome.Moved.class, out);
         return (Outcome.Moved) out;
     }
 
+    /**
+     * @author William Pii Jæger
+     */
     public static Outcome.Blocked assertBlocked(Outcome out) {
         assertInstanceOf(Outcome.Blocked.class, out);
         return (Outcome.Blocked) out;
     }
 
+    /**
+     * @author William Pii Jæger
+     */
     public static void assertEdgeBlock(Outcome out, Edge expected) {
         Outcome.Blocked b = assertBlocked(out);
         assertInstanceOf(EdgeBlock.class, b.reason());
@@ -49,6 +70,9 @@ public class GameTestSupport {
         assertEquals(expected, eb.edge());
     }
 
+    /**
+     * @author William Pii Jæger
+     */
     public static void assertChainBlockedByEdge(Outcome out, List<Integer> chain, Edge expectedStop) {
         Outcome.Blocked b = assertBlocked(out);
         assertInstanceOf(RobotChainImmovable.class, b.reason());
@@ -59,6 +83,9 @@ public class GameTestSupport {
         assertEquals(expectedStop, stop.edge());
     }
 
+    /**
+     * @author William Pii Jæger
+     */
     public static void assertMove(Outcome.Moved moved, int idx, int robotId, Coord from, Coord to) {
         MoveEvent ev = moved.moves().get(idx);
         assertEquals(robotId, ev.robotId());
@@ -66,6 +93,9 @@ public class GameTestSupport {
         assertEquals(to, ev.to());
     }
 
+    /**
+     * @author William Pii Jæger
+     */
     public static void assertDestroy(Outcome.Moved moved, int idx, int robotId, Coord at) {
         DestroyEvent ev = moved.destroys().get(idx);
         assertEquals(robotId, ev.robotId());

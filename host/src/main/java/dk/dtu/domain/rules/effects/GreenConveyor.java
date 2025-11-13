@@ -10,9 +10,25 @@ import dk.dtu.domain.rules.api.BoardAPI;
 
 import java.util.*;
 /**
+ * Green conveyor tile effect that pushes robots one step in the conveyor's facing direction.
+ * <p>
+ * For each blue conveyor a{@link BeltIntent} is added
+ * with speed {@code 1} and priority {@code 1}
+ * Any post-move is handled later by the board when resolving intents.
+ * </p>
+ *
+ * @param direction the direction the green conveyor is facing
+ * @param rotation the rotation to apply to robots
+ *
+ * @see BoardAPI#addIntent(BeltIntent)
+ * @see BoardAPI#resolveIntents()
  * @author Weihao Mo
  */
 public record GreenConveyor(Direction direction, Rotation rotation) implements TileEffect {
+
+    /**
+     * @author Weihao Mo
+     */
     @Override
     public void onPhase(Phase phase, Tile tile, BoardAPI api) {
         if (phase != Phase.ACTIVATE_GREENCONVEYOR) return;

@@ -1,12 +1,17 @@
-/*
-Author(s): Lizette, Asger
-*/
-
 import React, { useState } from "react";
 import { sha256Hex } from "../utils/hashPassword";
 
+/**
+ * @author Asger Allin Jensen
+ * @author Lizette Bloch Dahl Nikolajsen
+ */
 interface RegisterCompProps { }
 
+
+/**
+ * @author Asger Allin Jensen
+ * @author Lizette Bloch Dahl Nikolajsen
+ */
 export default function RegisterComp({ }: RegisterCompProps) {
   const [username, setUsername] = useState<string>("");
   const [password, setPassword] = useState<string>("");

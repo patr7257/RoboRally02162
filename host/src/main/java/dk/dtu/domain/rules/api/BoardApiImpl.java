@@ -6,7 +6,16 @@ import dk.dtu.domain.rules.effects.*;
 
 import java.util.*;
 
-// Author(s) William Pii Jæger and Weihao Mo
+/**
+ * Implementation of the BoardAPI interface and provides core game board functionality.
+ * <p>
+ * BoardAPIImpl also handles multiple board elements (like conveyor belts and antenna) to register planned
+ * movements, which are then resolved together with proper priority ordering and collision handling.
+ * </p>
+ *
+ * @author William Pii Jæger
+ * @author Weihao Mo
+ */
 public final class BoardApiImpl implements BoardAPI {
     private final Board board;
     private final Map<Integer, Robot> robots;
@@ -22,6 +31,11 @@ public final class BoardApiImpl implements BoardAPI {
     }
 
     /**
+     * Calculates the next coordinate when moving one step in the specified direction.
+     *
+     * @param from the starting coordinate
+     * @param dir the direction of movement
+     * @return the coordinate reached after moving one step in the direction
      * @author William Pii Jæger
      */
     public Coord next(Coord from, Direction dir) {
@@ -39,6 +53,13 @@ public final class BoardApiImpl implements BoardAPI {
     }
 
     /**
+     * Determines whether a wall exists between two adjacent coordinates.
+     * Checks both tiles for walls facing each other. Returns false if the coordinates
+     * are not adjacent.
+     *
+     * @param from the starting coordinate
+     * @param to the target coordinate
+     * @return {@code true} if a wall blocks movement between the coordinates, {@code false} otherwise
      * @author William Pii Jæger
      */
     public boolean hasWallBetween(Coord from, Coord to) {
@@ -78,6 +99,21 @@ public final class BoardApiImpl implements BoardAPI {
 
 
     /**
+     * Attempts to move a robot one step in the specified direction.
+     * It checks:
+     *
+     * <ul>
+     *   <li>Wall blocking: Returns Blocked outcome if a wall prevents movement</li>
+     *   <li>Falling off board: Creates DestroyEvent if robot moves off the board</li>
+     *   <li>Pushing chains: Moves chains of robots if possible, or blocks if immovable</li>
+     *   <li>Chain pushed off board: Destroys the tail robot if pushed off the edge</li>
+     * </ul>
+     *
+     * @param robotId the id for the robot
+     * @param dir the direction in which to attempt movement
+     * @return an Outcome.Moved containing all moves and destroys, or Outcome.Blocked if movement fails
+     * @see Outcome.Moved
+     * @see Outcome.Blocked
      * @author William Pii Jæger
      */
     @Override
@@ -143,7 +179,10 @@ public final class BoardApiImpl implements BoardAPI {
 
 
     /**
-     @author Weihao Mo
+     * Adds a movement intent to be resolved later.
+     *
+     * @param intent about a planned movement
+     * @author Weihao Mo
      */
     @Override
     public void addIntent(BeltIntent intent) {
@@ -151,7 +190,23 @@ public final class BoardApiImpl implements BoardAPI {
     }
 
     /**
-     @author Weihao Mo
+     * Resolves all movement intents with priority-based processing.
+     * For each priority level:
+     * <ul>
+     *   <li>Predicts collisions where multiple robots would move to the same location</li>
+     *   <li>Processes movements one step at a time for the specified speed</li>
+     *   <li>Handles robot chains that are all moving together</li>
+     *   <li>Applies conveyor belt rotations after successful movement</li>
+     *   <li>Marks robots as having moved to prevent double-activation</li>
+     * </ul>
+     * <p>
+     * After resolution, all intents are cleared from the queue.
+     * </p>
+     *
+     * @return an Outcome.Moved containing all successful moves and any robot destructions
+     * @see Outcome.Moved
+     * @see Outcome.Blocked
+     * @author Weihao Mo
      */
     @Override
     public Outcome resolveIntents() {
@@ -180,7 +235,15 @@ public final class BoardApiImpl implements BoardAPI {
     }
 
     /**
-     @author Weihao Mo
+     * Processes all intents at a specific priority level.
+     * It predicts collisions, processes movements step-by-step for the conveyor speed,
+     * and applies rotations after each successful move.
+     *
+     * @param intents the list of intents at this priority level
+     * @param priority the priority level (2 for blue conveyors, 1 for green conveyors)
+     * @param allMoves accumulator for all move events
+     * @param allDestroys accumulator for all destroy events
+     * @author Weihao Mo
      */
     private void processPriorityGroup(List<BeltIntent> intents, int priority,
                                       List<MoveEvent> allMoves, List<DestroyEvent> allDestroys) {
@@ -301,7 +364,18 @@ public final class BoardApiImpl implements BoardAPI {
     }
 
     /**
-     @author Weihao Mo
+     * Predicts which robots will collide during conveyor movement.
+     * <p>
+     * It simulates the movement of all robots over the specified number of steps without
+     * actually moving them. Then we find robots that would attempt to move to the same
+     * destination coordinate and mark them as blocked by collision.
+     * </p>
+     *
+     * @param robotList the list of robots to simulate
+     * @param maxSteps the number of steps to simulate (conveyor speed)
+     * @param priority the priority level to determine which conveyor type to check
+     * @return a set of robot IDs that will collide during movement
+     * @author Weihao Mo
      */
     private Set<Integer> predictCollisions(List<Robot> robotList, int maxSteps, int priority) {
         Map<Integer, Coord> simPos = new HashMap<>();
@@ -347,7 +421,12 @@ public final class BoardApiImpl implements BoardAPI {
     }
 
     /**
-     @author Weihao Mo
+     * Gets the conveyor direction at a coordinate
+     *
+     * @param pos the coordinate
+     * @param priority the priority level (2 for blue, 1 for green conveyors)
+     * @return the Direction of the conveyor, or {@code null} if no matching conveyor exists
+     * @author Weihao Mo
      */
     private Direction getConveyorDirectionAt(Coord pos, int priority) {
         if (!isInBounds(pos.x(), pos.y())) return null;
@@ -360,7 +439,12 @@ public final class BoardApiImpl implements BoardAPI {
     }
 
     /**
-     @author Weihao Mo
+     * Checks whether a robot is currently on a conveyor belt of the specified priority.
+     *
+     * @param robot the robot to check
+     * @param priority the priority level
+     * @return {@code true} if the robot is on a matching conveyor, {@code false} otherwise
+     * @author Weihao Mo
      */
     private boolean isRobotOnConveyor(Robot robot, int priority) {
         if (!isInBounds(robot.getX(), robot.getY())) return false;
@@ -374,7 +458,12 @@ public final class BoardApiImpl implements BoardAPI {
     }
 
     /**
-     @author Weihao Mo
+     * Gets the direction of the conveyor belt the robot is standing on.
+     *
+     * @param robot the robot to check
+     * @param priority the priority level (2 for blue, 1 for green conveyors)
+     * @return the Direction of the conveyor, or {@code null} if no matching conveyor exists
+     * @author Weihao Mo
      */
     private Direction getConveyorDirection(Robot robot, int priority) {
         if (!isInBounds(robot.getX(), robot.getY())) return null;
@@ -388,7 +477,11 @@ public final class BoardApiImpl implements BoardAPI {
     }
 
     /**
-     @author Weihao Mo
+     * Applies conveyor belt rotation to a robot after it has moved
+     *
+     * @param robot the robot to rotate
+     * @param priority the priority level (2 for blue, 1 for green conveyors)
+     * @author Weihao Mo
      */
     private void applyRotation(Robot robot, int priority) {
         if (!isInBounds(robot.getX(), robot.getY())) return;
@@ -414,6 +507,11 @@ public final class BoardApiImpl implements BoardAPI {
     }
 
     /**
+     * Returns all robots currently positioned on the specified tile.
+     *
+     * @param x the x-coordinate of the tile
+     * @param y the y-coordinate of the tile
+     * @return a list of robots on the tile, or an empty list if none are present
      * @author William Pii Jæger
      */
     @Override
@@ -428,17 +526,34 @@ public final class BoardApiImpl implements BoardAPI {
     }
 
     /**
-      @author Weihao Mo
+     * Retrieves the tile at the specified coordinates.
+     *
+     * @param x the x-coordinate of the tile
+     * @param y the y-coordinate of the tile
+     * @return the Tile at position (x, y)
+     * @author Weihao Mo
      */
     @Override
     public Tile getTile(int x, int y) {
         return board.getTile(x, y);
     }
 
+    /**
+     * @param x the x-coordinate to check
+     * @param y the y-coordinate to check
+     * @return {@code true} if the coordinates are within bounds, {@code false} otherwise
+     * @author William Pii Jæger
+     */
     @Override
     public boolean isInBounds(int x, int y) {
         return board.isInBounds(x,y);
     }
+
+    /**
+     * @return a list of dead robots, or an empty list if all robots are alive
+     *
+     * @author Weihao Mo
+     */
     public List<Robot> getDeadRobots() {
         List<Robot> result = new ArrayList<>();
         for(Robot r: robots.values()) {
@@ -449,9 +564,6 @@ public final class BoardApiImpl implements BoardAPI {
         return result;
     }
 
-    /**
-     * @author Weihao Mo
-     */
     @Override
     public List<Robot> getRobots() {
         return new ArrayList<>(robots.values());
@@ -466,6 +578,7 @@ public final class BoardApiImpl implements BoardAPI {
     }
 
     /**
+     * @return a list of robots sorted by priority (highest to lowest)
      * @author Weihao Mo
      */
     @Override

@@ -11,10 +11,20 @@ import java.util.stream.Collectors;
 
 
 /**
+ * Antenna tile effect that determines robot priority order.
+ * <p>
+ * The antenna calculates priority based on Manhattan distance from the antenna position,
+ * with ties broken by the robot's angular position relative to the antenna's facing direction.
+ * </p>
+ *
+ * @param direction the direction the antenna is facing
  * @author Weihao Mo
  */
 public record Antenna(Direction direction) implements TileEffect{
 
+    /**
+     * @author Weihao Mo
+     */
     @Override
     public void onPhase(Phase phase, Tile tile, BoardAPI api) {
         if(phase == Phase.ACTIVATE_ANTENNA) {

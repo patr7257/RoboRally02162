@@ -1,10 +1,10 @@
 package dk.dtu.domain.model;
 
-// Author(s): William Pii Jæger
-
-import dk.dtu.domain.rules.effects.Checkpoint;
-import dk.dtu.domain.rules.effects.TileEffect;
-
+/**
+ * Represents a two-dimensional game board composed of tiles.
+ *
+ * @author William Pii Jæger
+ */
 public class Board {
     private final int width;
     private final int height;

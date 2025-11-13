@@ -4,5 +4,9 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 
 import java.util.UUID;
 
+/**
+ * @author William Pii Jæger
+ * @author Weihao Mo
+ */
 public record GameDto(@JsonProperty("gameID") UUID gameID, @JsonProperty("winner") Integer winner) {
 }

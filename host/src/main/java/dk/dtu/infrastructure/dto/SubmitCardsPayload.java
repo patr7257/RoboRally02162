@@ -5,8 +5,9 @@ import dk.dtu.domain.program.ProgramCard;
 import java.util.ArrayList;
 import java.util.List;
 
-// Author(s) Weihao Mo
-
+/**
+ * @author Weihao Mo
+ */
 public record SubmitCardsPayload(String type, List<String> cards) {
     public List<ProgramCard> revertStringToCard(List<String> cards) {
         List<ProgramCard> revertCards = new ArrayList<>();

@@ -2,12 +2,18 @@ import React from "react";
 import { registerEffect } from "../effectRegistry";
 import type { GreenConveyorEffect } from "../../types/boardTypes";
 
+/**
+ *@author Weihao Mo
+ */
 const GREEN_CONVEYOR_IMAGES: Record<string, string> = {
   RIGHT: "/conveyors/green-n-right.png",
   LEFT: "/conveyors/green-n-left.png",
   NONE: "/conveyors/green-n-none.png",
 };
 
+/**
+ *@author Weihao Mo
+ */
 const DIRECTION_ROTATION: Record<string, number> = {
   N: 0,
   E: 90,
@@ -15,6 +21,9 @@ const DIRECTION_ROTATION: Record<string, number> = {
   W: 270,
 };
 
+/**
+ *@author Weihao Mo
+ */
 function GreenConveyor({ effect }: { effect: GreenConveyorEffect }) {
   const imageSrc = GREEN_CONVEYOR_IMAGES[effect.rotation];
   const rotationDegrees = DIRECTION_ROTATION[effect.direction];

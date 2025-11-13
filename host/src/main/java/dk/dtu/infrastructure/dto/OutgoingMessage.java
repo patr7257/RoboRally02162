@@ -1,7 +1,8 @@
 package dk.dtu.infrastructure.dto;
 
-// Author(s) William Pii Jæger
-
+/**
+ * @author William Pii Jæger
+ */
 public record OutgoingMessage<T>(
         String type,
         Delivery delivery,

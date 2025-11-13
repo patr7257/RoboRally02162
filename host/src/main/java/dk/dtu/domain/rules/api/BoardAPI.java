@@ -9,6 +9,8 @@ import dk.dtu.domain.rules.*;
 import java.util.List;
 
 /**
+ * An interface for interacting with the game board and managing robot movements.
+ *
  * @author Weihao Mo
  * @author William Pii Jæger
  */

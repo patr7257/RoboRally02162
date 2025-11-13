@@ -1,9 +1,3 @@
-/**
-Author(s): Bjarke, Patrick, Niklas
-@author Asger Allin Jensen
-*/
-
-
 import { useNavigate } from "react-router-dom";
 import Layout from "./Layout";
 import { useEffect, useCallback } from "react";
@@ -11,6 +5,13 @@ import React, { useState } from "react";
 import { subscribe } from "../utils/ws";
 import { leaveLobby } from './LeaveLobby';
 import { fullLobbyInfo, DEFAULT_FULL_LOBBY_INFO } from '../types/lobbyTypes';
+
+/**
+ * @author Bjarke Søderhamn Petersen
+ * @author Niklas Emil Lysdal
+ * @author Asger Allin Jensen
+ * @author Patrick Røbel
+ */
 export default function LobbyCreation() {
   const navigate = useNavigate();
   const userID: string | null = localStorage.getItem("userID");
@@ -22,7 +23,7 @@ export default function LobbyCreation() {
   const [playersReady, setPlayersReady] = useState<{ [username: string]: boolean }>({}); // total readiness
 
   const API_BASE_URL = process.env.REACT_APP_API_BASE_URL;
-    /**
+  /**
    * @author Niklas Emil Lysdal
    */
   const updateLobbyInfo = useCallback(async () => {
@@ -50,9 +51,13 @@ export default function LobbyCreation() {
       if (setError) setError("Network error. Try Again.");
     }
   }, [userID, setFullLobbyInfo, setPlayersReady, setError, API_BASE_URL]);
-    /**
-   * @author Niklas Emil Lysdal
-   */
+
+/**
+ * @author Bjarke Søderhamn Petersen
+ * @author Niklas Emil Lysdal
+ * @author Asger Allin Jensen
+ * @author Patrick Røbel
+ */
   useEffect(() => {
     updateLobbyInfo();
     const unsubscribe = subscribe((message: string) => {
@@ -84,10 +89,9 @@ export default function LobbyCreation() {
     }
   }, [navigate,updateLobbyInfo])
 
-
-
-
-
+/**
+ * @author Asger Allin Jensen
+ */
 
   const handleToggleReadiness = async () => {
     setError("");
@@ -118,6 +122,11 @@ export default function LobbyCreation() {
     }
   };
 
+/**
+ * @author Bjarke Søderhamn Petersen
+ * @author Asger Allin Jensen
+ * @author Patrick Røbel
+ */
   const startGame = async () => {
     setError("");
     if (fullLobbyInfo === null || fullLobbyInfo === undefined) {
@@ -136,12 +145,6 @@ export default function LobbyCreation() {
     }
   };
 
-
-
-
-  /**
-   * @author Niklas Emil Lysdal
-   */
   return (
     <Layout>
       <div className="panel-container">

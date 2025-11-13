@@ -2,9 +2,9 @@ import React from "react";
 import { registerEffect } from "../effectRegistry";
 import type { AntennaEffect } from "../../types/boardTypes";
 
-/*
-* @author Weihao Mo
-*/
+/**
+ * @author Weihao Mo
+ */
 const ANTENNA_IMAGE = "/antenna-n.jpg";
 
 const ROTATION_ANGLES: Record<string, number> = {

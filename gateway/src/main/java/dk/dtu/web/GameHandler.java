@@ -16,9 +16,9 @@ import org.springframework.web.bind.annotation.*;
 import java.util.*;
 
 /**
- @author Bjarke Søderhamn Petersen
- @author Benjamin Benyo Endahl Hansen
- @author Karl Johannes Agerbo
+ * @author Bjarke Søderhamn Petersen
+ * @author Benjamin Benyo Endahl Hansen
+ * @author Karl Johannes Agerbo
  */
 
 @RestController
@@ -29,9 +29,9 @@ public class GameHandler {
     private final ServerManager serverManager;
 
     /**
-     @author Bjarke Søderhamn Petersen
-     @author Benjamin Benyo Endahl Hansen
-     @author Karl Johannes Agerbo
+     * @author Bjarke Søderhamn Petersen
+     * @author Benjamin Benyo Endahl Hansen
+     * @author Karl Johannes Agerbo
      */
     public GameHandler(DynamicGameDatabase gameDatabase, ServerManager serverManager) {
         this.gameDatabase = gameDatabase;
@@ -39,9 +39,9 @@ public class GameHandler {
     }
 
     /**
-     @author Bjarke Søderhamn Petersen
-     @author Benjamin Benyo Endahl Hansen
-     @author Karl Johannes Agerbo
+     * @author Bjarke Søderhamn Petersen
+     * @author Benjamin Benyo Endahl Hansen
+     * @author Karl Johannes Agerbo
      */
     @PostMapping("/game/save")
     public ResponseEntity<String> saveGame(@RequestBody JsonNode json) {
@@ -76,9 +76,9 @@ public class GameHandler {
     }
 
     /**
-     @author Bjarke Søderhamn Petersen
-     @author Benjamin Benyo Endahl Hansen
-     @author Karl Johannes Agerbo
+     * @author Bjarke Søderhamn Petersen
+     * @author Benjamin Benyo Endahl Hansen
+     * @author Karl Johannes Agerbo
      */
     @PostMapping("/game/seeSavedGames")
     public ResponseEntity<String> seeSavedGames(@RequestBody JsonNode json) {
@@ -93,9 +93,9 @@ public class GameHandler {
     }
 
     /**
-     @author Bjarke Søderhamn Petersen
-     @author Benjamin Benyo Endahl Hansen
-     @author Karl Johannes Agerbo
+     * @author Bjarke Søderhamn Petersen
+     * @author Benjamin Benyo Endahl Hansen
+     * @author Karl Johannes Agerbo
      */
     @PostMapping("/game/loadGame")
     public ResponseEntity<String> loadGame(@RequestBody JsonNode json) {

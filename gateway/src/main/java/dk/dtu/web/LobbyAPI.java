@@ -1,8 +1,5 @@
 package dk.dtu.web;
 
-/*
-Author(s): Karl, Benjamin, Niklas
- */
 
 import com.fasterxml.jackson.databind.JsonNode;
 
@@ -24,18 +21,33 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.*;
+
+/**
+ * @author Niklas Emil Lysdal
+ * @author Benjamin Benyo Endahl Hansen
+ * @author Karl Johannes Agerbo
+ * @author Asger Allin Jensen
+ * @author Kajsa Alice Ulrika Berlstedt
+ */
 @RestController
 @RequestMapping("/api")
 public class LobbyAPI {
     private final ServerManager serverManager;
     private final GameDatabase gameDatabase;
 
+    /**
+     * @author Niklas Emil Lysdal
+     * @author Karl Johannes Agerbo
+     */
     public LobbyAPI(ServerManager serverManager, DynamicGameDatabase gameDatabase) {
         this.serverManager = serverManager;
         this.gameDatabase = gameDatabase;
     }
+
     /**
      * @author Niklas Emil Lysdal
+     * @author Karl Johannes Agerbo
+     * @author Benjamin Benyo Endahl Hansen
      */
     @PostMapping("/lobby/create") // returns lobbyID.
     public ResponseEntity<String> createLobby(@RequestBody JsonNode json) { // TODO: add authorization
@@ -83,8 +95,11 @@ public class LobbyAPI {
 
         return ResponseEntity.status(HttpStatus.CREATED).body(lob.getLobbyID());
     }
+
     /**
      * @author Niklas Emil Lysdal
+     * @author Karl Johannes Agerbo
+     * @author Benjamin Benyo Endahl Hansen
      */
     @PostMapping("/lobby/join")
     public ResponseEntity<String> joinLobby(@RequestBody LobbyUserRequest req) {
@@ -120,8 +135,11 @@ public class LobbyAPI {
             return ResponseEntity.status(HttpStatus.CONFLICT).body("UNKNOWN_ERROR");
         }
     }
+
     /**
      * @author Niklas Emil Lysdal
+     * @author Karl Johannes Agerbo
+     * @author Benjamin Benyo Endahl Hansen
      */
     @PostMapping("/lobby/start") // TODO: add check that websocket connection is running
     public ResponseEntity<String> startLobby(@RequestBody JsonNode json) {
@@ -142,8 +160,10 @@ public class LobbyAPI {
         }
 
     }
+
     /**
      * @author Niklas Emil Lysdal
+     * @author Karl Johannes Agerbo
      */
     @PostMapping("/lobby/seeLobbies")
     public ResponseEntity<String> seeLobbies(@RequestBody JsonNode json) { //only re
@@ -185,6 +205,7 @@ public class LobbyAPI {
         }
         return ResponseEntity.status(HttpStatus.OK).body(lob.asPrivateJson());
     }
+
     /**
      * @author Niklas Emil Lysdal
      */
@@ -210,8 +231,8 @@ public class LobbyAPI {
     }
 
     /**
-    @author Asger
-    @author Niklas
+     * @author Niklas Emil Lysdal
+     * @author Asger Allin Jensen
      */
     @PostMapping("/lobby/markReady")
     public ResponseEntity<String> markReady(@RequestBody LobbyUserRequest req) {
@@ -237,8 +258,8 @@ public class LobbyAPI {
     }
 
     /**
-     @author Asger
-     @author Niklas
+     * @author Niklas Emil Lysdal
+     * @author Asger Allin Jensen
      */
     @PostMapping("/lobby/markNotReady")
     public ResponseEntity<String> markNotReady(@RequestBody LobbyUserRequest req) {
@@ -261,8 +282,11 @@ public class LobbyAPI {
         };
     }
 
-    // @author Asger Allin Jensen
-    // @author Kajsa Alice Ulrika Berlstedt
+    /**
+     * @author Kajsa Alice Ulrika Berlstedt
+     * @author Asger Allin Jensen
+     * @author Niklas Emil Lysdal
+     */
     @PostMapping("/lobby/getRobot")
     public ResponseEntity<String> getRobot(@RequestBody LobbyUserRequest req) {
         String lobbyID = req.lobbyID;

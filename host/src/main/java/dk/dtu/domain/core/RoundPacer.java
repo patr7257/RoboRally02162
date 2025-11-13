@@ -1,9 +1,8 @@
 package dk.dtu.domain.core;
 
-// Author(s) William Pii Jæger
-
-// Roundabout attempt at avoiding a shitty circular dependency, written at 00:25 in the morning!
-
+/**
+ * @author William Pii Jæger
+ */
 public interface RoundPacer {
     void scheduleProgrammingPhase(GameSession session, long windowMs);
 

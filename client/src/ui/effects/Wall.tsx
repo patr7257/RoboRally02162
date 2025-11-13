@@ -2,7 +2,9 @@ import React from "react";
 import { registerEffect } from "../effectRegistry";
 import type { WallEffect } from "../../types/boardTypes";
 
-// Author(s) William
+/**
+ * @author William Pii Jæger
+ */
 
 export default function Wall({ effect }: { effect: WallEffect }) {
   const dirClasses = effect.walls

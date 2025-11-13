@@ -5,12 +5,24 @@ import dk.dtu.domain.program.ProgramCard;
 import java.util.*;
 import java.util.function.Supplier;
 
+/**
+ * @author Lizette Bloch Dahl Nikolajsen
+ * @author Kajsa Alice Ulrika Berlstedt
+ * @author William Pii Jæger
+ * @author Benjamin Benyo Endahl Hansen
+ * @author Niklas Emil Lysdal
+ * @author Karl Johannes Agerbo
+ * @author Bjarke Søderhamn Petersen
+ */
 public class Deck {
     private Deque<ProgramCard> drawPile = new ArrayDeque<>();
     private List<ProgramCard> discardPile = new ArrayList<>();
     private List<ProgramCard> hand = new ArrayList<>(9);
 
-    // Author(s) Kajsa Berlstedt, Lizette Nikolajsen
+    /**
+     * @author Lizette Bloch Dahl Nikolajsen
+     * @author Kajsa Alice Ulrika Berlstedt
+     */
     public Deck() {
         // Use the standard 20-card RoboRally deck
         List<ProgramCard> startingCards = buildStandardDeck();
@@ -18,7 +30,7 @@ public class Deck {
     }
 
     /**
-     @author Karl Johannes Agerbo
+     * @author Karl Johannes Agerbo
      */
     public Deck(Deque<ProgramCard> drawPile, List<ProgramCard> discardPile, List<ProgramCard> hand) {
         this.drawPile = drawPile;
@@ -26,14 +38,20 @@ public class Deck {
         this.hand = hand;
     }
 
-    // Author(s) Kajsa Berlstedt, Lizette Nikolajsen
+    /**
+     * @author Lizette Bloch Dahl Nikolajsen
+     * @author Kajsa Alice Ulrika Berlstedt
+     */
     public void draw() {
         if (drawPile.isEmpty()) reshuffle();
         ProgramCard drawCard = drawPile.pop();
         hand.add(drawCard);
     }
 
-    // Author(s) Kajsa Berlstedt, Lizette Nikolajsen
+    /**
+     * @author Lizette Bloch Dahl Nikolajsen
+     * @author Kajsa Alice Ulrika Berlstedt
+     */
     public void dealHand(int count) {
         discardHand();
         for (int i = 0; i < count; i++) {
@@ -41,7 +59,10 @@ public class Deck {
         }
     }
 
-    // Author(s) Kajsa Berlstedt, Lizette Nikolajsen
+    /**
+     * @author Lizette Bloch Dahl Nikolajsen
+     * @author Kajsa Alice Ulrika Berlstedt
+     */
     public void discardHand() {
         for (ProgramCard programCard : hand) {
             discard(programCard);
@@ -49,12 +70,19 @@ public class Deck {
         hand.clear();
     }
 
-    // Author(s) Kajsa Berlstedt, Lizette Nikolajsen
+    /**
+     * @author Lizette Bloch Dahl Nikolajsen
+     * @author Kajsa Alice Ulrika Berlstedt
+     */
     public void discard(ProgramCard card) {
         discardPile.add(card);
     }
 
-    // Author(s): William Pii Jæger, Bjarke, Niklas
+    /**
+     * @author William Pii Jæger
+     * @author Bjarke Søderhamn Petersen
+     * @author Niklas Emil Lysdal
+     */
     public List<ProgramCard> validateAndCompleteOrThrow(List<ProgramCard> picked) {
         if (picked == null) throw new IllegalArgumentException("cards null");
         if (picked.size() > 5) throw new IllegalArgumentException("Play at most 5 cards");
@@ -95,21 +123,30 @@ public class Deck {
         return List.copyOf(result);
     }
 
-    // Author(s) Kajsa Berlstedt, Lizette Nikolajsen
+    /**
+     * @author Lizette Bloch Dahl Nikolajsen
+     * @author Kajsa Alice Ulrika Berlstedt
+     */
     private void reshuffle() {
         Collections.shuffle(discardPile);
         drawPile.addAll(discardPile);
         discardPile.clear();
     }
 
-    // Author(s) Kajsa Berlstedt, Lizette Nikolajsen
+    /**
+     * @author Lizette Bloch Dahl Nikolajsen
+     * @author Kajsa Alice Ulrika Berlstedt
+     */
     private static void add(List<ProgramCard> list, Supplier<ProgramCard> supplier, int n) {
         for (int i = 0; i < n; i++) {
             list.add(supplier.get());
         }
     }
 
-    // Author(s) Kajsa Berlstedt, Lizette Nikolajsen
+    /**
+     * @author Lizette Bloch Dahl Nikolajsen
+     * @author Kajsa Alice Ulrika Berlstedt
+     */
     public static List<ProgramCard> buildStandardDeck() {
         List<ProgramCard> cards = new ArrayList<>(20);
         add(cards, ProgramCard::move1, 4);
@@ -124,24 +161,27 @@ public class Deck {
         return cards;
     }
 
-    // Author(s) Kajsa Berlstedt, Lizette Nikolajsen
+    /**
+     * @author Lizette Bloch Dahl Nikolajsen
+     * @author Kajsa Alice Ulrika Berlstedt
+     */
     public ArrayList<ProgramCard> getHand() {
         return new ArrayList<>(hand);
     }
 
     /**
-     @author Bjarke Søderhamn Petersen
-     @author Benjamin Benyo Endahl Hansen
-     @author Karl Johannes Agerbo
+     * @author Bjarke Søderhamn Petersen
+     * @author Benjamin Benyo Endahl Hansen
+     * @author Karl Johannes Agerbo
      */
     public Deque<ProgramCard> getDrawPile() {
         return new ArrayDeque<>(drawPile);
     }
 
     /**
-     @author Bjarke Søderhamn Petersen
-     @author Benjamin Benyo Endahl Hansen
-     @author Karl Johannes Agerbo
+     * @author Bjarke Søderhamn Petersen
+     * @author Benjamin Benyo Endahl Hansen
+     * @author Karl Johannes Agerbo
      */
     public ArrayList<ProgramCard> getDiscardPile() {
         return new ArrayList<>(discardPile);

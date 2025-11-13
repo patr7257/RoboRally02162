@@ -1,8 +1,5 @@
 package dk.dtu.util;
 
-/*
-Author(s): Niklas
- */
 
 import dk.dtu.model.Client;
 import dk.dtu.model.Host;
@@ -11,6 +8,13 @@ import org.springframework.stereotype.Component;
 
 import java.util.Map;
 import java.util.UUID;
+
+/**
+ * @author Niklas Emil Lysdal
+ * @author Bjarke Søderhamn Petersen
+ * @author Benjamin Benyo Endahl Hansen
+ * @author Karl Johannes Agerbo
+ */
 
 @Component
 public  class LobbyFactory {
@@ -28,10 +32,11 @@ public  class LobbyFactory {
     }
 
     /**
-     @author Bjarke Søderhamn Petersen
-     @author Benjamin Benyo Endahl Hansen
-     @author Karl Johannes Agerbo
+     * @author Bjarke Søderhamn Petersen
+     * @author Benjamin Benyo Endahl Hansen
+     * @author Karl Johannes Agerbo
      */
+
     public Lobby recreateLobby(Client c, Host host, Map<String, String> userToPlayer, UUID saveID) {
         return new Lobby("R" + nextRecreatedLobbyID++, c, host, userToPlayer, saveID);
     }

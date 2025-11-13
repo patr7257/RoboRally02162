@@ -7,6 +7,7 @@ public class OperationResult
 {
     private String status;
 
+
     public OperationResult(String status){
         this.status = status;
     }

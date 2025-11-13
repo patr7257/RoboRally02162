@@ -1,14 +1,20 @@
-/*
-Author(s): Lizette, Asger
-*/
-
 import React, { useState } from "react";
 import { getSocket, subscribe } from "../utils/ws";
 import { sha256Hex } from "../utils/hashPassword";
 
+/**
+ * @author Asger Allin Jensen
+ * @author Lizette Bloch Dahl Nikolajsen
+ */
+
 interface LoginCompProps {
   onLogin: (username: string) => void;
 }
+
+/**
+ * @author Asger Allin Jensen
+ * @author Lizette Bloch Dahl Nikolajsen
+ */
 
 export default function LoginComp({ onLogin }: LoginCompProps) {
   const [usernameInput, setUsernameInput] = useState<string>("");

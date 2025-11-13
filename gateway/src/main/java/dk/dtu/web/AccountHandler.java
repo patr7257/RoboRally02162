@@ -2,10 +2,6 @@ package dk.dtu.web;
 
 import dk.dtu.model.database.DynamicUserDatabase;
 
-/*
-Author(s): Lizette, Kajsa, Niklas
-*/
-
 import dk.dtu.model.User;
 import dk.dtu.interfaces.UserDatabase;
 import dk.dtu.dto.AuthResponse;
@@ -18,6 +14,11 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.UUID;
 
+/**
+ * @author Lizette Bloch Dahl Nikolajsen
+ * @author Niklas Emil Lysdal
+ * @author Kajsa Alice Ulrika Berlstedt
+ */
 @RestController
 @RequestMapping("/api")
 public class AccountHandler {
@@ -25,10 +26,20 @@ public class AccountHandler {
     private final UserDatabase userDatabase;
     private final BCryptPasswordEncoder encoder = new BCryptPasswordEncoder();
 
+    /**
+     * @author Lizette Bloch Dahl Nikolajsen
+     * @author Niklas Emil Lysdal
+     * @author Kajsa Alice Ulrika Berlstedt
+     */
     public AccountHandler(DynamicUserDatabase userDatabase) {
         this.userDatabase = userDatabase;
     }
 
+    /**
+     * @author Lizette Bloch Dahl Nikolajsen
+     * @author Niklas Emil Lysdal
+     * @author Kajsa Alice Ulrika Berlstedt
+     */
     @PostMapping("/users/create")
     public ResponseEntity<AuthResponse> register(@RequestBody RegisterRequest req) {
         // Expect: { "username": "...", "passwordHash": "sha256hex..." }
@@ -51,6 +62,11 @@ public class AccountHandler {
                 .body(new AuthResponse("successful", "Registered", token, req.username));
     }
 
+    /**
+     * @author Lizette Bloch Dahl Nikolajsen
+     * @author Niklas Emil Lysdal
+     * @author Kajsa Alice Ulrika Berlstedt
+     */
     @PostMapping("/users/login")
     public ResponseEntity<AuthResponse> login(@RequestBody LoginRequest req) {
         // Expect: { "username": "...", "passwordHash": "sha256hex..." }

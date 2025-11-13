@@ -2,8 +2,9 @@ package dk.dtu.domain.core;
 
 import java.util.UUID;
 
-// Author(s) William Pii Jæger
-
+/**
+ * @author William Pii Jæger
+ */
 public interface GameManagerObserver {
     default void handleGameUpdate(Game game, UUID gameID) {
     }

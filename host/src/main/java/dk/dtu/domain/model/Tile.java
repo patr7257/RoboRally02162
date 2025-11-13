@@ -6,8 +6,13 @@ import dk.dtu.domain.rules.effects.TileEffect;
 import java.util.ArrayList;
 import java.util.List;
 
-// Author(s) Weihao Mo, William Pii Jæger
 
+/**
+ * Represents a single tile on the game board with position and associated effects.
+ *
+ * @author Weihao Mo
+ * @author William Pii Jæger
+ */
 public class Tile {
     private int x, y;
 
@@ -50,6 +55,14 @@ public class Tile {
         return effects;
     }
 
+    /**
+     * Returns all effects that are active during the specified game phase.
+     *
+     * @param phase the game phase to filter effects by
+     * @return a list of effects active during the specified phase
+     *
+     * @author Weihao Mo
+     */
     public List<TileEffect> getEffectsForPhase(Phase phase) {
         List<TileEffect> out = new ArrayList<>();
         for (TileEffect e : effects) {

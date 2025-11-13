@@ -1,11 +1,12 @@
 import React from "react";
 import type { TileEffect } from "../types/boardTypes";
 
-// Author(s) William Pii Jæger
-
 type K = TileEffect["kind"];
 const registry = new Map<string, (effect: TileEffect) => React.ReactNode>();
 
+/**
+ * @author William Pii Jæger
+ */
 export function registerEffect<K extends TileEffect["kind"]>(kind: K, Comp: React.FC<{ effect: Extract<TileEffect, { kind: K }> }>) {
   const key = String(kind).toLowerCase();
   const bridged = (effect: TileEffect) =>
@@ -13,6 +14,9 @@ export function registerEffect<K extends TileEffect["kind"]>(kind: K, Comp: Reac
   registry.set(key, bridged);
 }
 
+/**
+ * @author William Pii Jæger
+ */
 export function renderEffect(effect: TileEffect) {
   const key = effect.kind.toLowerCase();
   const renderer = registry.get(key);

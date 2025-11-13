@@ -1,9 +1,5 @@
 package dk.dtu.model;
 
-/*
-Author(s): Karl
-*/
-
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import dk.dtu.util.JsonUtil;
 import org.springframework.web.socket.TextMessage;
@@ -15,18 +11,34 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ScheduledExecutorService;
 
+/**
+ * @author Karl Johannes Agerbo
+ */
+
 public class MessageQueue {
     private final BlockingQueue<ObjectNode> queue = new LinkedBlockingQueue<>();
     private final WebSocketSession session;
     private final Object lock = new Object();
 
+    /**
+     * @author Karl Johannes Agerbo
+     */
+
     public MessageQueue(WebSocketSession session) {
         this.session = session;
     }
 
+    /**
+     * @author Karl Johannes Agerbo
+     */
+
     public void enqueue(ObjectNode msg) {
         queue.add(msg);
     }
+
+    /**
+     * @author Karl Johannes Agerbo
+     */
 
     public void flush() {
         synchronized (lock) {
@@ -37,8 +49,6 @@ public class MessageQueue {
                     queue.poll();
                 } catch (IOException e) {
                     throw new RuntimeException(e);
-                    //scheduler.schedule(this::flush, 500, TimeUnit.MILLISECONDS); //TODO: check this
-                    //break;
                 }
             }
         }

@@ -22,6 +22,9 @@ public class AntennaTest {
         return b.getTile(x, y);
     }
 
+    /**
+     * @author Weihao Mo
+     */
     @Test
     void orders_by_distance() {
         Board b = initEmptyBoard(9, 9);
@@ -42,7 +45,9 @@ public class AntennaTest {
         assertEquals(List.of(1, 2, 3, 4), order);
     }
 
-
+    /**
+     * @author Weihao Mo
+     */
     @Test
     void orders_by_clockwise() {
         Board b = initEmptyBoard(7, 7);
@@ -64,6 +69,9 @@ public class AntennaTest {
                 ordered.stream().map(Robot::getId).toList());
     }
 
+    /**
+     * @author Weihao Mo
+     */
     @Test
     void diagonals_are_ordered_by_true_angle_clockwise() {
         Board b = initEmptyBoard(7, 7);
@@ -82,7 +90,9 @@ public class AntennaTest {
         assertEquals(List.of(1, 2, 3, 4), order);
     }
 
-
+    /**
+     * @author Weihao Mo
+     */
     @Test
     void mixed_distance_tie_east() {
         Board b = initEmptyBoard(9, 9);
@@ -104,6 +114,9 @@ public class AntennaTest {
         assertEquals(List.of(1, 2, 3, 4), order);
     }
 
+    /**
+     * @author Weihao Mo
+     */
     @Test
     void mixed_distance_tie_south() {
         Board b = initEmptyBoard(9, 9);

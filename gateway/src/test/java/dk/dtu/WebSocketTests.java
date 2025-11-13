@@ -1,7 +1,3 @@
-/*
-Author(s): Karl, Benjamin, Niklas
- */
-
 package dk.dtu;
 
 import com.fasterxml.jackson.databind.JsonNode;
@@ -33,6 +29,10 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.Mockito.*;
 
+/**
+ * @author Karl Johannes Agerbo
+ * @author Benjamin Benyo Endahl Hansen
+ */
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
 @AutoConfigureMockMvc
@@ -43,7 +43,10 @@ public class WebSocketTests {
     @Autowired
     Server server;
 
-    // -- Web Socket message transfer tests --
+    /**
+     * @author Karl Johannes Agerbo
+     * @author Benjamin Benyo Endahl Hansen
+     */
     @Test
     void clientToGatewayTest() throws Exception {
         User mockUser = mock(User.class);
@@ -80,6 +83,10 @@ public class WebSocketTests {
         assertThat(actualMsg.get("payload").get("action").asText()).isEqualTo("doSomething");
     }
 
+    /**
+     * @author Karl Johannes Agerbo
+     * @author Benjamin Benyo Endahl Hansen
+     */
     @Test
     void gatewayToClientTest() throws Exception {
         WebSocketSession mockSession = mock(WebSocketSession.class);
@@ -101,6 +108,10 @@ public class WebSocketTests {
         assertThat(json.get("payload").asText()).isEqualTo("action");
     }
 
+    /**
+     * @author Karl Johannes Agerbo
+     * @author Benjamin Benyo Endahl Hansen
+     */
     @Test
     void hostToGatewayTest() throws Exception {
         Lobby mockLobby = mock(Lobby.class);
@@ -129,6 +140,10 @@ public class WebSocketTests {
         assertThat(actualMsg.get("payload").asText()).isEqualTo("");
     }
 
+    /**
+     * @author Karl Johannes Agerbo
+     * @author Benjamin Benyo Endahl Hansen
+     */
     @Test
     void gatewayToHostTest() throws Exception {
         WebSocketSession mockSession = mock(WebSocketSession.class);
@@ -155,7 +170,10 @@ public class WebSocketTests {
         assertThat(json.get("payload").asText()).isEqualTo("action");
     }
 
-    // -- Web Socket message handling tests --
+    /**
+     * @author Karl Johannes Agerbo
+     * @author Benjamin Benyo Endahl Hansen
+     */
     @Test
     void clientToHostTest() throws Exception {
         Host mockHost = mock(Host.class);
@@ -197,6 +215,10 @@ public class WebSocketTests {
         assertThat(actualMsg.get("payload").get("action").asText()).isEqualTo("doSomething");
     }
 
+    /**
+     * @author Karl Johannes Agerbo
+     * @author Benjamin Benyo Endahl Hansen
+     */
     @Test
     void hostToClientDirectTest() throws Exception {
         System.out.println("Lobbies before test: " + server.getLobbiesForTest().keySet());
@@ -244,6 +266,10 @@ public class WebSocketTests {
         assertThat(actualMsg.get("payload").asText()).isEqualTo("");
     }
 
+    /**
+     * @author Karl Johannes Agerbo
+     * @author Benjamin Benyo Endahl Hansen
+     */
     @Test
     void hostToClientBroadCastTest() throws Exception {
         System.out.println("Lobbies before test: " + server.getLobbiesForTest().keySet());
@@ -293,6 +319,10 @@ public class WebSocketTests {
         assertThat(actualMsg2.get("payload").asText()).isEqualTo("");
     }
 
+    /**
+     * @author Karl Johannes Agerbo
+     * @author Benjamin Benyo Endahl Hansen
+     */
     private ObjectNode createJsonHost(boolean broadCast, String gameID, String playerID) {
         ObjectNode root = JsonUtil.createObjectNode();
         root.put("type", "stateSnapshot");

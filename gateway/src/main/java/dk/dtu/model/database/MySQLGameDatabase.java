@@ -11,7 +11,7 @@ import java.util.List;
 import java.util.Map;
 
 /**
- @author Karl Johannes Agerbo
+ * @author Karl Johannes Agerbo
  */
 
 @Service("mysqlGameDatabase")
@@ -22,14 +22,14 @@ public class MySQLGameDatabase implements GameDatabase {
     private static final String PASSWORD = "RoboRallyDatabaseUser";
 
     /**
-     @author Karl Johannes Agerbo
+     * @author Karl Johannes Agerbo
      */
     private Connection connect() throws SQLException {
         return DriverManager.getConnection(URL, USER, PASSWORD);
     }
 
     /**
-     @author Karl Johannes Agerbo
+     * @author Karl Johannes Agerbo
      */
     @Override
     public void saveGame(String userID, JsonNode snapshot, String saveID) {
@@ -60,7 +60,7 @@ public class MySQLGameDatabase implements GameDatabase {
     }
 
     /**
-     @author Karl Johannes Agerbo
+     * @author Karl Johannes Agerbo
      */
     @Override
     public List<String> getSavedGames(String userID) {
@@ -85,7 +85,7 @@ public class MySQLGameDatabase implements GameDatabase {
     }
 
     /**
-     @author Karl Johannes Agerbo
+     * @author Karl Johannes Agerbo
      */
     @Override
     public boolean wipeGameDatabase() {
@@ -104,7 +104,7 @@ public class MySQLGameDatabase implements GameDatabase {
     }
 
     /**
-     @author Karl Johannes Agerbo
+     * @author Karl Johannes Agerbo
      */
     @Override
     public JsonNode getGameSnapshot(String saveID) {
@@ -129,7 +129,7 @@ public class MySQLGameDatabase implements GameDatabase {
     }
 
     /**
-     @author Karl Johannes Agerbo
+     * @author Karl Johannes Agerbo
      */
     @Override
     public JsonNode getUsers(String saveID) {

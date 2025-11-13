@@ -14,8 +14,11 @@ import dk.dtu.infrastructure.web.GameController;
 
 import java.util.*;
 
-// Author(s) William Pii Jæger, Weihao Mo
-
+/**
+ * A class for mapping between domain objects and data transfer objects (DTOs).
+ * @author William Pii Jæger
+ * @author Weihao Mo
+ */
 public final class SnapshotMapper {
 
     public static SnapshotPayload createSnapshot(UUID gameId, Game game) {

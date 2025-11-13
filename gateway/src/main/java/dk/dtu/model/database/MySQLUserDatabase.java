@@ -1,9 +1,5 @@
 package dk.dtu.model.database;
 
-/*
-Author(s): Asger
-*/
-
 import dk.dtu.interfaces.UserDatabase;
 import dk.dtu.model.User;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -11,6 +7,10 @@ import org.springframework.stereotype.Service;
 
 import java.sql.*;
 import java.util.UUID;
+
+/**
+ * @author Asger Allin Jensen
+ */
 
 @Service("mysqlUserDatabase")
 public class MySQLUserDatabase implements UserDatabase {
@@ -20,9 +20,17 @@ public class MySQLUserDatabase implements UserDatabase {
     private static final String PASSWORD = "RoboRallyDatabaseUser";
     private final BCryptPasswordEncoder encoder = new BCryptPasswordEncoder();
 
+    /**
+     * @author Asger Allin Jensen
+     */
+
     private Connection connect() throws SQLException {
         return DriverManager.getConnection(URL, USER, PASSWORD);
     }
+
+    /**
+     * @author Asger Allin Jensen
+     */
 
     @Override
     public User createUser(String name, String passwordHash) {
@@ -39,6 +47,10 @@ public class MySQLUserDatabase implements UserDatabase {
         }
     }
 
+    /**
+     * @author Asger Allin Jensen
+     */
+
     @Override
     public User findUserById(String id) {
         String sql = "SELECT * FROM users WHERE UserID=?";
@@ -54,6 +66,10 @@ public class MySQLUserDatabase implements UserDatabase {
         }
     }
 
+    /**
+     * @author Asger Allin Jensen
+     */
+
     @Override
     public boolean existsID(String id) {
         String sql = "SELECT 1 FROM users WHERE UserID=?";
@@ -66,6 +82,10 @@ public class MySQLUserDatabase implements UserDatabase {
         }
     }
 
+    /**
+     * @author Asger Allin Jensen
+     */
+
     @Override
     public boolean existsName(String name) {
         String sql = "SELECT 1 FROM users WHERE UserName=?";
@@ -77,6 +97,10 @@ public class MySQLUserDatabase implements UserDatabase {
             throw new RuntimeException("MySQL existsName failed", e);
         }
     }
+
+    /**
+     * @author Asger Allin Jensen
+     */
 
     @Override
     public User findUserByName(String name) {
@@ -93,6 +117,10 @@ public class MySQLUserDatabase implements UserDatabase {
         }
     }
 
+    /**
+     * @author Asger Allin Jensen
+     */
+
     @Override
     public User findUserByNamePassword(String name, String passwordHash) {
         User user = findUserByName(name);
@@ -101,6 +129,10 @@ public class MySQLUserDatabase implements UserDatabase {
         }
         return null;
     }
+
+    /**
+     * @author Asger Allin Jensen
+     */
 
     @Override
     public boolean deleteUser(String id) {
@@ -113,6 +145,10 @@ public class MySQLUserDatabase implements UserDatabase {
         }
     }
 
+    /**
+     * @author Asger Allin Jensen
+     */
+
     @Override
     public boolean wipeUserDatabase() {
         String sql = "DELETE FROM users";
@@ -123,6 +159,10 @@ public class MySQLUserDatabase implements UserDatabase {
             throw new RuntimeException("MySQL wipeUserDatabase failed", e);
         }
     }
+
+    /**
+     * @author Asger Allin Jensen
+     */
 
     @Override
     public boolean existsNamePassword(String name, String passwordHash) {

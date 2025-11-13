@@ -1,7 +1,9 @@
-/*
-Author(s): Bjarke, Asger, Patrick
+/** 
+* @author Bjarke Søderhamn Petersen
+* @author Asger Allin Jensen
+* @author Patrick Røbel
+* @author Lizette Bloch Dahl Nikolajsen
 */
-
 
 import { Direction, MoveType} from "./boardTypes";
 

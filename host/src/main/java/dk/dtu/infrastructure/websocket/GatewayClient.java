@@ -9,19 +9,28 @@ import org.springframework.web.socket.client.WebSocketClient;
 import java.net.URI;
 import java.util.concurrent.CompletableFuture;
 
-// Author(s) Weihao Mo
-
+/**
+ * WebSocket gateway client that manages connection to the gateway.
+ *
+ * @author Weihao Mo
+ */
 @Component
 public class GatewayClient {
     private final WebSocketClient client;
     private final GatewaysWsHandler handler;
 
+    /**
+     * @author Weihao Mo
+     */
     public GatewayClient(GatewaysWsHandler handler, WebSocketClient client) {
         this.client = client;
         this.handler = handler;
         this.connect("ws://localhost:8080/host");
     }
 
+    /**
+     * @author Weihao Mo
+     */
     public CompletableFuture<WebSocketSession> connect(String gatewayUrl) {
         URI uri = URI.create(gatewayUrl);
 

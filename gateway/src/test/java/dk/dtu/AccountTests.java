@@ -1,8 +1,5 @@
 package dk.dtu;
 
-/*
-Author(s): Niklas
- */
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import dk.dtu.model.database.DynamicUserDatabase;
@@ -24,6 +21,9 @@ import java.util.Map;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
+/**
+ * @author Niklas Emil Lysdal
+ */
 @SpringBootTest
 @AutoConfigureMockMvc
 public class AccountTests {
@@ -48,6 +48,9 @@ public class AccountTests {
         userDatabase.wipeUserDatabase();
     }
 
+    /**
+     * @author Niklas Emil Lysdal
+     */
     @Test
     public void testRegisterUser_Successful() throws Exception {
 
@@ -59,6 +62,9 @@ public class AccountTests {
                 .andExpect(jsonPath("$.status").value("successful"));
     }
 
+    /**
+     * @author Niklas Emil Lysdal
+     */
     @Test
     public void testRegisterUser_badRequest() throws Exception {
         // Pre-create user
@@ -76,7 +82,9 @@ public class AccountTests {
                 .andExpect(jsonPath("$.status").value("unsuccessful"));
     }
 
-    // TODO: Login tests
+    /**
+     * @author Niklas Emil Lysdal
+     */
     @Test
     void loginUser_Successful_returns200AndToken() throws Exception {
 
@@ -98,6 +106,9 @@ public class AccountTests {
 
     }
 
+    /**
+     * @author Niklas Emil Lysdal
+     */
     @Test
     void loginUser_Unsuccessful_badRequest() throws Exception {
         String payload = mapper.writeValueAsString(

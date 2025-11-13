@@ -17,10 +17,14 @@ import java.util.UUID;
 import static dk.dtu.util.BoardTestUtils.initEmptyBoard;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-// Author(s) Weihao Mo
-
+/**
+ * @author Weihao Mo
+ */
 class GameManagerStartGameTest {
 
+    /**
+     * @author Weihao Mo
+     */
     @Test
     void testStartProgrammingAndRunRoundSynchronously() {
         Board board = initEmptyBoard(3, 3);

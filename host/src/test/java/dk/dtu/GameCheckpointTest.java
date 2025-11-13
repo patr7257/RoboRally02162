@@ -15,9 +15,14 @@ import java.util.concurrent.atomic.AtomicReference;
 import static dk.dtu.util.BoardTestUtils.*;
 import static org.junit.jupiter.api.Assertions.*;
 
-// Author(s) Weihao Mo
-
+/**
+ * @author Weihao Mo
+ */
 class GameCheckpointTest {
+
+    /**
+     * @author Weihao Mo
+     */
     @Test
     void robotWinsAfterCompletingCheckpointsInOrder() {
         Board board = initBoardWithCheckPoints(3,3);
@@ -54,6 +59,9 @@ class GameCheckpointTest {
         assertEquals(new PlayerID(1), observedWinner.get());
     }
 
+    /**
+     * @author Weihao Mo
+     */
     @Test
     void robotWinsAfterCompletingCheckpointsInWrongOrder() {
         Board board = initBoardWithCheckPointsInDifferentNumber(3,3);
@@ -90,6 +98,9 @@ class GameCheckpointTest {
         assertNull(observedWinner.get());
     }
 
+    /**
+     * @author Weihao Mo
+     */
     @Test
     void robotsDoNotWinWhenSecondRobotSkipsCheckpoints() {
         Board board = initBoardWithCheckPointsInThreeDifferentNumber(3,3);

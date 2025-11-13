@@ -4,6 +4,8 @@ import { MoveType } from "../types/boardTypes";
 
 /**
 * @author Asger Allin Jensen
+* @author Bjarke Søderhamn Petersen
+* @author Lizette Bloch Dahl Nikolajsen
 */
 
 interface MoveSelectorProps {
@@ -13,6 +15,9 @@ interface MoveSelectorProps {
   onSubmitMove: (moves: MoveType[]) => void;
   hasEmptySlots: boolean;
 }
+/**
+* @author Lizette Bloch Dahl Nikolajsen
+*/
 const CardVisual = ({ move }: { move: MoveType }) => (
   <>
     <div className="moveCardHeader">
@@ -81,7 +86,9 @@ const CardVisual = ({ move }: { move: MoveType }) => (
   </>
 );
 
-
+/**
+* @author Asger Allin Jensen
+*/
 const MoveCard = ({
   move,
   onDragStart,
@@ -108,7 +115,9 @@ const MoveCard = ({
   </motion.div>
 );
 
-
+/**
+* @author Asger Allin Jensen
+*/
 const DropSlot = ({
   index,
   move,
@@ -139,6 +148,10 @@ const DropSlot = ({
   </motion.div>
 );
 
+/**
+* @author Asger Allin Jensen
+* @author Bjarke Søderhamn Petersen
+*/
 export const MoveSelector: React.FC<MoveSelectorProps> = ({
   moves,
   selectedMoves,
@@ -174,10 +187,16 @@ export const MoveSelector: React.FC<MoveSelectorProps> = ({
 
   const availableMoves = getAvailableMoves();
 
+  /**
+  * @author Asger Allin Jensen
+  */
   const handleDragStart = (move: MoveType) => {
     setDraggedMove(move);
   };
 
+  /**
+  * @author Asger Allin Jensen
+  */
   const handleDrop = (index: number) => {
     if (draggedMove) {
       const updated = [...selectedMoves];
@@ -188,6 +207,9 @@ export const MoveSelector: React.FC<MoveSelectorProps> = ({
     }
   };
 
+  /**
+  * @author Asger Allin Jensen
+  */
   const handleRemove = (index: number) => {
     const updated = [...selectedMoves];
     updated[index] = null;

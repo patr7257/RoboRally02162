@@ -1,5 +1,5 @@
-/*
-Author(s): Asger
+/** 
+* @author Asger Allin Jensen
 */
 export interface PlayerInfo {
     id: string;

@@ -20,13 +20,18 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
-// Author(s) Weihao Mo
+/**
+ * @author Weihao Mo
+ */
 public class GatewaysWsHandlerTest {
     private GameManager gameManager;
     private GatewaysWsHandler handlerNew;
     private WebSocketSession session;
     private ObjectMapper mapper;
 
+    /**
+     * @author Weihao Mo
+     */
     @BeforeEach
     void setup() {
         mapper = new ObjectMapper();
@@ -40,6 +45,9 @@ public class GatewaysWsHandlerTest {
         handlerNew.afterConnectionEstablished(session);
     }
 
+    /**
+     * @author Weihao Mo
+     */
     @Test
     void testSendOutgoingMessageContent() throws Exception {
         UUID gameID = UUID.randomUUID();

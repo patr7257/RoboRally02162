@@ -1,17 +1,22 @@
-/*
-Author(s): Bjarke, Niklas, Asger
-*/
+
 import { useNavigate } from "react-router-dom";
 import Layout from "./Layout";
 import React, { useState, useEffect } from "react";
 import { lobbyInfo } from "../types/lobbyTypes";
 import "../styles/joinLobby.css";
 import { subscribe } from "../utils/ws";
+
+
 interface Lobby {
   lobbyInfo: lobbyInfo;
   [key: string]: any;
 }
 
+/**
+ * @author Bjarke Søderhamn Petersen
+ * @author Niklas Emil Lysdal
+ * @author Asger Allin Jensen
+ */
 export default function JoinLobby() {
   const navigate = useNavigate();
   const userID: string | null = localStorage.getItem("userID");
@@ -58,6 +63,7 @@ export default function JoinLobby() {
       setError("Network error. Try again.");
     }
   };
+
     /**
    * @author Niklas Emil Lysdal
    */
@@ -79,9 +85,12 @@ export default function JoinLobby() {
       unsubscribe();
     }
   },[]);
-    /**
-   * @author Niklas Emil Lysdal
-   */
+
+/**
+ * @author Bjarke Søderhamn Petersen
+ * @author Niklas Emil Lysdal
+ * @author Asger Allin Jensen
+ */
   const joinLobby = async (id: string): Promise<boolean> => {
     setError("");
     try {

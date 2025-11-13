@@ -22,9 +22,14 @@ import static dk.dtu.util.BoardTestUtils.initEmptyBoard;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.*;
-// Author(s) Weihao Mo
-
+/**
+ * @author Weihao Mo
+ */
 class GameObserverMockTest {
+
+    /**
+     * @author Weihao Mo
+     */
     @Test
     void testWinnerNotification() {
         Board board = initEmptyBoard(5, 5);
@@ -44,6 +49,9 @@ class GameObserverMockTest {
 
     }
 
+    /**
+     * @author Weihao Mo
+     */
     @Test
     void testGameManagerCanSeeWinner() {
         Board board = initEmptyBoard(5, 5);

@@ -3,8 +3,9 @@ import { registerEffect } from "../effectRegistry";
 import { Rotation } from "../../types/boardTypes";
 type GearEffect = { rotation: Rotation };
 
-// Author(s) William
-
+/**
+ * @author William Pii Jæger
+ */
 function Gear({ effect }: { effect: GearEffect }) {
   const dirClass =
     effect.rotation === "LEFT" ? "dir-ccw" :

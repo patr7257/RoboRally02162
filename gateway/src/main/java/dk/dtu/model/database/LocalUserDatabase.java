@@ -1,9 +1,5 @@
 package dk.dtu.model.database;
 
-/*
-Author(s): Niklas
- */
-
 import dk.dtu.interfaces.UserDatabase;
 import dk.dtu.model.User;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -15,6 +11,12 @@ import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
+/**
+ * @author Niklas Emil Lysdal
+ * @author Lizette Bloch Dahl Nikolajsen
+ * @author Kajsa Alice Ulrika Berlstedt
+ */
+
 @Service("localUserDatabase")
 public class LocalUserDatabase implements UserDatabase {
     // id -> user (all user data)
@@ -24,6 +26,12 @@ public class LocalUserDatabase implements UserDatabase {
     private final BCryptPasswordEncoder encoder = new BCryptPasswordEncoder();
 
     //public Database() {};
+
+    /**
+     * @author Niklas Emil Lysdal
+     * @author Lizette Bloch Dahl Nikolajsen
+     * @author Kajsa Alice Ulrika Berlstedt
+     */
 
     @Override
     public User createUser(String name, String passwordHash) {
@@ -35,40 +43,57 @@ public class LocalUserDatabase implements UserDatabase {
         return user;
     }
 
+    /**
+     * @author Niklas Emil Lysdal
+     * @author Lizette Bloch Dahl Nikolajsen
+     * @author Kajsa Alice Ulrika Berlstedt
+     */
 
     @Override
     public User findUserById(String id) {
-        /* User user = usersById.get(name);
-        if (user == null) {
-            throw new NoSuchElementException("User with ID " + name + " not found");
-        }
-        return user; */
         return usersById.get(id);
     }
+
+    /**
+     * @author Niklas Emil Lysdal
+     * @author Lizette Bloch Dahl Nikolajsen
+     * @author Kajsa Alice Ulrika Berlstedt
+     */
 
     @Override
     public boolean existsID(String id) {
         return usersById.containsKey(id);
     }
 
+    /**
+     * @author Niklas Emil Lysdal
+     * @author Lizette Bloch Dahl Nikolajsen
+     * @author Kajsa Alice Ulrika Berlstedt
+     */
+
     @Override
     public boolean existsName(String name) { //TODO: remove as should be ID based
         return  idByName.containsKey(name);
     }
 
-
+    /**
+     * @author Niklas Emil Lysdal
+     * @author Lizette Bloch Dahl Nikolajsen
+     * @author Kajsa Alice Ulrika Berlstedt
+     */
 
     @Override
     public User findUserByName(String name) {
-        /* User user = usersById.get(name);
-        if (user == null) {
-            throw new NoSuchElementException("User with ID " + name + " not found");
-        }
-        return user; */
         String id = idByName.get(name);
         if (id == null) return null;
         return usersById.get(id);
     }
+
+    /**
+     * @author Niklas Emil Lysdal
+     * @author Lizette Bloch Dahl Nikolajsen
+     * @author Kajsa Alice Ulrika Berlstedt
+     */
 
     @Override
     public User findUserByNamePassword(String name, String passwordHash){
@@ -78,6 +103,10 @@ public class LocalUserDatabase implements UserDatabase {
         return result.get(0);
 
     }
+
+    /**
+     * @author Niklas Emil Lysdal
+     */
 
     @Override
     public boolean deleteUser(String id) {
@@ -101,6 +130,9 @@ public class LocalUserDatabase implements UserDatabase {
 
     }
 
+    /**
+     * @author Niklas Emil Lysdal
+     */
 
     public boolean existsNamePassword(String name, String passwordHash) {
         return usersById.values().stream().anyMatch(u -> u.getName().equals(name) && encoder.matches(passwordHash,u.getPasswordHash()));

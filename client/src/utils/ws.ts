@@ -1,7 +1,3 @@
-/*
-Author(s): Asger, Bjarke, Patrick
-*/
-
 let socket: WebSocket | null = null;
 let listeners: Set<(message: string) => void> = new Set();
 let messageQueue: string[] = [];
@@ -10,6 +6,11 @@ let reconnectInterval = 3000;
 let reconnectAttempts = 0;
 const maxReconnectAttempts = 10;
 
+/**
+ * @author Bjarke Søderhamn Petersen
+ * @author Asger Allin Jensen
+ * @author Patrick Røbel
+ */
 function getWsUrl(): string {
   const userID: string | null = localStorage.getItem("userID");
   const token = userID;
@@ -18,7 +19,11 @@ function getWsUrl(): string {
   return `${wsProtocol}://${wsHost}/client?token=${token}`;
 }
 
-
+/**
+ * @author Bjarke Søderhamn Petersen
+ * @author Asger Allin Jensen
+ * @author Patrick Røbel
+ */
 export function getSocket(): WebSocket {
   if (socket && socket.readyState === WebSocket.OPEN) {
     return socket;
@@ -62,6 +67,11 @@ export function getSocket(): WebSocket {
   return socket;
 }
 
+/**
+ * @author Bjarke Søderhamn Petersen
+ * @author Asger Allin Jensen
+ * @author Patrick Røbel
+ */
 export function sendMessage(data: string | object): boolean {
   const message = typeof data === "string" ? data : JSON.stringify(data);
   messageQueue.push(message);
@@ -69,6 +79,11 @@ export function sendMessage(data: string | object): boolean {
   return true;
 }
 
+/**
+ * @author Bjarke Søderhamn Petersen
+ * @author Asger Allin Jensen
+ * @author Patrick Røbel
+ */
 function processQueue(): void {
   if (isProcessing || messageQueue.length === 0) return;
   if (!socket || socket.readyState !== WebSocket.OPEN) return;
@@ -91,12 +106,22 @@ function processQueue(): void {
   }
 }
 
+/**
+ * @author Bjarke Søderhamn Petersen
+ * @author Asger Allin Jensen
+ * @author Patrick Røbel
+ */
 export function subscribe(cb: (message: string) => void): () => void {
   listeners.add(cb);
   getSocket();
   return () => listeners.delete(cb);
 }
 
+/**
+ * @author Bjarke Søderhamn Petersen
+ * @author Asger Allin Jensen
+ * @author Patrick Røbel
+ */
 export function closeSocket(): void {
   if (socket) socket.close();
   socket = null;

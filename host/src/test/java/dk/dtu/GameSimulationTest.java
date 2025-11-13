@@ -21,11 +21,15 @@ import static dk.dtu.util.BoardTestUtils.initEmptyBoard;
 import static dk.dtu.util.GameTestSupport.*;
 import static org.junit.jupiter.api.Assertions.*;
 
-// Author(s) William Pii Jæger
-
+/**
+ * @author William Pii Jæger
+ */
 @DisplayNameGeneration(DisplayNameGenerator.ReplaceUnderscores.class)
 class GameSimulationTest {
 
+    /**
+     * @author William Pii Jæger
+     */
     @ParameterizedTest(name = "MOVE {0} from (1,1,E) -> expected x={1}")
     @CsvSource({
             "1, 2",
@@ -53,6 +57,9 @@ class GameSimulationTest {
         );
     }
 
+    /**
+     * @author William Pii Jæger
+     */
     @ParameterizedTest(name = "{0} from facing {1} -> {2}")
     @MethodSource("rotations")
     void program_ROTATE_variants(ProgramCard.Action action, Direction start, Direction expected) {
@@ -66,6 +73,9 @@ class GameSimulationTest {
         assertPosDir(r, 1, 1, expected);
     }
 
+    /**
+     * @author William Pii Jæger
+     */
     @Test
     void push_chain_tail_falls_off_right_edge() {
         Board b = initEmptyBoard(3, 3);
@@ -84,6 +94,9 @@ class GameSimulationTest {
         assertMove(moved, 1, 1, new Coord(0, 0), new Coord(1, 0));
     }
 
+    /**
+     * @author William Pii Jæger
+     */
     @Test
     void wall_on_same_tile_blocks_exit_edge() {
         Board b = initEmptyBoard(3, 3);
@@ -96,6 +109,9 @@ class GameSimulationTest {
         assertEdgeBlock(out, new Edge(new Coord(0, 0), new Coord(1, 0)));
     }
 
+    /**
+     * @author William Pii Jæger
+     */
     @Test
     void wall_on_adjacent_tile_blocks_entry_edge() {
         Board b = initEmptyBoard(3, 3);
@@ -108,6 +124,9 @@ class GameSimulationTest {
         assertEdgeBlock(out, new Edge(new Coord(0, 0), new Coord(1, 0)));
     }
 
+    /**
+     * @author William Pii Jæger
+     */
     @Test
     void push_chain_blocked_by_wall_on_target_edge() {
         Board b = initEmptyBoard(3, 3);
@@ -121,6 +140,9 @@ class GameSimulationTest {
         assertChainBlockedByEdge(out, List.of(2), new Edge(new Coord(1, 0), new Coord(2, 0)));
     }
 
+    /**
+     * @author William Pii Jæger
+     */
     @Test
     void walls_on_board_edge() {
         Board b = initEmptyBoard(1, 1);
@@ -133,6 +155,9 @@ class GameSimulationTest {
         assertEdgeBlock(out, new Edge(new Coord(0, 0), new Coord(1, 0)));
     }
 
+    /**
+     * @author William Pii Jæger
+     */
     @Test
     void fall_off_edge() {
         Board b = initEmptyBoard(1, 1);
@@ -146,6 +171,9 @@ class GameSimulationTest {
         assertEquals(DestroyCause.FELL_OFF, moved.destroys().getLast().cause());
     }
 
+    /**
+     * @author William Pii Jæger
+     */
     @Test
     void walls_on_both_tiles_but_non_blocking_across_E() {
         Board b = initEmptyBoard(3, 3);
@@ -163,6 +191,9 @@ class GameSimulationTest {
         assertMove(moved, 0, 1, new Coord(0, 0), new Coord(1, 0));
     }
 
+    /**
+     * @author William Pii Jæger
+     */
     @Test
     void program_MOVE_minus1_blocked_by_wall_behind() {
         Board b = initEmptyBoard(3, 1);
@@ -176,6 +207,9 @@ class GameSimulationTest {
         assertPosDir(r, 1, 0, Direction.E);
     }
 
+    /**
+     * @author William Pii Jæger
+     */
     @Test
     void backward_step_off_left_edge_is_destroyed() {
         Board b = initEmptyBoard(1, 1);
@@ -191,6 +225,9 @@ class GameSimulationTest {
         assertEquals(DestroyCause.FELL_OFF, moved.destroys().getLast().cause());
     }
 
+    /**
+     * @author William Pii Jæger
+     */
     @Test
     void push_chain_simple_two_robots() {
         Board b = initEmptyBoard(3, 1);
@@ -206,6 +243,9 @@ class GameSimulationTest {
         assertMove(moved, 1, 1, new Coord(0, 0), new Coord(1, 0));
     }
 
+    /**
+     * @author William Pii Jæger
+     */
     @Test
     void push_chain_blocked_by_wall_further_down_chain() {
         Board b = initEmptyBoard(4, 1);
@@ -218,6 +258,9 @@ class GameSimulationTest {
         assertChainBlockedByEdge(out, List.of(2, 3), new Edge(new Coord(2, 0), new Coord(3, 0)));
     }
 
+    /**
+     * @author William Pii Jæger
+     */
     @Test
     void two_walls_on_crossing_edge_also_blocks() {
         Board b = initEmptyBoard(3, 1);
@@ -231,6 +274,9 @@ class GameSimulationTest {
         assertEdgeBlock(out, new Edge(new Coord(0, 0), new Coord(1, 0)));
     }
 
+    /**
+     * @author William Pii Jæger
+     */
     @Test
     void program_MOVE_zero_is_noop() {
         Board b = initEmptyBoard(3, 3);

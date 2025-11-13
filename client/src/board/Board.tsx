@@ -21,6 +21,8 @@ import { saveGame } from '../lobby/SaveGame';
 * @author Kajsa Alice Ulrika Berlstedt
 * @author Benjamin Benyo Endhal Hansen
 * @author Karl Johannes Agerbo
+* @author Lizette Bloch Dahl Nikolajsen
+* @author Weihao Mo
 */
 
 interface ReadinessData {
@@ -51,7 +53,15 @@ export default function Board() {
   const API_BASE_URL = process.env.REACT_APP_API_BASE_URL;
   const [robotMap, setRobotMap] = useState<{ [username: string]: string }>({});
 
-
+  /**
+  * @author Asger Allin Jensen
+  * @author Bjarke Søderhamn Petersen
+  * @author William Pii Jæger
+  * @author Kajsa Alice Ulrika Berlstedt
+  * @author Benjamin Benyo Endhal Hansen
+  * @author Karl Johannes Agerbo
+  * @author Lizette Bloch Dahl Nikolajsen
+  */
   useEffect(() => {
     const unsubscribe = subscribe((message: string) => {
       try {
@@ -160,6 +170,9 @@ export default function Board() {
 
   let readinessInterval: NodeJS.Timeout | null = null;
 
+  /**
+   * @author William Pii Jæger
+   */
   const startReadinessPolling = () => {
     stopReadinessPolling();
     readinessInterval = setInterval(() => {
@@ -167,6 +180,9 @@ export default function Board() {
     }, 1000);
   };
 
+  /**
+   * @author William Pii Jæger
+   */
   const stopReadinessPolling = () => {
     if (readinessInterval) {
       clearInterval(readinessInterval);
@@ -174,7 +190,10 @@ export default function Board() {
     }
   };
 
-
+  /**
+   * @author Kajsa Alice Ulrika Berlstedt
+   * @author Asger Allin Jensen
+   */
   const getRobotIDS = async () => {
     console.log("Fetching robot ID for user:", userID);
 
@@ -219,8 +238,9 @@ export default function Board() {
     }
   };
 
-
-
+  /**
+   * @author William Pii Jæger
+   */
   const handleSubmitMove = (moves: MoveType[]) => {
     if (moves.length === 0) {
       alert("Please select at least one move");
@@ -244,6 +264,9 @@ export default function Board() {
     });
   };
 
+  /**
+   * @author William Pii Jæger
+   */
   const handleStartProgramming = () => {
     sendMessage({
       lobbyID: lobbyId,
@@ -254,6 +277,9 @@ export default function Board() {
     });
   };
 
+  /**
+   * @author William Pii Jæger
+   */
   const formatTimeRemaining = (ms: number): string => {
     const seconds = Math.ceil(ms / 1000);
     const minutes = Math.floor(seconds / 60);
@@ -261,6 +287,9 @@ export default function Board() {
     return `${minutes}:${remainingSeconds.toString().padStart(2, '0')}`;
   };
 
+  /**
+   * @author William Pii Jæger
+   */
   const getReadinessDisplay = (): string => {
     if (!readiness) return '';
     const submitted = Object.values(readiness.playerSubmitted).filter(Boolean).length;
@@ -268,6 +297,9 @@ export default function Board() {
     return `${submitted}/${total} players ready`;
   };
 
+  /**
+   * @author Kajsa Alice Ulrika Berlstedt
+   */
   const renderRobotLabels = (): React.ReactNode => {
     const username = localStorage.getItem("username") || "";
     const entries = Object.entries(robotMap);

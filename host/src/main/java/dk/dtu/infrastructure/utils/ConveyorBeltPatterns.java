@@ -11,6 +11,9 @@ import dk.dtu.domain.rules.effects.GreenConveyor;
  */
 public class ConveyorBeltPatterns {
 
+    /**
+     * @author Weihao Mo
+     */
     public static void applyHighOctane(Board b) {
         for (int x = 2; x <= 6; x++) {
             b.getTile(x, 3).addEffect(new BlueConveyor(Direction.E, Rotation.NONE));
@@ -55,6 +58,9 @@ public class ConveyorBeltPatterns {
         b.getTile(2, 4).addEffect(new GreenConveyor(Direction.E, Rotation.RIGHT));
     }
 
+    /**
+     * @author Weihao Mo
+     */
     public static void applyCorridorBlitz(Board b) {
         int left = 3, top = 3, right = 6, bottom = 6;
 

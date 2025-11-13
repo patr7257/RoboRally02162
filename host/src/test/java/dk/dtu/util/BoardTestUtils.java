@@ -12,13 +12,18 @@ import java.util.Collections;
 import java.util.EnumSet;
 import java.util.List;
 
-// Author(s) William Pii Jæger, Weihao Mo
-
+/**
+ * @author Weihao Mo
+ * @author William Pii Jæger
+ */
 public final class BoardTestUtils {
 
     private BoardTestUtils() {
     }
 
+    /**
+     * @author William Pii Jæger
+     */
     public static Tile[][] initEmptyCells(int width, int height) {
         Tile[][] tiles = new Tile[width][height];
         for (int x = 0; x < width; x++) {
@@ -34,6 +39,9 @@ public final class BoardTestUtils {
     }
 
 
+    /**
+     * @author William Pii Jæger
+     */
     public static Board initEmptyBoard(int width, int height) {
         return new Board(width, height, initEmptyCells(width, height));
     }
@@ -51,6 +59,9 @@ public final class BoardTestUtils {
 
     }
 
+    /**
+     * @author Weihao Mo
+     */
     public static Board initBoardWithCheckPointsInDifferentNumber(int width, int height) {
         Tile[][] tiles = initEmptyCells(width,height);
 
@@ -64,6 +75,9 @@ public final class BoardTestUtils {
 
     }
 
+    /**
+     * @author Weihao Mo
+     */
     public static Board initBoardWithCheckPointsInThreeDifferentNumber(int width, int height) {
         Tile[][] tiles = initEmptyCells(width,height);
 
@@ -80,6 +94,9 @@ public final class BoardTestUtils {
 
     }
 
+    /**
+     * @author Weihao Mo
+     */
    public static Board initBoardWithBlueConveyors(int width, int height) {
        Tile[][] tiles = initEmptyCells(width,height);
        tiles[1][0].setEffects(List.of(new BlueConveyor(Direction.E, Rotation.NONE)));
@@ -98,6 +115,9 @@ public final class BoardTestUtils {
        return new Board(width, height, tiles);
     }
 
+    /**
+     * @author Weihao Mo
+     */
     public static Board initBoardWithGreenConveyors(int width, int height) {
         Tile[][] tiles = initEmptyCells(width,height);
         tiles[1][0].setEffects(List.of(new GreenConveyor(Direction.E, Rotation.NONE)));
@@ -110,7 +130,9 @@ public final class BoardTestUtils {
         return new Board(width, height, tiles);
     }
 
-
+    /**
+     * @author Weihao Mo
+     */
     public static Board initBoardWithGreenConveyorsWithCheckpoints(int width, int height) {
         Tile[][] tiles = initEmptyCells(width,height);
         tiles[0][0].setEffects(List.of(new GreenConveyor(Direction.E, Rotation.NONE)));
@@ -124,7 +146,9 @@ public final class BoardTestUtils {
         return new Board(width, height, tiles);
     }
 
-
+    /**
+     * @author Weihao Mo
+     */
     public static Board initBoardWithBlueConveyorsWithCheckpoints(int width, int height) {
         Tile[][] tiles = initEmptyCells(width,height);
         tiles[0][0].setEffects(List.of(new BlueConveyor(Direction.E, Rotation.NONE)));
@@ -141,6 +165,9 @@ public final class BoardTestUtils {
         return new Board(width, height, tiles);
     }
 
+    /**
+     * @author Weihao Mo
+     */
     public static Board initBoardWithGreenConveyorCollision(int width, int height) {
         Tile[][] tiles = initEmptyCells(width, height);
         tiles[0][0].setEffects(List.of(new GreenConveyor(Direction.E, Rotation.NONE)));
@@ -148,7 +175,9 @@ public final class BoardTestUtils {
         return new Board(width, height, tiles);
     }
 
-
+    /**
+     * @author Weihao Mo
+     */
     public static Board initBoardWithBlueConveyorCollision(int width, int height) {
         Tile[][] tiles = initEmptyCells(width, height);
         tiles[0][0].setEffects(List.of(new BlueConveyor(Direction.E, Rotation.NONE)));
@@ -159,6 +188,9 @@ public final class BoardTestUtils {
         return new Board(width, height, tiles);
     }
 
+    /**
+     * @author Weihao Mo
+     */
     public static Board initBoardWithThreeRobotCollision(int width, int height) {
         Tile[][] tiles = initEmptyCells(width, height);
         tiles[0][1].setEffects(List.of(new BlueConveyor(Direction.E, Rotation.NONE)));
@@ -167,6 +199,9 @@ public final class BoardTestUtils {
         return new Board(width, height, tiles);
     }
 
+    /**
+     * @author Weihao Mo
+     */
     public static Board initBoardWithSecondStepCollision(int width, int height) {
         Tile[][] tiles = initEmptyCells(width, height);
         tiles[0][0].setEffects(List.of(new BlueConveyor(Direction.E, Rotation.NONE)));
@@ -177,12 +212,18 @@ public final class BoardTestUtils {
         return new Board(width, height, tiles);
     }
 
+    /**
+     * @author Weihao Mo
+     */
     public static Board initBoardWithBlueConveyorCancelMove(int width, int height) {
         Tile[][] tiles = initEmptyCells(width, height);
         tiles[0][0].setEffects(List.of(new GreenConveyor(Direction.E, Rotation.NONE)));
         return new Board(width, height, tiles);
     }
 
+    /**
+     * @author Weihao Mo
+     */
     public static Board initBoardWithGreenConveyorAndWalls(int width, int height) {
         Tile[][] tiles = initEmptyCells(width, height);
         tiles[0][0].setEffects(List.of(new GreenConveyor(Direction.E, Rotation.NONE)));
@@ -192,7 +233,9 @@ public final class BoardTestUtils {
         return new Board(width,height,tiles);
     }
 
-
+    /**
+     * @author Weihao Mo
+     */
     public static Board initBoardWithBlueConveyorAndWalls(int width, int height) {
         Tile[][] tiles = initEmptyCells(width, height);
         tiles[0][0].setEffects(List.of(new BlueConveyor(Direction.E, Rotation.NONE)));
@@ -202,7 +245,9 @@ public final class BoardTestUtils {
         return new Board(width,height,tiles);
     }
 
-
+    /**
+     * @author Weihao Mo
+     */
     public static Board initBoardWithCurvedConveyorAtDestination(int width, int height) {
         Tile[][] tiles = initEmptyCells(width, height);
         tiles[1][0].setEffects(List.of(new GreenConveyor(Direction.S, Rotation.RIGHT)));
@@ -211,7 +256,9 @@ public final class BoardTestUtils {
         return new Board(width, height, tiles);
     }
 
-
+    /**
+     * @author Weihao Mo
+     */
     public static Board initBoardWithCurvedConveyorAtDestinationBlue(int width, int height) {
         Tile[][] tiles = initEmptyCells(width, height);
         tiles[1][0].setEffects(List.of(new BlueConveyor(Direction.S, Rotation.RIGHT)));
@@ -221,7 +268,9 @@ public final class BoardTestUtils {
         return new Board(width, height, tiles);
     }
 
-
+    /**
+     * @author Weihao Mo
+     */
     public static Board initBoardWithStraightThenCurvedGreenConveyor(int width, int height) {
         Tile[][] tiles = initEmptyCells(width, height);
         tiles[0][0].setEffects(List.of(new GreenConveyor(Direction.E, Rotation.NONE)));
@@ -230,6 +279,9 @@ public final class BoardTestUtils {
         return new Board(width, height, tiles);
     }
 
+    /**
+     * @author Weihao Mo
+     */
     public static Board initBoardWithStraightThenCurvedBlueConveyor(int width, int height) {
         Tile[][] tiles = initEmptyCells(width, height);
         tiles[0][0].setEffects(List.of(new BlueConveyor(Direction.E, Rotation.NONE)));
@@ -239,6 +291,9 @@ public final class BoardTestUtils {
         return new Board(width, height, tiles);
     }
 
+    /**
+     * @author Weihao Mo
+     */
     public static Board initBoardWithStraightBlue(int width, int height) {
         Tile[][] tiles = initEmptyCells(width, height);
         tiles[0][0].setEffects(List.of(new BlueConveyor(Direction.E, Rotation.NONE)));
@@ -249,7 +304,9 @@ public final class BoardTestUtils {
         return new Board(width, height, tiles);
     }
 
-
+    /**
+     * @author Weihao Mo
+     */
     public static Board initBoardWithStraightGreen(int width, int height) {
         Tile[][] tiles = initEmptyCells(width, height);
         tiles[0][0].setEffects(List.of(new GreenConveyor(Direction.E, Rotation.NONE)));
@@ -260,6 +317,9 @@ public final class BoardTestUtils {
         return new Board(width, height, tiles);
     }
 
+    /**
+     * @author Weihao Mo
+     */
     public static Board initBoardWithCurvedToCurvedGreenConveyor(int width, int height) {
         Tile[][] tiles = initEmptyCells(width, height);
         tiles[0][0].setEffects(List.of(new GreenConveyor(Direction.E, Rotation.NONE)));
@@ -269,6 +329,9 @@ public final class BoardTestUtils {
         return new Board(width, height, tiles);
     }
 
+    /**
+     * @author Weihao Mo
+     */
     public static Board initBoardWithMultipleCurvedBlueConveyors(int width, int height) {
         Tile[][] tiles = initEmptyCells(width, height);
         tiles[0][0].setEffects(List.of(new BlueConveyor(Direction.E, Rotation.NONE)));
@@ -278,6 +341,9 @@ public final class BoardTestUtils {
         return new Board(width, height, tiles);
     }
 
+    /**
+     * @author Weihao Mo
+     */
     public static Board initBoardWithRebootToken(int width, int height) {
         Tile[][] tiles = initEmptyCells(width,height);
         Tile cp1 = tiles[2][2];

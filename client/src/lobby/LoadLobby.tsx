@@ -4,15 +4,21 @@ import React, { useState } from "react";
 
 
 /** 
-@author Bjarke Søderhamn Petersen
-@author Karl Johannes Agerbo
-@author Benjamin Benyo Endahl Hansen
+* @author Bjarke Søderhamn Petersen
+* @author Karl Johannes Agerbo
+* @author Benjamin Benyo Endahl Hansen
 */
 
 interface Lobby {
   lobbyID: string;
   [key: string]: any;
 }
+
+/** 
+* @author Bjarke Søderhamn Petersen
+* @author Karl Johannes Agerbo
+* @author Benjamin Benyo Endahl Hansen
+*/
 
 export default function LoadLobby() {
   const navigate = useNavigate();
@@ -22,7 +28,11 @@ export default function LoadLobby() {
   const [error, setError] = useState<string>("");
   const API_BASE_URL = process.env.REACT_APP_API_BASE_URL;
 
-
+  /** 
+  * @author Bjarke Søderhamn Petersen
+  * @author Karl Johannes Agerbo
+  * @author Benjamin Benyo Endahl Hansen
+  */
   const seeSavedGames = async () => {
     setError("");
     try {
@@ -44,6 +54,11 @@ export default function LoadLobby() {
     }
   };
 
+  /** 
+  * @author Bjarke Søderhamn Petersen
+  * @author Karl Johannes Agerbo
+  * @author Benjamin Benyo Endahl Hansen
+  */
   const loadGame = async (saveId: string):Promise<boolean>=> {
     setError("");
     try {

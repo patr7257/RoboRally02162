@@ -1,6 +1,8 @@
-/*
-Author(s): Bjarke, Asger, Patrick
-*/
+/**
+ * @author Bjarke Søderhamn Petersen
+ * @author Asger Allin Jensen
+ * @author Patrick Røbel
+ */
 
 const reportWebVitals = (onPerfEntry?: (metric: any) => void) => {
   if (onPerfEntry && onPerfEntry instanceof Function) {

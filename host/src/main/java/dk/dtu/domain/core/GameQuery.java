@@ -6,8 +6,9 @@ import dk.dtu.infrastructure.dto.SnapshotPayload;
 
 import java.util.List;
 
-// Author(s) William Pii Jæger
-
+/**
+ * @author William Pii Jæger
+ */
 public sealed interface GameQuery<T> permits
         GameQuery.GetSnapshot,
         GameQuery.GetHand,

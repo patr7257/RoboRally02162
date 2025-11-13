@@ -1,3 +1,6 @@
+/**
+ * @author Niklas Emil Lysdal
+ */
 
 export interface lobbyInfo {
     lobbyID: string;
@@ -6,8 +9,6 @@ export interface lobbyInfo {
     capacity: number;
     status: boolean; //is it running or not.
 }
-
-
 
 export const DEFAULT_LOBBY_INFO: lobbyInfo = {
     lobbyID: "", // Assuming empty string means inactive

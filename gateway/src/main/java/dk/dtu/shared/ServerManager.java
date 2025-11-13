@@ -18,10 +18,10 @@ import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
- @author Bjarke Søderhamn Petersen
- @author Benjamin Benyo Endahl Hansen
- @author Karl Johannes Agerbo
- @author Niklas Emil Lysdal
+ * @author Bjarke Søderhamn Petersen
+ * @author Benjamin Benyo Endahl Hansen
+ * @author Karl Johannes Agerbo
+ * @author Niklas Emil Lysdal
  */
 
 @Component
@@ -34,6 +34,11 @@ public class ServerManager implements LobbyObserver {
     private Host host;
     private final LobbyFactory lobbyFactory;
     private final UserDatabase userDatabase;
+
+    /**
+     * @author Niklas Emil Lysdal
+     */
+
     public ServerManager(Host host, LobbyFactory lobbyFactory, DynamicUserDatabase userDatabase) {
         this.host = host;
         this.lobbyFactory = lobbyFactory;
@@ -47,6 +52,7 @@ public class ServerManager implements LobbyObserver {
     /**
      * @author Niklas Emil Lysdal
      */
+
     @Override
     public void handleUpdate(LobbyUpdateReason reason, Lobby lobby) {
         switch (reason) {
@@ -65,6 +71,7 @@ public class ServerManager implements LobbyObserver {
 
             //case LOCKED: {}
             //case UNLOCKED: {}
+
             case GAME_ENDED:
 
                     gameToLobby.remove(lobby.getGameID().toString());
@@ -81,26 +88,29 @@ public class ServerManager implements LobbyObserver {
     }
 
     /**
-     @author Bjarke Søderhamn Petersen
-     @author Benjamin Benyo Endahl Hansen
-     @author Karl Johannes Agerbo
+     * @author Bjarke Søderhamn Petersen
+     * @author Benjamin Benyo Endahl Hansen
+     * @author Karl Johannes Agerbo
      */
+
     public Lobby getLobbyFromLobbyID(String lobID) {
         Lobby lob = loadedLobbies.get(lobID);
         return lob == null ? lobbies.get(lobID) : lob;
     }
+
     /**
      * @author Niklas Emil Lysdal
      * @return Returns whether the userID has a corresponding user in database.
      */
-    public boolean validateUserID (String userID){
+
+    public boolean validateUserID(String userID){
         return userDatabase.existsID(userID);
     }
-
 
     /**
      * @author Niklas Emil Lysdal
      */
+
     public ArrayList<Lobby> getLobbiesListCopy() {
         return new ArrayList<>(lobbies.values());
     }
@@ -113,9 +123,9 @@ public class ServerManager implements LobbyObserver {
     }
 
     /**
-     @author Bjarke Søderhamn Petersen
-     @author Benjamin Benyo Endahl Hansen
-     @author Karl Johannes Agerbo
+     * @author Bjarke Søderhamn Petersen
+     * @author Benjamin Benyo Endahl Hansen
+     * @author Karl Johannes Agerbo
      */
     public Lobby getLoadedLobbyFromSaveID(String saveID){
         String lobbyID = lobbyIDFromSaveID.get(saveID);
@@ -124,34 +134,37 @@ public class ServerManager implements LobbyObserver {
         }
         return getLobbyFromLobbyID(lobbyID);
     }
-    /*
-    public void putLobby(Lobby lobby) {
-        lobbies.put(lobby.getLobbyID(), lobby);
-    }
-    */
+
     /**
      * @author Niklas Emil Lysdal
      */
+
     public void putClient(Client client) {
         clients.put(client.getUserID(),client);
     }
+
     /**
      * @author Niklas Emil Lysdal
      */
+
     public Client createClient(User user, WebSocketSession session) {
         Client newClient = new Client(user, session);
         putClient(newClient);
         return newClient;
     }
+
     /**
      * @author Niklas Emil Lysdal
      */
+
     public Client removeClient(String clientID) {
         return clients.remove(clientID);
     }
+
     /**
      * @author Niklas Emil Lysdal
      */
+
     public String removeGameMapping(String gameID) {
         return gameToLobby.remove(gameID); //returns such that caller can check if object was originally in map
     }
@@ -159,18 +172,23 @@ public class ServerManager implements LobbyObserver {
     /**
      * @author Niklas Emil Lysdal
      */
+
     public synchronized Lobby createLobby(Client creator, Host host,String lobbyName, int capacity) {
        return  createLobbyBody(creator, host, lobbyName, capacity);
     }
+
     /**
      * @author Niklas Emil Lysdal
      */
+
     public synchronized Lobby createLobby(Client creator,String lobbyName,int capacity) {
         return createLobbyBody(creator, this.host, lobbyName, capacity);
     }
+
     /**
      * @author Niklas Emil Lysdal
      */
+
     private synchronized Lobby createLobbyBody(Client creator, Host host,String lobbyName, int capacity) {
         boolean invalidLobbyName = lobbies.values().stream().anyMatch(lobby -> lobby.getLobbyName().equals(lobbyName));
         if (invalidLobbyName) {
@@ -184,18 +202,22 @@ public class ServerManager implements LobbyObserver {
 
         return lob;
     }
+
     /**
      * @author Niklas Emil Lysdal
      */
+
     private void notifyClientsOfLobbies() {
         ObjectNode msg = JsonUtil.createObjectNode();
         msg.put("type","lobbies");
         msg.put("action","updatedLobbies");
         broadcastToClients(msg);
     }
+
     /**
      * @author Niklas Emil Lysdal
      */
+
     private void broadcastToClients(ObjectNode msg) {
         for (Client client : clients.values()) {
             client.handleMessage(msg);
@@ -203,9 +225,9 @@ public class ServerManager implements LobbyObserver {
     }
 
     /**
-     @author Bjarke Søderhamn Petersen
-     @author Benjamin Benyo Endahl Hansen
-     @author Karl Johannes Agerbo
+     * @author Bjarke Søderhamn Petersen
+     * @author Benjamin Benyo Endahl Hansen
+     * @author Karl Johannes Agerbo
      */
 
     public Lobby recreateLobby(Client c, Map<String, String> userToPlayer, UUID saveID) {
@@ -219,13 +241,13 @@ public class ServerManager implements LobbyObserver {
     /**
      * @author Niklas Emil Lysdal
      */
+
     public void setHostSession(WebSocketSession sess) { this.host.setSession(sess);}
 
-
-
-    /**
+    /*
     The following functions are for test purposes only
     */
+
     public Map<String, Client> getClientsForTest() {
         return clients;
     }
@@ -237,9 +259,4 @@ public class ServerManager implements LobbyObserver {
     public Map<String, String> getGameToLobbyForTest() {
         return gameToLobby;
     }
-
 }
-
-//put
-//remove
-//get

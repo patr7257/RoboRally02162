@@ -4,8 +4,14 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 
+/**
+ * @author Benjamin Benyo Endahl Hansen
+ * @author William Pii Jæger
+ * @author Karl Johannes Agerbo
+ * @author Bjarke Søderhamn Petersen
+ * @author Weihao Mo
+ */
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.PROPERTY, property = "kind")
-
 @JsonSubTypes(
         {@JsonSubTypes.Type(value = CheckpointDto.class, name = "CHECKPOINT"),
                 @JsonSubTypes.Type(value = BlueConveyorDto.class,  name = "BLUE_CONVEYOR"),

@@ -11,9 +11,25 @@ import dk.dtu.domain.rules.*;
 import dk.dtu.domain.rules.api.BoardAPI;
 import dk.dtu.domain.rules.BeltIntent;
 /**
+ * Blue conveyor tile effect that pushes robots two steps in the conveyor's facing direction.
+ * <p>
+ * For each blue conveyor a{@link BeltIntent} is added
+ * with speed {@code 2} and priority {@code 2}
+ * Any post-move is handled later by the board when resolving intents.
+ * </p>
+ *
+ * @param direction the direction the blue conveyor is facing
+ * @param rotation the rotation to apply to robots
+ *
+ * @see BoardAPI#addIntent(BeltIntent)
+ * @see BoardAPI#resolveIntents()
  * @author Weihao Mo
  */
 public record BlueConveyor(Direction direction, Rotation rotation) implements TileEffect {
+
+    /**
+     * @author Weihao Mo
+     */
     @Override
     public void onPhase(Phase phase, Tile tile, BoardAPI api) {
         if (phase != Phase.ACTIVATE_BLUECONVEYOR) return;

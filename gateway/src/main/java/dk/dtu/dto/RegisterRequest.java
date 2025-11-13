@@ -1,6 +1,6 @@
 package dk.dtu.dto;
-/*
-Author(s): Lizette
+/**
+ * @author Lizette Bloch Dahl Nikolajsen
  */
 
 public class RegisterRequest {

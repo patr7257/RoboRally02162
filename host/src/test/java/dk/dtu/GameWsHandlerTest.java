@@ -16,8 +16,9 @@ import java.util.UUID;
 
 import static org.mockito.Mockito.*;
 
-// Author(s) William Pii Jæger
-
+/**
+ * @author William Pii Jæger
+ */
 class GameWsHandlerTest {
 
     private ObjectMapper mapper;
@@ -25,6 +26,9 @@ class GameWsHandlerTest {
     private GatewaysWsHandler handler;
     private WebSocketSession session;
 
+    /**
+     * @author William Pii Jæger
+     */
     @BeforeEach
     void setup() {
         mapper = new ObjectMapper();
@@ -37,6 +41,9 @@ class GameWsHandlerTest {
         when(gameManager.execute(any(GameCommand.class))).thenReturn(CommandResult.ok("ok"));
     }
 
+    /**
+     * @author William Pii Jæger
+     */
     @Test
     void submitPrograms_parsesPayloadAndCallsGameManager() throws Exception {
         UUID gameId = UUID.randomUUID();

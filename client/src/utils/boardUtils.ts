@@ -1,10 +1,10 @@
-/*
-Author(s): Bjarke, Asger, Patrick
-*/
-
-
 import { Direction, Robot, DIRECTION_ARROWS, ROBOT_COLORS, ROBOT_IMAGES } from "../types/boardTypes"
 
+/**
+ * @author Bjarke Søderhamn Petersen
+ * @author Asger Allin Jensen
+ * @author Patrick Røbel
+ */
 export const getFacingArrow = (facing: Direction): string =>
   DIRECTION_ARROWS[facing] || "●";
 
@@ -20,6 +20,11 @@ export const getRobotAtPosition = (
   y: number
 ): Robot | null => robots.find((robot) => robot.x === x && robot.y === y) || null;
 
+/**
+ * @author Bjarke Søderhamn Petersen
+ * @author Asger Allin Jensen
+ * @author Patrick Røbel
+ */
 export const calculateBoardSize = (
   boardWidth: number,
   boardHeight: number

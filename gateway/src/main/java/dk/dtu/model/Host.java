@@ -1,9 +1,5 @@
 package dk.dtu.model;
 
-/*
-Author(s): Niklas, Karl
- */
-
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import dk.dtu.util.JsonUtil;
@@ -16,6 +12,13 @@ import java.io.IOException;
 import java.util.Map;
 import java.util.UUID;
 
+/**
+ * @author Benjamin Benyo Endahl Hansen
+ * @author Karl Johannes Agerbo
+ * @author Niklas Emil Lysdal
+ * @author Bjarke Søderhamn Petersen
+ */
+
 @Component
 public class Host { //TODO: maybe make singleton
 
@@ -26,13 +29,15 @@ public class Host { //TODO: maybe make singleton
     public Host(){};
     /**
      * @author Niklas Emil Lysdal
+     * @author Benjamin Benyo Endahl Hansen
+     * @author Karl Johannes Agerbo
      */
     public void setSession(WebSocketSession session) {
         this.session = session;
         this.queue = new MessageQueue(session);
     }
     /**
-     * @author Niklas Emil Lysdal
+     * @author Karl Johannes Agerbo
      */
     public void handleMessage(ObjectNode msg) {
         queue.enqueue(msg);
@@ -40,6 +45,7 @@ public class Host { //TODO: maybe make singleton
     }
     /**
      * @author Niklas Emil Lysdal
+     * @author Karl Johannes Agerbo
      */
     public UUID startGame(int amountPlayers, int boardSize) {
         RestTemplate restTemplate = new RestTemplate();

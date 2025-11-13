@@ -18,9 +18,14 @@ import static dk.dtu.util.GameTestSupport.*;
 import static dk.dtu.util.BoardTestUtils.initBoardWithRebootToken;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-// Author(s) Weihao Mo
-
+/**
+ * @author Weihao Mo
+ */
 public class GameRebootTest {
+
+    /**
+     * @author Weihao Mo
+     */
     @Test
     void robotRespawn() {
         Board board = initBoardWithRebootToken(5,5);
@@ -40,6 +45,9 @@ public class GameRebootTest {
         assertPosDir(r,2,2,Direction.E);
     }
 
+    /**
+     * @author Weihao Mo
+     */
     @Test
     void robotRespawnAndThenPushed() {
         Board board = initBoardWithRebootToken(5,5);
@@ -63,7 +71,9 @@ public class GameRebootTest {
         assertPosDir(r2,2,2,Direction.E);
     }
 
-
+    /**
+     * @author Weihao Mo
+     */
     @Test
     void threeRobotRespawnAndThenPushed() {
         Board board = initBoardWithRebootToken(5,5);
@@ -89,9 +99,4 @@ public class GameRebootTest {
         assertPosDir(r2,3,2,Direction.E);
         assertPosDir(r3,2,2,Direction.E);
     }
-
-
-
-
-
 }

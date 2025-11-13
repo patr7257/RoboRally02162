@@ -2,10 +2,6 @@ package dk.dtu.config;
 
 import dk.dtu.model.database.DynamicUserDatabase;
 
-/*
-Author(s): Niklas, Bjarke
- */
-
 import dk.dtu.model.User;
 import dk.dtu.interfaces.UserDatabase;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,18 +15,29 @@ import org.springframework.web.socket.server.HandshakeInterceptor;
 import java.net.URI;
 import java.util.Map;
 
+/**
+ * @author Niklas Emil Lysdal
+ * @author Bjarke Søderhamn Petersen
+ */
 @Component
 public class ClientHandshakeInterceptor implements HandshakeInterceptor {
 
     private final UserDatabase userDatabase;
 
+    /**
+     * @author Niklas Emil Lysdal
+     */
+
     @Autowired
     public ClientHandshakeInterceptor(DynamicUserDatabase userDatabase) {
         this.userDatabase = userDatabase;
     }
+
     /**
      * @author Niklas Emil Lysdal
+     * @author Bjarke Søderhamn Petersen
      */
+
     @Override
     public boolean beforeHandshake(ServerHttpRequest request,
                                     ServerHttpResponse response,

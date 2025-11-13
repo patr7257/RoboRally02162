@@ -34,18 +34,15 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+/**
+ * @author Bjarke Søderhamn Petersen
+ * @author Benjamin Benyo Endahl Hansen
+ * @author Karl Johannes Agerbo
+ */
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
 @Import(HostConfig.class)
 @AutoConfigureMockMvc
-
-/**
- @author Bjarke Søderhamn Petersen
- @author Benjamin Benyo Endahl Hansen
- @author Karl Johannes Agerbo
- */
-
-
 public class GameDatabaseTests {
     @Autowired
     private MockMvc mockMvc;
@@ -94,11 +91,10 @@ public class GameDatabaseTests {
     }
 
     /**
-     @author Bjarke Søderhamn Petersen
-     @author Benjamin Benyo Endahl Hansen
-     @author Karl Johannes Agerbo
+     * @author Bjarke Søderhamn Petersen
+     * @author Benjamin Benyo Endahl Hansen
+     * @author Karl Johannes Agerbo
      */
-
     @Test
     public void testSaveGame() throws Exception {
         String lobbyID = setupLobby();
@@ -130,11 +126,10 @@ public class GameDatabaseTests {
     }
 
     /**
-     @author Bjarke Søderhamn Petersen
-     @author Benjamin Benyo Endahl Hansen
-     @author Karl Johannes Agerbo
+     * @author Bjarke Søderhamn Petersen
+     * @author Benjamin Benyo Endahl Hansen
+     * @author Karl Johannes Agerbo
      */
-
     @Test
     public void testSeeSavedGames() throws Exception {
         String lobbyID = setupLobby();
@@ -149,11 +144,10 @@ public class GameDatabaseTests {
     }
 
     /**
-     @author Bjarke Søderhamn Petersen
-     @author Benjamin Benyo Endahl Hansen
-     @author Karl Johannes Agerbo
+     * @author Bjarke Søderhamn Petersen
+     * @author Benjamin Benyo Endahl Hansen
+     * @author Karl Johannes Agerbo
      */
-
     @Test
     public void testLoadGame() throws Exception {
         String lobbyID = setupLobby();
@@ -183,9 +177,9 @@ public class GameDatabaseTests {
     }
 
     /**
-     @author Bjarke Søderhamn Petersen
-     @author Benjamin Benyo Endahl Hansen
-     @author Karl Johannes Agerbo
+     * @author Bjarke Søderhamn Petersen
+     * @author Benjamin Benyo Endahl Hansen
+     * @author Karl Johannes Agerbo
      */
     @Test
     public void testStartLoadedGameSuccessful() throws Exception {
@@ -213,9 +207,9 @@ public class GameDatabaseTests {
     }
 
     /**
-     @author Bjarke Søderhamn Petersen
-     @author Benjamin Benyo Endahl Hansen
-     @author Karl Johannes Agerbo
+     * @author Bjarke Søderhamn Petersen
+     * @author Benjamin Benyo Endahl Hansen
+     * @author Karl Johannes Agerbo
      */
     @Test
     public void testStartLoadedGameFailed() throws Exception {
@@ -242,11 +236,10 @@ public class GameDatabaseTests {
 
 
     /**
-     @author Bjarke Søderhamn Petersen
-     @author Benjamin Benyo Endahl Hansen
-     @author Karl Johannes Agerbo
+     * @author Bjarke Søderhamn Petersen
+     * @author Benjamin Benyo Endahl Hansen
+     * @author Karl Johannes Agerbo
      */
-
     private void startLobby(String lobbyID) throws Exception {
         readyPlayers(lobbyID);
         mockMvc.perform(post("/api/lobby/start")
@@ -256,11 +249,10 @@ public class GameDatabaseTests {
 
     }
     /**
-     @author Bjarke Søderhamn Petersen
-     @author Benjamin Benyo Endahl Hansen
-     @author Karl Johannes Agerbo
+     * @author Bjarke Søderhamn Petersen
+     * @author Benjamin Benyo Endahl Hansen
+     * @author Karl Johannes Agerbo
      */
-
     private void readyPlayers(String lobbyID) throws Exception {
         for (String userID : userIDs) {
             Map<String, Object> readyBody1 = new HashMap<>();
@@ -273,9 +265,9 @@ public class GameDatabaseTests {
     }
 
     /**
-     @author Bjarke Søderhamn Petersen
-     @author Benjamin Benyo Endahl Hansen
-     @author Karl Johannes Agerbo
+     * @author Bjarke Søderhamn Petersen
+     * @author Benjamin Benyo Endahl Hansen
+     * @author Karl Johannes Agerbo
      */
     private void saveGame(String lobbyID) throws Exception {
         mockMvc.perform(post("/api/game/save")
@@ -286,9 +278,9 @@ public class GameDatabaseTests {
     }
 
     /**
-     @author Bjarke Søderhamn Petersen
-     @author Benjamin Benyo Endahl Hansen
-     @author Karl Johannes Agerbo
+     * @author Bjarke Søderhamn Petersen
+     * @author Benjamin Benyo Endahl Hansen
+     * @author Karl Johannes Agerbo
      */
     private String getFirstSaveID(String userID) throws Exception {
         String response = mockMvc.perform(post("/api/game/seeSavedGames")
@@ -304,9 +296,9 @@ public class GameDatabaseTests {
     }
 
     /**
-     @author Bjarke Søderhamn Petersen
-     @author Benjamin Benyo Endahl Hansen
-     @author Karl Johannes Agerbo
+     * @author Bjarke Søderhamn Petersen
+     * @author Benjamin Benyo Endahl Hansen
+     * @author Karl Johannes Agerbo
      */
     private String loadGame(String userID, String saveID) throws Exception {
         return mockMvc.perform(post("/api/game/loadGame")
@@ -320,9 +312,9 @@ public class GameDatabaseTests {
     }
 
     /**
-     @author Bjarke Søderhamn Petersen
-     @author Benjamin Benyo Endahl Hansen
-     @author Karl Johannes Agerbo
+     * @author Bjarke Søderhamn Petersen
+     * @author Benjamin Benyo Endahl Hansen
+     * @author Karl Johannes Agerbo
      */
     private void loadPlayers(String saveID) throws Exception {
         for (int i = 1; i < userIDs.size(); i++) {
@@ -338,9 +330,9 @@ public class GameDatabaseTests {
     }
 
     /**
-     @author Bjarke Søderhamn Petersen
-     @author Benjamin Benyo Endahl Hansen
-     @author Karl Johannes Agerbo
+     * @author Bjarke Søderhamn Petersen
+     * @author Benjamin Benyo Endahl Hansen
+     * @author Karl Johannes Agerbo
      */
     private String seeSavedGames(String userID) throws Exception {
         return mockMvc.perform(post("/api/game/seeSavedGames")
@@ -354,9 +346,9 @@ public class GameDatabaseTests {
     }
 
     /**
-     @author Bjarke Søderhamn Petersen
-     @author Benjamin Benyo Endahl Hansen
-     @author Karl Johannes Agerbo
+     * @author Bjarke Søderhamn Petersen
+     * @author Benjamin Benyo Endahl Hansen
+     * @author Karl Johannes Agerbo
      */
     private String setupLobby() throws Exception {
         String username = "TestUser";

@@ -1,8 +1,5 @@
 package dk.dtu.util;
 
-/*
-Author(s): Niklas, Karl
- */
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
@@ -15,14 +12,22 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+/**
+ * @author Karl Johannes Agerbo
+ * @author Niklas Emil Lysdal
+ */
+
 public class JsonUtil {
     private static final ObjectMapper mapper = new ObjectMapper();
 
     private JsonUtil() {}
+
     /**
      * @author Niklas Emil Lysdal
+     * @author Karl Johannes Agerbo
      * @return Returns string Json representation of object
      */
+
     public static String toJson(Object obj) {
         try {
             return mapper.writeValueAsString(obj);
@@ -30,11 +35,14 @@ public class JsonUtil {
             throw new RuntimeException(e);
         }
     }
+
     /**
      * @author Niklas Emil Lysdal
+     * @author Karl Johannes Agerbo
      * @return  JsonNode representation of string
      * @throws RuntimeException if the string is an invalid json.
      */
+
     public static JsonNode parser(String json) {
         try {
             return mapper.readTree(json);
@@ -44,9 +52,21 @@ public class JsonUtil {
     }
 
 
+    /**
+     * @author Bjarke Søderhamn Petersen
+     * @author Benjamin Benyo Endahl Hansen
+     * @author Karl Johannes Agerbo
+     */
+
     public static JsonNode toTree(Object list) {
         return mapper.valueToTree(list);
     }
+
+    /**
+     * @author Bjarke Søderhamn Petersen
+     * @author Benjamin Benyo Endahl Hansen
+     * @author Karl Johannes Agerbo
+     */
 
     public static Map<String, String> toMap(String json) {
         try {
@@ -56,10 +76,13 @@ public class JsonUtil {
             throw new RuntimeException(e);
         }
     }
+
     /**
      * @author Niklas Emil Lysdal
+     * @author Karl Johannes Agerbo
      * @return Object node to be used to create json tree
      */
+
     public static ObjectNode createObjectNode() {
         return mapper.createObjectNode();
     }

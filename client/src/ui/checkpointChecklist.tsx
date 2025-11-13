@@ -1,10 +1,9 @@
 import React from "react";
 import type { Board, Robot } from "../types/boardTypes";
 
-/*
-* @author Weihao Mo
-*/
-
+/**
+ * @author Weihao Mo
+ */
 function getCheckpointNumbers(board: Board): number[] {
   const set = new Set<number>();
   board.tiles.forEach(row =>
@@ -22,11 +21,17 @@ function getCheckpointNumbers(board: Board): number[] {
   return [...set].sort((a, b) => a - b);
 }
 
+/**
+ * @author Weihao Mo
+ */
 function hitsFromNext(nextCheckpoint: number): Set<number> {
   const n = Math.max(Number(nextCheckpoint) - 1, 0);
   return new Set(Array.from({ length: n }, (_, i) => i + 1));
 }
 
+/**
+ * @author Weihao Mo
+ */
 export default function CheckpointChecklist({ board, robots }: { board: Board; robots: Robot[] }) {
   const checkpoints = getCheckpointNumbers(board);
   if (!checkpoints.length) {

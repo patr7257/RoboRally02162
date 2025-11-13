@@ -16,12 +16,21 @@ import java.io.IOException;
 import java.util.*;
 import java.util.stream.Collectors;
 
+/**
+ * @author William Pii Jæger
+ * @author Weihao Mo
+ * @author Bjarke Søderhamn Petersen
+ * @author Niklas Emil Lysdal
+ */
 public class GatewaysWsHandler extends TextWebSocketHandler implements GameManagerObserver {
     private final ObjectMapper mapper = new ObjectMapper();
     private final GameManager gameManager;
     private WebSocketSession session;
 
-    // Author(s) Weihao Mo, William Pii Jæger
+    /**
+     * @author Weihao Mo
+     * @author William Pii Jæger
+     */
     public GatewaysWsHandler(GameManager gameManager) {
         this.gameManager = gameManager;
         gameManager.addObserver(this);
@@ -41,7 +50,7 @@ public class GatewaysWsHandler extends TextWebSocketHandler implements GameManag
     /**
      * Sends an outgoing message via the WebSocket session.
      *
-     * @param outgoingMessage message to send
+     * @param msg message to send
      * @throws IOException           if JSON serialization or WebSocket send fails
      * @throws IllegalStateException if no open WebSocket session is available
      * @author Weihao Mo
@@ -54,7 +63,9 @@ public class GatewaysWsHandler extends TextWebSocketHandler implements GameManag
         s.sendMessage(new TextMessage(json));
     }
 
-    // Author(s) William Pii Jæger
+    /**
+     * @author William Pii Jæger
+     */
     private void sendError(String errorType, String message, EventMetaDTO meta, UUID gameId) {
         try {
             if (meta == null) {
@@ -72,7 +83,9 @@ public class GatewaysWsHandler extends TextWebSocketHandler implements GameManag
         }
     }
 
-    // Author(s) William Pii Jæger
+    /**
+     * @author William Pii Jæger
+     */
     private UUID safeUUID(String str) {
         try {
             return UUID.fromString(str);
@@ -81,7 +94,9 @@ public class GatewaysWsHandler extends TextWebSocketHandler implements GameManag
         }
     }
 
-    // Author(s) William Pii Jæger
+    /**
+     * @author William Pii Jæger
+     */
     private long readLongOrDefault(JsonNode node, String field, long defaultValue) {
         if (node.has(field)) {
             return node.get(field).asLong(defaultValue);
@@ -89,12 +104,16 @@ public class GatewaysWsHandler extends TextWebSocketHandler implements GameManag
         return defaultValue;
     }
 
-    // Author(s) William Pii Jæger
+    /**
+     * @author William Pii Jæger
+     */
     private EventMetaDTO withGame(EventMetaDTO meta, GameDto game) {
         return new EventMetaDTO(game, meta.player());
     }
 
-    // Author(s) William Pii Jæger
+    /**
+     * @author William Pii Jæger
+     */
     @Override
     protected void handleTextMessage(WebSocketSession session, TextMessage message) throws Exception {
         final String raw = message.getPayload();
@@ -251,7 +270,11 @@ public class GatewaysWsHandler extends TextWebSocketHandler implements GameManag
         }
     }
 
-    // Author(s) William Pii Jæger, Bjarke, Niklas
+    /**
+     * @author Bjarke Søderhamn Petersen
+     * @author William Pii Jæger
+     * @author Niklas Emil Lysdal
+     */
     @Override
     public void handleGameUpdate(Game game, UUID gameID) {
         try {
@@ -265,7 +288,9 @@ public class GatewaysWsHandler extends TextWebSocketHandler implements GameManag
         }
     }
 
-    // Author(s) William Pii Jæger
+    /**
+     * @author William Pii Jæger
+     */
     @Override
     public void onProgrammingStarted(Game game, UUID gameID) {
         try {
@@ -279,7 +304,9 @@ public class GatewaysWsHandler extends TextWebSocketHandler implements GameManag
         }
     }
 
-    // Author(s) William Pii Jæger
+    /**
+     * @author William Pii Jæger
+     */
     @Override
     public void onPlayerSubmitted(Game game, UUID gameID, PlayerID playerId) {
         try {
@@ -293,7 +320,9 @@ public class GatewaysWsHandler extends TextWebSocketHandler implements GameManag
         }
     }
 
-    // Author(s) William Pii Jæger
+    /**
+     * @author William Pii Jæger
+     */
     @Override
     public void onRoundExecuting(Game game, UUID gameID) {
         try {
@@ -307,7 +336,15 @@ public class GatewaysWsHandler extends TextWebSocketHandler implements GameManag
         }
     }
 
-    // Author(s) William Pii Jæger, Weihao Mo
+    /**
+     * Handles the event when a game has finished by broadcasting the result to all clients.
+     * Creates a GameDto snapshot of the final game state and sends it with winner information.
+     *
+     * @param game the finished game instance
+     * @param gameID id of the game
+     * @author Weihao Mo
+     * @author William Pii Jæger
+     */
     @Override
     public void onGameFinished(Game game, UUID gameID) {
         try {
@@ -321,7 +358,15 @@ public class GatewaysWsHandler extends TextWebSocketHandler implements GameManag
         }
     }
 
-    // Author(s) William Pii Jæger, Weihao Mo
+    /**
+     * An incoming message from a client containing game-related information.
+     *
+     * @param gameId the id of the game
+     * @param playerId the id of the player
+     * @param payload the message payload containing JsonNode
+     * @author Weihao Mo
+     * @author William Pii Jæger
+     */
     @JsonIgnoreProperties(ignoreUnknown = true)
     public static record IncomingMessage(
             @JsonProperty("gameID") String gameId,
@@ -331,7 +376,10 @@ public class GatewaysWsHandler extends TextWebSocketHandler implements GameManag
 
     }
 
-    // Author(s): William Pii Jæger, Weihao Mo
+    /**
+     * @author Weihao Mo
+     * @author William Pii Jæger
+     */
     public boolean isConnected() {
         return session != null && session.isOpen();
     }

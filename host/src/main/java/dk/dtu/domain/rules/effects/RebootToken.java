@@ -12,9 +12,23 @@ import java.util.EnumSet;
 import java.util.List;
 
 /**
+ * Reboot token tile effect that restores destroyed robots during the reboot phase.
+ * <p>
+ * If multiple robots occupy the reboot tile simultaneously, this effect attempts
+ * to push them one step in the reboot token’s facing direction using
+ * {@link BoardAPI#tryMoveOneStep(int, Direction)} to resolve overlaps.
+ * </p>
+ *
+ * @param direction the direction the reboot token faces and uses for setting robot facing direction
+ * @see BoardAPI#tryMoveOneStep(int, Direction)
+ *
  * @author Weihao Mo
  */
 public record RebootToken(Direction direction) implements TileEffect {
+
+    /**
+     * @author Weihao Mo
+     */
     @Override
     public void onPhase(Phase phase, Tile tile, BoardAPI api) {
         if (phase == Phase.ACTIVATE_REBOOT) {

@@ -1,27 +1,17 @@
-/*
-Author(s): Bjarke
-*/
-
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import Layout from "./Layout";
 
+/**
+ * @author Bjarke Søderhamn Petersen
+ */
 export default function Lobby() {
   const navigate = useNavigate();
   const userID: string | null = localStorage.getItem("userID");
   const [lobbyId, setLobbyId] = useState<string>(localStorage.getItem("id") || "");
   const [error, setError] = useState<string>("");
   const API_BASE_URL = process.env.REACT_APP_API_BASE_URL;
-  
-  // commented out to preserve lobbyId (might be bugging the lobby creation/joining flow)
-  /*useEffect(() => {
-    setLobbyId("");
-    setError("");
-  }, []);
-  */
-  
- 
-
+   
   return (
     <Layout>
       <h1>Command Center</h1>

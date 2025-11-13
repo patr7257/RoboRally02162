@@ -2,10 +2,9 @@ import React from "react";
 import { registerEffect } from "../effectRegistry";
 import type { RebootTokenEffect } from "../../types/boardTypes";
 
-/*
-* @author Weihao Mo
-*/
-
+/**
+ * @author Weihao Mo
+ */
 const getRotationDegrees = (direction: string): number => {
   switch (direction) {
     case "N": return 0;
@@ -16,6 +15,9 @@ const getRotationDegrees = (direction: string): number => {
   }
 };
 
+/**
+ * @author Weihao Mo
+ */
 export default function RebootToken({ effect }: { effect: RebootTokenEffect }) {
   return (
     <div

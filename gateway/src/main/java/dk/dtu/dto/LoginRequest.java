@@ -1,15 +1,26 @@
 package dk.dtu.dto;
-/*
-Author(s): Lizette
+/**
+ * @author Lizette Bloch Dahl Nikolajsen
+ * @author Kajsa Alice Ulrika Berlstedt
  */
 
 public class LoginRequest {
     public String username;
     public String passwordHash;
 
+    /**
+     * @author Lizette Bloch Dahl Nikolajsen
+     * @author Kajsa Alice Ulrika Berlstedt
+     */
+
     public LoginRequest() {
         // Default constructor needed for JSON deserialization
     }
+
+    /**
+     * @author Lizette Bloch Dahl Nikolajsen
+     * @author Kajsa Alice Ulrika Berlstedt
+     */
 
     public LoginRequest(String username, String passwordHash) {
         this.username = username;

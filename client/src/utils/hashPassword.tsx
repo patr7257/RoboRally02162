@@ -1,7 +1,7 @@
-/*
-Author(s): Lizette, Kajsa
-*/
-
+/**
+ * @author Lizette Bloch Dahl Nikolajsen
+ * @author Kajsa Alice Ulrika Berlstedt
+ */
 // Web Crypto API - SHA-256 -> hex
 export async function sha256Hex(text: string): Promise<string> {
     const data = new TextEncoder().encode(text);

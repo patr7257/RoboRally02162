@@ -7,8 +7,9 @@ import dk.dtu.domain.rules.api.BoardAPI;
 
 import java.util.EnumSet;
 
-// Author(s) Patrick Røbel
-
+/**
+ * @author Patrick Røbel
+ */
 public record StartingTile(int playerId) implements TileEffect {
     @Override
     public void onPhase(Phase phase, Tile tile, BoardAPI api) {

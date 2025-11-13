@@ -15,7 +15,9 @@ import java.util.concurrent.CompletableFuture;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.*;
 
-// Author(s) Weihao Mo
+/**
+ * @author Weihao Mo
+ */
 public class GatewayClientTest {
 
     private WebSocketClient mockClient;
@@ -23,6 +25,9 @@ public class GatewayClientTest {
     private GatewayClient gatewayClient;
     private WebSocketSession mockSession;
 
+    /**
+     * @author Weihao Mo
+     */
     @BeforeEach
     void setup() {
         mockClient = mock(WebSocketClient.class);
@@ -31,6 +36,9 @@ public class GatewayClientTest {
         mockSession = mock(WebSocketSession.class);
     }
 
+    /**
+     * @author Weihao Mo
+     */
     @Test
     void testConnectReturnsSession() {
         CompletableFuture<WebSocketSession> future = CompletableFuture.completedFuture(mockSession);

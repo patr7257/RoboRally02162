@@ -1,12 +1,5 @@
 package dk.dtu.model;
 
-/**
- @author Niklas Emil Lysdal
- @author Karl Johannes Agerbo
- @author Benjamin Benyo Endahl Hansen
- @author Asger Allin Jensen
- */
-
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -19,6 +12,15 @@ import java.util.*;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.stream.Collectors;
+
+/**
+ * @author Niklas Emil Lysdal
+ * @author Karl Johannes Agerbo
+ * @author Benjamin Benyo Endahl Hansen
+ * @author Asger Allin Jensen
+ * @author Bjarke Søderhamn Petersen
+ * @author Kajsa Alice Ulrika Berlstedt
+ */
 
 public class Lobby {
     private final String lobbyID;
@@ -40,9 +42,13 @@ public class Lobby {
     public final boolean loadedLobby;
 
     ExecutorService broadcastPool = Executors.newCachedThreadPool();
+
     /**
      * @author Niklas Emil Lysdal
+     * @author Karl Johannes Agerbo
+     * @author Benjamin Benyo Endahl Hansen
      */
+
     public Lobby(String lobbyName, String lobbyID, Client creator, Host host,int capacity) {
         Objects.requireNonNull(creator, "creator must not be null");
         Objects.requireNonNull(host, "host must not be null");
@@ -55,11 +61,13 @@ public class Lobby {
         loadedLobby = false;
         addPlayer(creator);
     }
+
     /**
-     @author Bjarke Søderhamn Petersen
-     @author Benjamin Benyo Endahl Hansen
-     @author Karl Johannes Agerbo
+     * @author Bjarke Søderhamn Petersen
+     * @author Benjamin Benyo Endahl Hansen
+     * @author Karl Johannes Agerbo
      */
+
     public Lobby(String lobbyID, Client c, Host host, Map<String, String> userToPlayer, UUID saveID) {
         this.userToPlayer = userToPlayer;
         this.lobbyID = lobbyID;
@@ -69,9 +77,13 @@ public class Lobby {
         this.capacity=userToPlayer.size();
         addPlayer(c);
     }
+
     /**
      * @author Niklas Emil Lysdal
+     * @author Karl Johannes Agerbo
+     * @author Asger Allin Jensen
      */
+
     public synchronized OperationResult addPlayer(Client client) {
         if (locked) {
             return new OperationResult("lobby_locked");
@@ -85,9 +97,12 @@ public class Lobby {
         notifyClients();
         return new OperationResult("success");
     }
+
     /**
      * @author Niklas Emil Lysdal
+     * @author Asger Allin Jensen
      */
+
     public OperationResult removeClientByUID(String uid) {
         Client removed = players.remove(uid);
         if (removed == null) {
@@ -112,8 +127,12 @@ public class Lobby {
             return new OperationResult("success");
         }
     }
+
     /**
      * @author Niklas Emil Lysdal
+     * @author Bjarke Søderhamn Petersen
+     * @author Benjamin Benyo Endahl Hansen
+     * @author Karl Johannes Agerbo
      */
 
     public void startGame(JsonNode gameInfo) throws Exception {
@@ -154,10 +173,11 @@ public class Lobby {
     }
 
     /**
-     @author Bjarke Søderhamn Petersen
-     @author Benjamin Benyo Endahl Hansen
-     @author Karl Johannes Agerbo
+     * @author Bjarke Søderhamn Petersen
+     * @author Benjamin Benyo Endahl Hansen
+     * @author Karl Johannes Agerbo
      */
+
     public JsonNode saveGame() {
         JsonNode gameSnapshot = host.saveGame(gameID);
 
@@ -168,7 +188,10 @@ public class Lobby {
 
     /**
      * @author Niklas Emil Lysdal
+     * @author Karl Johannes Agerbo
+     * @author Benjamin Benyo Endahl Hansen
      */
+
     public void handleClientMessage(String userID, JsonNode json) {
         ObjectNode root = JsonUtil.createObjectNode();
         root.put("gameID", this.gameID.toString());
@@ -176,9 +199,13 @@ public class Lobby {
         root.set("payload", json.get("payload"));
         host.handleMessage(root);
     }
+
     /**
      * @author Niklas Emil Lysdal
+     * @author Karl Johannes Agerbo
+     * @author Benjamin Benyo Endahl Hansen
      */
+
     public void handleHostMessage(JsonNode json) {
         ObjectNode root = JsonUtil.createObjectNode();
         root.put("type", json.get("type"));
@@ -188,7 +215,7 @@ public class Lobby {
             case "DIRECT":
                 String playerID = json.get("meta").get("player").get("playerID").asText();
 
-                String userID = playerToUser.get(playerID); // TODO: change to UUID
+                String userID = playerToUser.get(playerID);
                 if (userID == null) {
                     return;
                 } // in case player has disconnected
@@ -203,9 +230,11 @@ public class Lobby {
                 break;
         }
     }
+
     /**
      * @author Niklas Emil Lysdal
      */
+
     private void initPlayerUserMaps() {
         for (Client client : players.values()) {
             userToPlayer.put(client.getUserID(), nextPlayerID + "");
@@ -215,9 +244,9 @@ public class Lobby {
     }
 
     /**
-     @author Bjarke Søderhamn Petersen
-     @author Benjamin Benyo Endahl Hansen
-     @author Karl Johannes Agerbo
+     * @author Bjarke Søderhamn Petersen
+     * @author Benjamin Benyo Endahl Hansen
+     * @author Karl Johannes Agerbo
      */
     private void initPlayerUserMapsLoadedLobby() throws Exception {
         if (allPlayersHaveJoined()) {
@@ -229,13 +258,20 @@ public class Lobby {
         }
     }
 
+    /**
+     * @author Karl Johannes Agerbo
+     */
+
     private boolean allPlayersHaveJoined() {
         return userToPlayer.keySet().equals(players.keySet());
     }
 
     /**
      * @author Niklas Emil Lysdal
+     * @author Karl Johannes Agerbo
+     * @author Benjamin Benyo Endahl Hansen
      */
+
     private void broadcastToClients(ObjectNode msg) {
         for (Client c : players.values()) {
             broadcastPool.submit(() -> c.handleMessage(msg));
@@ -275,9 +311,11 @@ public class Lobby {
     public boolean isLocked() {
         return locked;
     }
+
     /**
      * @author Niklas Emil Lysdal
      */
+
     public List<String> getPlayerIDs() throws Exception {
         if (!locked) {
             throw new Exception("GAME_NOT_STARTED");
@@ -288,21 +326,27 @@ public class Lobby {
     public boolean isOccupied(){
         return players.size() >= capacity;
     }
+
     /**
      * @author Niklas Emil Lysdal
      */
+
     public void addObserver(LobbyObserver observer) {
         observers.add(observer);
     }
+
     /**
      * @author Niklas Emil Lysdal
      */
+
     public void removeObserver(LobbyObserver observer) {
         observers.remove(observer);
     }
+
     /**
      * @author Niklas Emil Lysdal
      */
+
     private void notifyObservers(LobbyUpdateReason reason) {
         for (LobbyObserver observer : observers) {
             observer.handleUpdate(reason, this);
@@ -310,10 +354,11 @@ public class Lobby {
     }
 
     /**
-     @author Bjarke Søderhamn Petersen
-     @author Benjamin Benyo Endahl Hansen
-     @author Karl Johannes Agerbo
+     * @author Bjarke Søderhamn Petersen
+     * @author Benjamin Benyo Endahl Hansen
+     * @author Karl Johannes Agerbo
      */
+
     public void notifyGameSaved(boolean succeed) {
         if (succeed) {
             ObjectNode root = JsonUtil.createObjectNode();
@@ -333,31 +378,35 @@ public class Lobby {
         }
     }
 
+    /**
+     * @author Niklas Emil Lysdal
+     */
+
+    public LobbyPublicJson asPublicJson() {
+       return new LobbyPublicJson(this.lobbyName,this.lobbyID,capacity,players.size(),this.isRunning);
+    }
 
     /**
      * @author Niklas Emil Lysdal
      */
-    public LobbyPublicJson asPublicJson() {
-       return new LobbyPublicJson(this.lobbyName,this.lobbyID,capacity,players.size(),this.isRunning);
-    }
-    /**
-     * @author Niklas Emil Lysdal
-     */
+
     public LobbyPrivateJson asPrivateJson() {
         return new LobbyPrivateJson(this.lobbyName,this.lobbyID,capacity,players.size(),this.isRunning,userNameReadinessMap);
     }
 
     /**
-     @author Karl Johannes Agerbo
+     * @author Karl Johannes Agerbo
      */
+
     public boolean isLoadedLobby() {
         return loadedLobby;
     }
 
     /**
-    @author Asger Allin Jensen
-     @author Niklas Emil Lysdal
+     * @author Asger Allin Jensen
+     * @author Niklas Emil Lysdal
      */
+
     public OperationResult playerMarkedAsReady(String uid) {
         Client client = players.get(uid);
         if (client == null) {
@@ -369,8 +418,11 @@ public class Lobby {
         return new OperationResult("success");
     }
 
-    // @author Asger Allin Jensen
-    // @author Niklas Emil Lysdal
+    /**
+     * @author Asger Allin Jensen
+     * @author Niklas Emil Lysdal
+     */
+
     public OperationResult playerMarkedAsNotReady(String uid) {
         Client client = players.get(uid);
         if (client == null) {
@@ -384,9 +436,10 @@ public class Lobby {
 
 
     /**
-    @author Asger Allin Jensen
-     @author Niklas Emil Lysdal
-    */
+     * @author Asger Allin Jensen
+     * @author Niklas Emil Lysdal
+     */
+
      //notify participants that lobby info has updated
     public OperationResult notifyClients () {
         ObjectNode root = JsonUtil.createObjectNode();
@@ -396,16 +449,19 @@ public class Lobby {
         broadcastToClients(root);
         return new OperationResult("success");
     }
+
     /**
      * @author Niklas Emil Lysdal
      */
+
     public boolean hasParticipant(String uid) {
         return players.containsKey(uid);
     }
 
     /**
-    @author Asger Allin Jensen
-    */
+     * @author Asger Allin Jensen
+     */
+
     private boolean areAllPlayersReady() {
         if (players.isEmpty()) {
             return false;
@@ -421,8 +477,9 @@ public class Lobby {
     }
 
     /**
-    @author Asger Allin Jensen
-    */
+     * @author Asger Allin Jensen
+     */
+
     private void broadcastNotReadyMessage() {
         ObjectNode root = JsonUtil.createObjectNode();
         root.put("type", "lobby");
@@ -434,10 +491,20 @@ public class Lobby {
         broadcastToClients(root);
     }
 
-    //@author Asger Allin Jensen & Kajsa Alice Ulrika Berlstedt
+    /**
+     * @author Asger Allin Jensen
+     * @author Kajsa Alice Ulrika Berlstedt
+     */
+
     public String getUserIDS () {
         return userToPlayer.keySet().toString();
     }
+
+    /**
+     * @author Kajsa Alice Ulrika Berlstedt
+     * @author Niklas Emil Lysdal
+     */
+
     public Map<String, String> getUsernamePlayerIDMaps() {
         Map<String, String> result = new HashMap<>();
         for (Client c : players.values()) {

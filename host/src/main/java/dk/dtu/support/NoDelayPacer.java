@@ -10,6 +10,10 @@ import java.util.concurrent.CopyOnWriteArrayList;
 // We have repeat logic, but this one just does not delay
 // This mean if we update the actual GameScheduler, we need to make sure
 // those changes are reflected here.
+
+/**
+ * @author William Pii Jæger
+ */
 public class NoDelayPacer implements RoundPacer {
     private final List<RoundPacerListener> listeners = new CopyOnWriteArrayList<>();
 

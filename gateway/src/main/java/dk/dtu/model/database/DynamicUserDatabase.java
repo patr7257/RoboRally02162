@@ -1,8 +1,6 @@
 package dk.dtu.model.database;
 
-/*
-Author(s): Asger
-*/
+
 
 import dk.dtu.interfaces.UserDatabase;
 import dk.dtu.model.User;
@@ -13,12 +11,20 @@ import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
 
+/**
+ * @author Asger Allin Jensen
+ */
+
 @Service
 public class DynamicUserDatabase implements UserDatabase {
 
     private final UserDatabase mysql;
     private final UserDatabase local;
     private boolean mysqlAvailable = true;
+
+    /**
+     * @author Asger Allin Jensen
+     */
 
     public DynamicUserDatabase(@Qualifier("mysqlUserDatabase") UserDatabase mysql,
             @Qualifier("localUserDatabase") UserDatabase local) {
@@ -28,6 +34,10 @@ public class DynamicUserDatabase implements UserDatabase {
         if (!mysqlAvailable)
             System.err.println("MySQLUserDatabase not available, using local fallback database.");
     }
+
+    /**
+     * @author Asger Allin Jensen
+     */
 
     private boolean checkMySQLAvailable() {
         try (Connection conn = DriverManager.getConnection(
@@ -39,14 +49,26 @@ public class DynamicUserDatabase implements UserDatabase {
         }
     }
 
+    /**
+     * @author Asger Allin Jensen
+     */
+
     private UserDatabase active() {
         return mysqlAvailable ? mysql : local;
     }
+
+    /**
+     * @author Asger Allin Jensen
+     */
 
     private void disableMySQL() {
         System.err.println("Switching to local fallback database due to MySQL error.");
         mysqlAvailable = false;
     }
+
+    /**
+     * @author Asger Allin Jensen
+     */
 
     @Override
     public User createUser(String name, String passwordHash) {
@@ -58,6 +80,10 @@ public class DynamicUserDatabase implements UserDatabase {
         }
     }
 
+    /**
+     * @author Asger Allin Jensen
+     */
+
     @Override
     public User findUserById(String id) {
         try {
@@ -67,6 +93,10 @@ public class DynamicUserDatabase implements UserDatabase {
             return local.findUserById(id);
         }
     }
+
+    /**
+     * @author Asger Allin Jensen
+     */
 
     @Override
     public boolean existsID(String id) {
@@ -78,6 +108,10 @@ public class DynamicUserDatabase implements UserDatabase {
         }
     }
 
+    /**
+     * @author Asger Allin Jensen
+     */
+
     @Override
     public boolean existsName(String name) {
         try {
@@ -87,6 +121,10 @@ public class DynamicUserDatabase implements UserDatabase {
             return local.existsName(name);
         }
     }
+
+    /**
+     * @author Asger Allin Jensen
+     */
 
     @Override
     public User findUserByName(String name) {
@@ -98,6 +136,10 @@ public class DynamicUserDatabase implements UserDatabase {
         }
     }
 
+    /**
+     * @author Asger Allin Jensen
+     */
+
     @Override
     public User findUserByNamePassword(String name, String passwordHash) {
         try {
@@ -107,6 +149,10 @@ public class DynamicUserDatabase implements UserDatabase {
             return local.findUserByNamePassword(name, passwordHash);
         }
     }
+
+    /**
+     * @author Asger Allin Jensen
+     */
 
     @Override
     public boolean deleteUser(String id) {
@@ -118,6 +164,10 @@ public class DynamicUserDatabase implements UserDatabase {
         }
     }
 
+    /**
+     * @author Asger Allin Jensen
+     */
+
     @Override
     public boolean wipeUserDatabase() {
         try {
@@ -127,6 +177,10 @@ public class DynamicUserDatabase implements UserDatabase {
             return local.wipeUserDatabase();
         }
     }
+
+    /**
+     * @author Asger Allin Jensen
+     */
 
     @Override
     public boolean existsNamePassword(String name, String passwordHash) {

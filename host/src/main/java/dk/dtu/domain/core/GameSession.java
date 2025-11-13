@@ -6,11 +6,15 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ScheduledFuture;
 
-// Author(s) William Pii Jæger
-
-// Because GameScheduler uses ScheduledExecutorService we use synchronized func here
-// I honestly have no clue it if even affects the (possible) race conditions or not
-
+/**
+ * Per-game session state and synchronization gates for scheduler-driven flow.
+ * <p>
+ * Thread-safety: methods are synchronized where needed to coordinate with
+ * {@link java.util.concurrent.ScheduledExecutorService} callbacks in {@link GameScheduler}.
+ * </p>
+ *
+ * @author William Pii Jæger
+ */
 public class GameSession {
     private final UUID gameId;
     private final Game game;
@@ -21,6 +25,13 @@ public class GameSession {
     private ScheduledFuture<?> stepTask;
     private final int totalPlayers;
 
+    /**
+     * Creates a new session around a specific game.
+     *
+     * @param gameId the unique session ID
+     * @param game   the game instance
+     * @author William Pii Jæger
+     */
     public GameSession(UUID gameId, Game game) {
         this.gameId = gameId;
         this.game = game;
@@ -29,26 +40,57 @@ public class GameSession {
         this.totalPlayers = game.getRobots().size();
     }
 
+    /**
+     * @return session ID
+     * @author William Pii Jæger
+     */
     public UUID getGameId() {
         return gameId;
     }
 
+    /**
+     * @return the game bound to this session
+     * @author William Pii Jæger
+     */
     public Game getGame() {
         return game;
     }
 
+    /**
+     * @return current session state
+     * @author William Pii Jæger
+     */
     public synchronized GameState getState() {
         return state;
     }
 
+    /**
+     * Sets the session state.
+     *
+     * @param state new state
+     * @author William Pii Jæger
+     */
     public synchronized void setState(GameState state) {
         this.state = state;
     }
 
+    /**
+     * Sets the deadline for the programming phase.
+     *
+     * @param deadline deadline instant
+     * @author William Pii Jæger
+     */
     public synchronized void setProgrammingDeadline(Instant deadline) {
         this.programmingDeadline = deadline;
     }
 
+    /**
+     * Checks if a player has submitted their program.
+     *
+     * @param playerId player to check
+     * @return true if submitted; false otherwise
+     * @author William Pii Jæger
+     */
     public synchronized boolean hasSubmitted(PlayerID playerId) {
         return submittedPlayers.contains(playerId);
     }

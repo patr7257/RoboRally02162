@@ -10,6 +10,7 @@ import { renderEffect } from "../ui/effectRegistry";
 * @author Lizette Nikolajsen
 * @author Patrick Røbel
 * @author William Pii Jæger
+* @author Weihao Mo
 */
 interface BoardTileProps {
   x: number;
@@ -18,6 +19,10 @@ interface BoardTileProps {
   robot?: Robot | null;
   effects?: TileEffect[];
 }
+/**
+ * @author William Pii Jæger
+ * @author Weihao Mo
+ */
 const getRotationDegrees = (facing: string): number => {
   switch (facing) {
     case "N": return 0;

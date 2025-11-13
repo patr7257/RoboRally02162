@@ -1,9 +1,5 @@
 package dk.dtu.interfaces;
 
-/*
-Author(s): Niklas
- */
-
 
 import dk.dtu.model.User;
 /**

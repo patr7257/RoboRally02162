@@ -1,7 +1,3 @@
-/*
-Author(s): Asger, Bjarke, Patrick, Lizette
-*/
-
 import './App.css';
 import LoginComp from "./lobby/LoginComp";
 import RegisterComp from "./lobby/RegisterComp";
@@ -17,12 +13,24 @@ import LobbyCreation from './lobby/LobbyCreation';
 import "./ui/registerEffects";
 import LoadLobby from './lobby/LoadLobby';
 
+/**
+ * @author Bjarke Søderhamn Petersen
+ * @author Asger Allin Jensen
+ * @author Patrick Røbel
+ * @author Lizette Bloch Dahl Nikolajsen
+ */
 declare global {
   interface Window {
     __appStarted__?: boolean;
   }
 }
 
+/**
+ * @author Bjarke Søderhamn Petersen
+ * @author Asger Allin Jensen
+ * @author Patrick Røbel
+ * @author Lizette Bloch Dahl Nikolajsen
+ */
 function Home() {
   const navigate = useNavigate();
   const [username, setUsername] = useState<string>(localStorage.getItem("username") || "");

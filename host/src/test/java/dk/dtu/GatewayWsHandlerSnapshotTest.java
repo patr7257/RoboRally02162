@@ -24,8 +24,9 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 
-// Author(s) Weihao Mo, William Pii Jæger
-
+/**
+ * @author William Pii Jæger
+ */
 public class GatewayWsHandlerSnapshotTest {
     private final ObjectMapper mapper = new ObjectMapper();
 
@@ -35,6 +36,9 @@ public class GatewayWsHandlerSnapshotTest {
     private UUID gameId;
     private NoDelayPacer pacer;
 
+    /**
+     * @author William Pii Jæger
+     */
     @BeforeEach
     void setup() {
         session = mock(WebSocketSession.class);
@@ -52,6 +56,9 @@ public class GatewayWsHandlerSnapshotTest {
         handler.afterConnectionEstablished(session);
     }
 
+    /**
+     * @author William Pii Jæger
+     */
     @Test
     void submitMOVE1_thenRunRound_thenGetBoard_returnsSnapshotWithMovedRobot() throws Exception {
         handler.handleMessage(session, new TextMessage("""

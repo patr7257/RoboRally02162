@@ -1,12 +1,10 @@
-/**
-* @author Asger Allin Jensen
-* @author Bjarke Søderhamn Petersen
-* @author Lizette Nikolajsen
-* @author Patrick Røbel
-* @author William Pii Jæger
-*/
+
 
 import React from "react";
+
+/**
+* @author Weihao Mo
+*/
 
 interface WinnerBannerProps {
   winnerId: number;

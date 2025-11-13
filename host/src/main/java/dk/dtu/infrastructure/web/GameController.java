@@ -30,8 +30,15 @@ import org.springframework.web.bind.annotation.RestController;
 import java.util.*;
 import java.util.stream.Collectors;
 
-// Author(s) Weihao Mo, William Pii Jæger
-
+/**
+ * REST controller responsible for managing game operations including starting, ending, saving, and loading games
+ *
+ * @author Weihao Mo
+ * @author William Pii Jæger
+ * @author Bjarke Søderhamn Petersen
+ * @author Karl Johannes Agerbo
+ * @author Benjamin Benyo Endahl Hansen
+ */
 @RestController
 public class GameController {
     private final GameManager gameManager;
@@ -53,6 +60,17 @@ public class GameController {
     public record GameInfo(SnapshotLoadedPayload snapshotPayload, Map<Integer, DeckDto> decks){}
     public record StartLoadedGameRequest(int amountPlayers, int boardSize, String gameID, GameInfo gameInfo) {}
 
+    /**
+     * Selects random empty tiles from the board within a specified range.
+     * Only tiles without any effects are considered for selection.
+     *
+     * @param floor the smallest number of tiles
+     * @param ceil the biggest number of tiles
+     * @param board the game board
+     * @return a list of randomly selected empty tiles
+     * @throws IllegalStateException if there are not enough empty tiles available
+     * @author William Pii Jæger
+     */
     private ArrayList<Tile> randomTiles(int floor, int ceil, Board board) {
         int toPick = Math.max(0, ceil - floor + 1);
         ArrayList<Tile> pool = new ArrayList<>();
@@ -72,6 +90,15 @@ public class GameController {
         return new ArrayList<>(pool.subList(0, toPick));
     }
 
+    /**
+     * Finds random empty tiles that can place reboot token.
+     * A tile is selected if it has at least one direction where a robot can move 6 spaces
+     * without hitting walls or going out of bounds.
+     *
+     * @param board the game board to select tiles from
+     * @return a list containing one suitable tile if found, or an empty list if none found
+     * @author Weihao Mo
+     */
     private ArrayList<Tile> randomTilesWithoutFacingWallsAndEdges(Board board) {
         Random rnd = new Random();
         ArrayList<Tile> selectedTiles = new ArrayList<>();
@@ -108,6 +135,16 @@ public class GameController {
         return selectedTiles;
     }
 
+    /**
+     * Validates whether a reboot token can be placed on a tile facing a specific direction.
+     * Checks if a robot can move 6 spaces in this direction without walls or going out of bounds.
+     *
+     * @param board the game board
+     * @param tile the tile to check from
+     * @param dir the direction to check if it fits the condition
+     * @return true if the direction is valid for reboot token, false otherwise
+     * @author Weihao Mo
+     */
     private boolean isValidRebootDirection(Board board, Tile tile, Direction dir) {
         int x = tile.getX();
         int y = tile.getY();
@@ -146,7 +183,14 @@ public class GameController {
     }
 
 
-
+    /**
+     * Handles the request to start a new game
+     *
+     * @param req the request containing the number of players and board size
+     * @return a response containing the unique game ID of the newly created game
+     * @author Weihao Mo
+     * @author William Pii Jæger
+     */
     @PostMapping("/startGame")
     public synchronized StartGameResponse start(@RequestBody StartGameRequest req) {
         int width = req.boardSize();
@@ -240,9 +284,9 @@ public class GameController {
     }
 
     /**
-     @author Bjarke Søderhamn Petersen
-     @author Benjamin Benyo Endahl Hansen
-     @author Karl Johannes Agerbo
+     * @author Bjarke Søderhamn Petersen
+     * @author Benjamin Benyo Endahl Hansen
+     * @author Karl Johannes Agerbo
      */
     @PostMapping("/startLoadedGame")
     public synchronized StartGameResponse start(@RequestBody StartLoadedGameRequest req) {
@@ -260,6 +304,14 @@ public class GameController {
         return new StartGameResponse(gameID);
     }
 
+    /**
+     * Handles the request to end a game
+     *
+     * @param req the request containing the game ID to end
+     * @return a response indicating the game is ended
+     * @author Weihao Mo
+     * @author William Pii Jæger
+     */
     @PostMapping("/endGame")
     public EndGameResponse start(@RequestBody EndGameRequest req) {
         gameManager.endGame(UUID.fromString(req.gameID()));
@@ -268,9 +320,9 @@ public class GameController {
 
 
     /**
-     @author Bjarke Søderhamn Petersen
-     @author Benjamin Benyo Endahl Hansen
-     @author Karl Johannes Agerbo
+     * @author Bjarke Søderhamn Petersen
+     * @author Benjamin Benyo Endahl Hansen
+     * @author Karl Johannes Agerbo
      */
     @PostMapping("/saveGame")
     public SaveGameResponse save(@RequestBody SaveGameRequest req) throws Exception {

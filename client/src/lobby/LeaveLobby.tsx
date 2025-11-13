@@ -1,5 +1,5 @@
-/*
-Author(s): Niklas
+/**
+@author Niklas Emil Lysdal
 */
 export { leaveLobby };
 const API_BASE_URL = process.env.REACT_APP_API_BASE_URL;

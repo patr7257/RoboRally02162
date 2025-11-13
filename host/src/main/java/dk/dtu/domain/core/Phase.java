@@ -1,9 +1,16 @@
 package dk.dtu.domain.core;
 
-// Author(s) Weihao Mo, William Pii Jæger
 
-import java.util.EnumSet;
-
+/**
+ * Enumeration of game phases.
+ * Phase execution order follows:
+ * ACTIVATION → Board effect phases (conveyors, checkpoints, etc.)
+ *
+ * @see Game#runPhase(Phase, Runnable)
+ * @see Game#applyTileEffects(Phase)
+ * @author Weihao Mo
+ * @author William Pii Jæger
+ */
 public enum Phase {
     UPGRADE,
     PROGRAMMING,

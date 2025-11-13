@@ -14,9 +14,9 @@ import java.util.Map;
 import java.util.Set;
 
 /**
- @author Bjarke Søderhamn Petersen
- @author Benjamin Benyo Endahl Hansen
- @author Karl Johannes Agerbo
+ * @author Bjarke Søderhamn Petersen
+ * @author Benjamin Benyo Endahl Hansen
+ * @author Karl Johannes Agerbo
  */
 
 @Service
@@ -27,9 +27,9 @@ public class DynamicGameDatabase implements GameDatabase {
     private boolean mysqlAvailable = true;
 
     /**
-     @author Bjarke Søderhamn Petersen
-     @author Benjamin Benyo Endahl Hansen
-     @author Karl Johannes Agerbo
+     * @author Bjarke Søderhamn Petersen
+     * @author Benjamin Benyo Endahl Hansen
+     * @author Karl Johannes Agerbo
      */
 
     public DynamicGameDatabase(@Qualifier("mysqlGameDatabase") GameDatabase mysql,
@@ -42,7 +42,7 @@ public class DynamicGameDatabase implements GameDatabase {
     }
 
     /**
-     @author Karl Johannes Agerbo
+     * @author Karl Johannes Agerbo
      */
     private boolean checkMySQLAvailable() {
         try (Connection conn = DriverManager.getConnection(
@@ -55,14 +55,14 @@ public class DynamicGameDatabase implements GameDatabase {
     }
 
     /**
-     @author Karl Johannes Agerbo
+     * @author Karl Johannes Agerbo
      */
     private GameDatabase active() {
         return mysqlAvailable ? mysql : local;
     }
 
     /**
-     @author Karl Johannes Agerbo
+     * @author Karl Johannes Agerbo
      */
     private void disableMySQL() {
         System.err.println("Switching to local fallback database due to MySQL error.");
@@ -70,9 +70,9 @@ public class DynamicGameDatabase implements GameDatabase {
     }
 
     /**
-     @author Bjarke Søderhamn Petersen
-     @author Benjamin Benyo Endahl Hansen
-     @author Karl Johannes Agerbo
+     * @author Bjarke Søderhamn Petersen
+     * @author Benjamin Benyo Endahl Hansen
+     * @author Karl Johannes Agerbo
      */
 
     @Override
@@ -86,9 +86,9 @@ public class DynamicGameDatabase implements GameDatabase {
     }
 
     /**
-     @author Bjarke Søderhamn Petersen
-     @author Benjamin Benyo Endahl Hansen
-     @author Karl Johannes Agerbo
+     * @author Bjarke Søderhamn Petersen
+     * @author Benjamin Benyo Endahl Hansen
+     * @author Karl Johannes Agerbo
      */
 
     @Override
@@ -102,9 +102,9 @@ public class DynamicGameDatabase implements GameDatabase {
     }
 
     /**
-     @author Bjarke Søderhamn Petersen
-     @author Benjamin Benyo Endahl Hansen
-     @author Karl Johannes Agerbo
+     * @author Bjarke Søderhamn Petersen
+     * @author Benjamin Benyo Endahl Hansen
+     * @author Karl Johannes Agerbo
      */
 
     @Override
@@ -118,9 +118,9 @@ public class DynamicGameDatabase implements GameDatabase {
     }
 
     /**
-     @author Bjarke Søderhamn Petersen
-     @author Benjamin Benyo Endahl Hansen
-     @author Karl Johannes Agerbo
+     * @author Bjarke Søderhamn Petersen
+     * @author Benjamin Benyo Endahl Hansen
+     * @author Karl Johannes Agerbo
      */
 
     @Override
@@ -134,7 +134,7 @@ public class DynamicGameDatabase implements GameDatabase {
     }
 
     /**
-     @author Karl Johannes Agerbo
+     * @author Karl Johannes Agerbo
      */
     @Override
     public JsonNode getUsers(String saveID) {

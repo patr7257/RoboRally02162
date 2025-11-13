@@ -11,18 +11,43 @@ import dk.dtu.infrastructure.dto.SnapshotPayload;
 
 import java.util.*;
 
+/**
+ * Coordinates active game sessions, forwards commands to sessions/games,
+ * and bridges scheduler (RoundPacer) events to external observers.
+ * Implements {@link GameObserver} to fan out game updates to {@link GameManagerObserver}s.
+ *
+ * @author William Pii Jæger
+ * @author Weihao Mo
+ * @author Bjarke Søderhamn Petersen
+ * @author Benjamin Benyo Endahl Hansen
+ * @author Karl Johannes Agerbo
+ */
 public class GameManager implements GameObserver {
     private final Map<UUID, GameSession> activeSessions = new HashMap<>();
     private final List<GameManagerObserver> observers = new ArrayList<>();
     private final RoundPacer pacer;
 
-    // Author(s) William Pii Jæger
+    /**
+     * Creates a manager and registers an internal bridge listener on the provided pacer.
+     *
+     * @param pacer the round pacer used for scheduling programming/execution phases
+     * @author William Pii Jæger
+     */
     public GameManager(RoundPacer pacer) {
         this.pacer = pacer;
         this.pacer.addListener(new PacerBridge());
     }
 
-    // Author(s) William Pii Jæger, Weihao Mo
+    /**
+     * Starts a new game with the given board, API, and robots. Registers this as a {@link GameObserver}.
+     *
+     * @param board   the game board
+     * @param api     board API for rule application
+     * @param players participating robots
+     * @return the UUID of the newly created game session
+     * @author William Pii Jæger
+     * @author Weihao Mo
+     */
     public UUID startGame(Board board, BoardAPI api, List<Robot> players) {
         UUID id = UUID.randomUUID();
         Game game = new Game(board, api, players);
@@ -32,11 +57,10 @@ public class GameManager implements GameObserver {
         return id;
     }
 
-
     /**
-     @author Bjarke Søderhamn Petersen
-     @author Benjamin Benyo Endahl Hansen
-     @author Karl Johannes Agerbo
+     * @author Bjarke Søderhamn Petersen
+     * @author Benjamin Benyo Endahl Hansen
+     * @author Karl Johannes Agerbo
      */
     public UUID startGame(Board board, BoardAPI api, List<Robot> players, Map<Integer, Deck> decks) {
         UUID id = UUID.randomUUID();
@@ -48,7 +72,13 @@ public class GameManager implements GameObserver {
     }
 
 
-    // Author(s) William Pii Jæger, Weihao Mo
+    /**
+     * Gracefully ends an existing game: cancels scheduled tasks and marks session finished.
+     *
+     * @param id the game ID
+     * @author William Pii Jæger
+     * @author Weihao Mo
+     */
     public void endGame(UUID id) {
         GameSession session = activeSessions.remove(id);
         if (session != null) {
@@ -58,17 +88,35 @@ public class GameManager implements GameObserver {
         }
     }
 
-    // Author(s) William Pii Jæger
+    /**
+     * Finds a session by ID.
+     *
+     * @param gameID the game ID
+     * @return optional session if present
+     * @author William Pii Jæger
+     */
     public Optional<GameSession> findSessionByID(UUID gameID) {
         return Optional.ofNullable(activeSessions.get(gameID));
     }
 
-    // Author(s) William Pii Jæger
+    /**
+     * Finds a game by ID.
+     *
+     * @param gameID the game ID
+     * @return optional game if present
+     * @author William Pii Jæger
+     */
     public Optional<Game> findByID(UUID gameID) {
         return findSessionByID(gameID).map(GameSession::getGame);
     }
 
-    // Author(s) William Pii Jæger
+    /**
+     * Executes a game command against the addressed session, guarding session lifecycle/state.
+     *
+     * @param cmd the command to execute
+     * @return result describing success/failure and message
+     * @author William Pii Jæger
+     */
     public synchronized CommandResult execute(GameCommand cmd) {
         return switch (cmd) {
             case GameCommand.StartProgramming start -> {
@@ -116,14 +164,20 @@ public class GameManager implements GameObserver {
         };
     }
 
-    // Author(s) William Pii Jæger
+    /**
+     * Queries a session for data (snapshot, hand, readiness, time remaining).
+     * Uses an unsafe cast pattern internal to this layer but safe by contract.
+     *
+     * @param gameId the game ID
+     * @param query  the query discriminator
+     * @param <T>    response type corresponding to the query
+     * @return optional result if session exists
+     * @author William Pii Jæger
+     */
     public synchronized <T> Optional<T> query(UUID gameId, GameQuery<T> query) {
         GameSession session = activeSessions.get(gameId);
         if (session == null) return Optional.empty();
 
-        // These are unsafe generic casts
-        // We know the returned types are correct, but java does not
-        // We could have individual getters for each, but I think this is fine
         synchronized (session) {
             return switch (query) {
                 case GameQuery.GetSnapshot snap -> {
@@ -159,69 +213,134 @@ public class GameManager implements GameObserver {
         }
     }
 
-    // Author(s): Weihao Mo
+    /**
+     * Registers a manager-level observer.
+     *
+     * @param observer observer to add
+     * @author Weihao Mo
+     */
     public void addObserver(GameManagerObserver observer) {
         observers.add(observer);
     }
 
-    // Author(s): Weihao Mo
+    /**
+     * Unregisters a manager-level observer.
+     *
+     * @param observer observer to remove
+     * @author Weihao Mo
+     */
     public void removeObserver(GameManagerObserver observer) {
         observers.remove(observer);
     }
 
-    // Author(s): William Pii Jæger
+    /**
+     * Broadcasts the start of the programming phase to observers.
+     *
+     * @param session the session in which programming started
+     * @author William Pii Jæger
+     */
     void broadcastProgrammingStarted(GameSession session) {
         for (GameManagerObserver obs : observers) {
             obs.onProgrammingStarted(session.getGame(), session.getGameId());
         }
     }
 
-    // Author(s): William Pii Jæger
+    /**
+     * Broadcasts that a player has submitted their program.
+     *
+     * @param session  the session
+     * @param playerId the submitting player
+     * @author William Pii Jæger
+     */
     void broadcastPlayerSubmitted(GameSession session, PlayerID playerId) {
         for (GameManagerObserver obs : observers) {
             obs.onPlayerSubmitted(session.getGame(), session.getGameId(), playerId);
         }
     }
 
-    // Author(s): William Pii Jæger
+    /**
+     * Broadcasts that the round is executing.
+     *
+     * @param session the session
+     * @author William Pii Jæger
+     */
     void broadcastRoundExecuting(GameSession session) {
         for (GameManagerObserver obs : observers) {
             obs.onRoundExecuting(session.getGame(), session.getGameId());
         }
     }
 
-    // Author(s): William Pii Jæger
+    /**
+     * Broadcasts that the game has finished.
+     *
+     * @param session the session
+     * @author William Pii Jæger
+     */
     void broadcastGameFinished(GameSession session) {
         for (GameManagerObserver obs : observers) {
             obs.onGameFinished(session.getGame(), session.getGameId());
         }
     }
 
-    // Author(s): William Pii Jæger
+    /**
+     * Internal bridge from {@link RoundPacer.RoundPacerListener} to {@link GameManagerObserver} callbacks.
+     *
+     * @author William Pii Jæger
+     */
     private class PacerBridge implements RoundPacer.RoundPacerListener {
+        /**
+         * Forwards programming-started event.
+         *
+         * @param session current session
+         * @author William Pii Jæger
+         */
         @Override
         public void onProgrammingStarted(GameSession session) {
             broadcastProgrammingStarted(session);
         }
 
+        /**
+         * Forwards player-submitted event.
+         *
+         * @param session  current session
+         * @param playerId submitting player
+         * @author William Pii Jæger
+         */
         @Override
         public void onPlayerSubmitted(GameSession session, PlayerID playerId) {
             broadcastPlayerSubmitted(session, playerId);
         }
 
+        /**
+         * Forwards round-executing event.
+         *
+         * @param session current session
+         * @author William Pii Jæger
+         */
         @Override
         public void onRoundExecuting(GameSession session) {
             broadcastRoundExecuting(session);
         }
 
+        /**
+         * Forwards game-finished event.
+         *
+         * @param session current session
+         * @author William Pii Jæger
+         */
         @Override
         public void onGameFinished(GameSession session) {
             broadcastGameFinished(session);
         }
     }
 
-
-    // Author(s): Weihao Mo
+    /**
+     * Notified when a winner is declared. Broadcast to manager observers and finishes the session
+     *
+     * @param game the game instance where the winner was declared
+     * @param winner winning player ID
+     * @author Weihao Mo
+     */
     @Override
     public void onWinnerDeclared(Game game,PlayerID winner) {
         UUID gameId = null;
@@ -249,7 +368,14 @@ public class GameManager implements GameObserver {
         }
     }
 
-    // Author(s): William Pii Jæger, Niklas, Bjarke
+    /**
+     * Fans out a game update to observers associated with the corresponding session.
+     *
+     * @param game the game instance that triggered the update
+     * @author William Pii Jæger
+     * @author Niklas Emil Lysdal
+     * @author Bjarke Søderhamn Petersen
+     */
     @Override
     public void onGameUpdate(Game game) {
         UUID gameId = null;
@@ -267,9 +393,9 @@ public class GameManager implements GameObserver {
     }
 
     /**
-     @author Bjarke Søderhamn Petersen
-     @author Benjamin Benyo Endahl Hansen
-     @author Karl Johannes Agerbo
+     * @author Bjarke Søderhamn Petersen
+     * @author Benjamin Benyo Endahl Hansen
+     * @author Karl Johannes Agerbo
      */
     public Map<UUID, GameSession> getActiveSessions() {
         return activeSessions;

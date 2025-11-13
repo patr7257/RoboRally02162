@@ -16,8 +16,10 @@ import java.util.Map;
 import java.util.UUID;
 
 /**
- @author Karl Johannes Agerbo
- @author Niklas Emil Lysdal
+ * @author Karl Johannes Agerbo
+ * @author Niklas Emil Lysdal
+ * @author Bjarke Søderhamn Petersen
+ * @author Benjamin Benyo Endahl Hansen
  */
 
 @TestConfiguration
@@ -27,11 +29,21 @@ public class HostConfig {
     @Primary
     public Host host() {
         return new Host() {
+
+            /**
+             * @author Karl Johannes Agerbo
+             * @author Niklas Emil Lysdal
+             */
             @Override
             public UUID startGame(int amountPlayers, int boardSize) {
                 return UUID.fromString("123e4567-e89b-12d3-a456-426614174000");
             }
 
+            /**
+             * @author Bjarke Søderhamn Petersen
+             * @author Benjamin Benyo Endahl Hansen
+             * @author Karl Johannes Agerbo
+             */
             @Override
             public UUID startLoadedGame(int amountPlayers, int boardSize, JsonNode gameInfo) {
                 return UUID.randomUUID();
@@ -42,11 +54,10 @@ public class HostConfig {
             }
 
             /**
-            @author Bjarke Søderhamn Petersen
-            @author Benjamin Benyo Endahl Hansen
-            @author Karl Johannes Agerbo
+            * @author Bjarke Søderhamn Petersen
+            * @author Benjamin Benyo Endahl Hansen
+            * @author Karl Johannes Agerbo
             */
-
             @Override
             public JsonNode saveGame(UUID gameID) {
                 return JsonUtil.parser("\"gameInfo\"");

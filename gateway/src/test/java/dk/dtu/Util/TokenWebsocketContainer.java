@@ -8,6 +8,7 @@ import org.springframework.web.socket.WebSocketSession;
 public class TokenWebsocketContainer {
     private WebSocketSession session;
     private String userIDToken;
+
     /**
      * @author Niklas Emil Lysdal
      */

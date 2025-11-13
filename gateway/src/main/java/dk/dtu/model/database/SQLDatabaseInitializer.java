@@ -1,13 +1,14 @@
 package dk.dtu.model.database;
 
-/*
-Author(s): Asger
-*/
-
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.Statement;
 import java.sql.SQLException;
+
+/**
+ * @author Asger Allin Jensen
+ * @author Karl Johannes Agerbo
+ */
 
 public class SQLDatabaseInitializer {
 
@@ -17,10 +18,18 @@ public class SQLDatabaseInitializer {
     private static final String USER = "RoboRallyUser";
     private static final String PASSWORD = "RoboRallyDatabaseUser";
 
+    /**
+     * @author Asger Allin Jensen
+     */
+
     public static void initializeDatabaseComplete() {
         createDatabase();
         createTables();
     }
+
+    /**
+     * @author Asger Allin Jensen
+     */
 
     public static void createDatabase() {
         try (Connection conn = DriverManager.getConnection(URL, USER, PASSWORD);
@@ -34,6 +43,11 @@ public class SQLDatabaseInitializer {
             //e.printStackTrace();
         }
     }
+
+    /**
+     * @author Asger Allin Jensen
+     * @author Karl Johannes Agerbo
+     */
 
     public static void createTables() {
 
@@ -76,10 +90,5 @@ public class SQLDatabaseInitializer {
         } catch (SQLException e) {
             System.out.println("Error when creating tables");
         }
-    }
-
-    public static void main(String[] args) {
-        createDatabase();
-        createTables();
     }
 }

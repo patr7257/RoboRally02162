@@ -1,6 +1,7 @@
 package dk.dtu.dto;
-/*
-Author(s): Lizette, Kajsa
+/**
+ * @author Lizette Bloch Dahl Nikolajsen
+ * @author Kajsa Alice Ulrika Berlstedt
  */
 
 public class AuthResponse {
