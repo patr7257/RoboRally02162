@@ -331,9 +331,9 @@ export default function Board() {
           return (
             <div key={name} className="player-info">
               {isMe ? (
-                <>You are: <span className="robot-label" style={{ color }}>{`Robot ${robotID}`}</span></>
+                <>You are: <span className="robot-label" style={{ color }}>{`Robot ${idStr}`}</span></>
               ) : (
-                <>{name}: <span className="robot-label" style={{ color }}>{`Robot ${robotID}`}</span></>
+                <>{name}: <span className="robot-label" style={{ color }}>{`Robot ${idStr}`}</span></>
               )}
             </div>
           );
