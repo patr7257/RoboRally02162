@@ -69,19 +69,18 @@ public class ServerManager implements LobbyObserver {
                 }
                 break;
 
-            //case LOCKED: {}
-            //case UNLOCKED: {}
+            // case LOCKED: {}
+            // case UNLOCKED: {}
 
             case GAME_ENDED:
 
-                    gameToLobby.remove(lobby.getGameID().toString());
-                    break;
+                gameToLobby.remove(lobby.getGameID().toString());
+                break;
             case GAME_STARTED:
-                    gameToLobby.put(lobby.getGameID().toString(), lobby.getLobbyID());
-                    notifyClientsOfLobbies();
-                    break;
+                gameToLobby.put(lobby.getGameID().toString(), lobby.getLobbyID());
+                notifyClientsOfLobbies();
+                break;
             default:
-
 
         }
 
@@ -103,7 +102,7 @@ public class ServerManager implements LobbyObserver {
      * @return Returns whether the userID has a corresponding user in database.
      */
 
-    public boolean validateUserID(String userID){
+    public boolean validateUserID(String userID) {
         return userDatabase.existsID(userID);
     }
 
@@ -114,6 +113,7 @@ public class ServerManager implements LobbyObserver {
     public ArrayList<Lobby> getLobbiesListCopy() {
         return new ArrayList<>(lobbies.values());
     }
+
     public Client getClient(String clientID) {
         return clients.get(clientID);
     }
@@ -127,9 +127,9 @@ public class ServerManager implements LobbyObserver {
      * @author Benjamin Benyo Endahl Hansen
      * @author Karl Johannes Agerbo
      */
-    public Lobby getLoadedLobbyFromSaveID(String saveID){
+    public Lobby getLoadedLobbyFromSaveID(String saveID) {
         String lobbyID = lobbyIDFromSaveID.get(saveID);
-        if(lobbyID == null){
+        if (lobbyID == null) {
             return null;
         }
         return getLobbyFromLobbyID(lobbyID);
@@ -140,7 +140,7 @@ public class ServerManager implements LobbyObserver {
      */
 
     public void putClient(Client client) {
-        clients.put(client.getUserID(),client);
+        clients.put(client.getUserID(), client);
     }
 
     /**
@@ -166,22 +166,22 @@ public class ServerManager implements LobbyObserver {
      */
 
     public String removeGameMapping(String gameID) {
-        return gameToLobby.remove(gameID); //returns such that caller can check if object was originally in map
+        return gameToLobby.remove(gameID); // returns such that caller can check if object was originally in map
     }
 
     /**
      * @author Niklas Emil Lysdal
      */
 
-    public synchronized Lobby createLobby(Client creator, Host host,String lobbyName, int capacity) {
-       return  createLobbyBody(creator, host, lobbyName, capacity);
+    public synchronized Lobby createLobby(Client creator, Host host, String lobbyName, int capacity) {
+        return createLobbyBody(creator, host, lobbyName, capacity);
     }
 
     /**
      * @author Niklas Emil Lysdal
      */
 
-    public synchronized Lobby createLobby(Client creator,String lobbyName,int capacity) {
+    public synchronized Lobby createLobby(Client creator, String lobbyName, int capacity) {
         return createLobbyBody(creator, this.host, lobbyName, capacity);
     }
 
@@ -189,12 +189,12 @@ public class ServerManager implements LobbyObserver {
      * @author Niklas Emil Lysdal
      */
 
-    private synchronized Lobby createLobbyBody(Client creator, Host host,String lobbyName, int capacity) {
+    private synchronized Lobby createLobbyBody(Client creator, Host host, String lobbyName, int capacity) {
         boolean invalidLobbyName = lobbies.values().stream().anyMatch(lobby -> lobby.getLobbyName().equals(lobbyName));
         if (invalidLobbyName) {
             throw new IllegalArgumentException("LOBBY_NAME_ALREADY_EXISTS");
         }
-        Lobby lob = lobbyFactory.createLobby(creator,host,lobbyName, capacity);
+        Lobby lob = lobbyFactory.createLobby(creator, host, lobbyName, capacity);
         lobbies.put(lob.getLobbyID(), lob);
         lob.addObserver(this);
 
@@ -209,8 +209,8 @@ public class ServerManager implements LobbyObserver {
 
     private void notifyClientsOfLobbies() {
         ObjectNode msg = JsonUtil.createObjectNode();
-        msg.put("type","lobbies");
-        msg.put("action","updatedLobbies");
+        msg.put("type", "lobbies");
+        msg.put("action", "updatedLobbies");
         broadcastToClients(msg);
     }
 
@@ -220,7 +220,9 @@ public class ServerManager implements LobbyObserver {
 
     private void broadcastToClients(ObjectNode msg) {
         for (Client client : clients.values()) {
-            client.handleMessage(msg);
+            if (client.isSessionOpen()) {
+                client.handleMessage(msg);
+            }
         }
     }
 
@@ -242,11 +244,13 @@ public class ServerManager implements LobbyObserver {
      * @author Niklas Emil Lysdal
      */
 
-    public void setHostSession(WebSocketSession sess) { this.host.setSession(sess);}
+    public void setHostSession(WebSocketSession sess) {
+        this.host.setSession(sess);
+    }
 
     /*
-    The following functions are for test purposes only
-    */
+     * The following functions are for test purposes only
+     */
 
     public Map<String, Client> getClientsForTest() {
         return clients;

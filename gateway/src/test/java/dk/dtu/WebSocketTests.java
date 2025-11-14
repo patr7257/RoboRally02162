@@ -91,7 +91,10 @@ public class WebSocketTests {
     void gatewayToClientTest() throws Exception {
         WebSocketSession mockSession = mock(WebSocketSession.class);
         when(mockSession.getId()).thenReturn("session123");
+        when(mockSession.isOpen()).thenReturn(true);
+        
         Client client = new Client(mock(User.class), mockSession);
+        
 
         ObjectNode root = JsonUtil.createObjectNode();
         root.put("type", "game");
