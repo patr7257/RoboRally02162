@@ -20,6 +20,9 @@ public class GameScheduler implements RoundPacer {
     private static final long NEXT_WINDOW_MS = 60_000L;
     private static final long EFFECT_DELAY_MS = 500;
 
+    private static final long ROBOT_TURN_DELAY_MS = 400;
+
+
 
     private final ScheduledExecutorService scheduler;
     private final List<RoundPacerListener> listeners = new CopyOnWriteArrayList<>();
@@ -154,8 +157,8 @@ public class GameScheduler implements RoundPacer {
     }
 
     /**
-     * Executes a specific register sequentially with a delay, handles winner detection,
-     * reboots, and transitions back to programming phase after all registers.
+     * Executes a specific register sequentially with delays between robot turns,
+     * handles winner detection, reboots, and transitions back to programming phase after all registers.
      *
      * @param session the current game session
      * @param reg     the register index (1-5)
@@ -166,41 +169,16 @@ public class GameScheduler implements RoundPacer {
             try {
                 Game game = session.getGame();
 
-                game.executeRegisterMovesOnly();
+                for (Robot r : game.getRobots()) {
+                    r.setMovedOnActivation(false);
+                }
 
-                ScheduledFuture<?> effectsTask = scheduler.schedule(() -> {
-                    try {
-                        // We could potentially inject the register round here, perhaps?
-                        // This way we can tell the effects that need to know the register they are in
-                        // I think there was some special conveyor that needed that information
-                        game.applyBoardEffectsAfterRegister();
+                List<Robot> robotsInOrder = game.getRobotsByPriority();
 
-                        if (game.getWinner().isPresent()) {
-                            session.setState(GameState.FINISHED);
-                            listeners.forEach(l -> l.onGameFinished(session));
-                            session.cancelStepTask();
-                            return;
-                        }
+                executeRobotsSequentially(session, reg, robotsInOrder, 0);
 
-                        if (reg < 5) {
-                            runRegister(session, reg + 1);
-                        } else {
-                            game.dealNewHands();
-                            game.rebootRobots();
-                            session.cancelStepTask();
-                            scheduleProgrammingPhase(session, NEXT_WINDOW_MS);
-                        }
-                    } catch (Exception e) {
-                        System.err.println("Error in effects of register " + reg + ": " + e.getMessage());
-                        e.printStackTrace();
-                        session.cancelStepTask();
-                        scheduleProgrammingPhase(session, NEXT_WINDOW_MS);
-                    }
-                }, EFFECT_DELAY_MS, TimeUnit.MILLISECONDS);
-
-                session.setStepTask(effectsTask);
             } catch (Exception e) {
-                System.err.println("Error in register " + reg + ": " + e.getMessage());
+                System.err.println("Error starting register " + reg + ": " + e.getMessage());
                 e.printStackTrace();
                 session.cancelStepTask();
                 scheduleProgrammingPhase(session, NEXT_WINDOW_MS);
@@ -209,6 +187,77 @@ public class GameScheduler implements RoundPacer {
 
         session.setStepTask(task);
     }
+
+    /**
+     * Recursively executes robot turns with delays between each robot.
+     *
+     * @param session the current game session
+     * @param reg the register index (1-5)
+     * @param robots list of robots in priority order
+     * @param robotIndex current robot index being executed
+     * @author William Pii Jæger
+     */
+    private void executeRobotsSequentially(GameSession session, int reg, List<Robot> robots, int robotIndex) {
+        if (robotIndex >= robots.size()) {
+
+            applyEffectsAndContinue(session, reg);
+            return;
+        }
+
+        Game game = session.getGame();
+        Robot currentRobot = robots.get(robotIndex);
+
+        game.executeOneRobotTurn(currentRobot);
+
+        ScheduledFuture<?> nextTask = scheduler.schedule(
+                () -> executeRobotsSequentially(session, reg, robots, robotIndex + 1),
+                ROBOT_TURN_DELAY_MS,
+                TimeUnit.MILLISECONDS
+        );
+
+        session.setStepTask(nextTask);
+    }
+
+    /**
+     * Applies board effects after all robots have moved in a register,
+     * then continues to next register or programming phase.
+     *
+     * @param session the current game session
+     * @param reg the register index that just completed
+     * @author William Pii Jæger
+     */
+    private void applyEffectsAndContinue(GameSession session, int reg) {
+        ScheduledFuture<?> effectsTask = scheduler.schedule(() -> {
+            try {
+                Game game = session.getGame();
+                game.applyBoardEffectsAfterRegister();
+
+                if (game.getWinner().isPresent()) {
+                    session.setState(GameState.FINISHED);
+                    listeners.forEach(l -> l.onGameFinished(session));
+                    session.cancelStepTask();
+                    return;
+                }
+
+                if (reg < 5) {
+                    runRegister(session, reg + 1);
+                } else {
+                    game.dealNewHands();
+                    game.rebootRobots();
+                    session.cancelStepTask();
+                    scheduleProgrammingPhase(session, NEXT_WINDOW_MS);
+                }
+            } catch (Exception e) {
+                System.err.println("Error in effects of register " + reg + ": " + e.getMessage());
+                e.printStackTrace();
+                session.cancelStepTask();
+                scheduleProgrammingPhase(session, NEXT_WINDOW_MS);
+            }
+        }, EFFECT_DELAY_MS, TimeUnit.MILLISECONDS);
+
+        session.setStepTask(effectsTask);
+    }
+
 
     /**
      * Shuts down the scheduler gracefully, waiting up to 5 seconds before forcing shutdown.

@@ -418,33 +418,53 @@ public class Game {
     }
 
     /**
-     * Executes the next operation for each robot in register order.
+     * Executes the next operation for a single robot.
      * Movement ops attempt stepwise movement (respecting blocks); rotation ops update direction.
      *
+     * @param robot the robot to execute
      * @author William Pii Jæger
+     */
+    public void executeOneRobotTurn(Robot robot) {
+        ProgramOP op = robot.pollNextOp();
+        if (op == null) return;
+
+        if (op instanceof ProgramOP.Move(int stepsVal)) {
+            Direction dir = robot.getDirection();
+            int steps = stepsVal;
+            if (steps < 0) {
+                dir = dir.opposite();
+                steps = -steps;
+            }
+            while (steps-- > 0) {
+                boolean ok = applyOneStep(api, robot, dir);
+                if (!ok) break;
+            }
+        } else {
+            robot.setDirection(op.apply(robot.getDirection()));
+        }
+
+        notifyGameUpdate();
+    }
+
+    /**
+     * Returns the list of robots in priority order for the current register.
+     *
+     * @return list of robots ordered by priority
+     * @author William Pii Jæger
+     */
+    public List<Robot> getRobotsByPriority() {
+        return api.getRobotsByPriority();
+    }
+
+
+    /**
+     * @deprecated Use {@link #executeOneRobotTurn(Robot)} with scheduling for visual delays
      */
     private void executeOneRegister() {
         for (Robot r : api.getRobotsByPriority()) {
-            ProgramOP op = r.pollNextOp();
-            if (op == null) continue;
-
-            if (op instanceof ProgramOP.Move(int stepsVal)) {
-                Direction dir = r.getDirection();
-                int steps = stepsVal;
-                if (steps < 0) {
-                    dir = dir.opposite();
-                    steps = -steps;
-                }
-                while (steps-- > 0) {
-                    boolean ok = applyOneStep(api, r, dir);
-                    if (!ok) break;
-                }
-            } else {
-                r.setDirection(op.apply(r.getDirection()));
-            }
+            executeOneRobotTurn(r);
         }
     }
-
     /**
      * Registers a game observer.
      *
