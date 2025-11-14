@@ -12,6 +12,7 @@ import LobbyCreator from './lobby/LobbyCreator';
 import LobbyCreation from './lobby/LobbyCreation';
 import "./ui/registerEffects";
 import LoadLobby from './lobby/LoadLobby';
+import useSound from 'use-sound';
 
 /**
  * @author Bjarke Søderhamn Petersen
@@ -54,7 +55,7 @@ function Home() {
   return (
     <Layout>
       <div className="panel-container">
-        <h1 className="metal-text">Welcome to RoboRally</h1>
+        <h1 className="metal-text easteregg">Welcome to RoboRally</h1>
         <h2 className="home-username">Command Access Portal</h2>
 
         {username ? (
@@ -108,6 +109,12 @@ function App() {
     localStorage.removeItem("lobbies");
     window.__appStarted__ = true;
   }
+
+  const easter_egg = document.querySelector(".easteregg");
+  const [play] = useSound('./roborawy.mp3');
+  easter_egg?.addEventListener("click", (e) => {
+    play();
+  });
 
   return (
     <Router>

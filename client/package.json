@@ -13,7 +13,8 @@
     "react-router-dom": "6.26.2",
     "react-scripts": "5.0.1",
     "styled": "^1.0.0",
-    "styled-components": "^6.1.19"
+    "styled-components": "^6.1.19",
+    "use-sound": "^5.0.0"
   },
   "devDependencies": {
     "@testing-library/jest-dom": "^6.9.1",
