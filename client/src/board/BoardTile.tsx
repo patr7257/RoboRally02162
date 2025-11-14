@@ -55,24 +55,22 @@ export const BoardTile: React.FC<BoardTileProps> = ({
       backgroundPosition: "center",
     }}
   >
-
     <span className="tile-coords">{x},{y}</span>
     {robot && (
-  <div
-    className="robot"
-    style={{
-      backgroundImage: `url(${getRobotImage(robot.id)})`,
-      backgroundSize: "cover",
-      backgroundPosition: "center",
-      width: "100%",
-      height: "100%",
-      transform: `rotate(${getRotationDegrees(robot.facing)}deg)`,
-      transition: "transform 0.3s ease",
-      transformOrigin: "center center",
-    }}
-  />
-)}
-
+      <div
+        className="robot"
+        style={{
+          backgroundImage: `url(${getRobotImage(robot.id)})`,
+          backgroundSize: "cover",
+          backgroundPosition: "center",
+          width: "100%",
+          height: "100%",
+          transform: `rotate(${getRotationDegrees(robot.facing)}deg)`,
+          transition: "transform 0.3s ease",
+          transformOrigin: "center center",
+        }}
+      />
+    )}
     {effects.map(e => (
       <div key={e.id} className={`effect-wrapper kind-${e.kind}`}>
         {renderEffect(e)}
