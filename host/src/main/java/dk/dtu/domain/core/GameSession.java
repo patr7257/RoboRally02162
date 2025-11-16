@@ -14,6 +14,7 @@ import java.util.concurrent.ScheduledFuture;
  * </p>
  *
  * @author William Pii Jæger
+ * @author Weihao Mo
  */
 public class GameSession {
     private final UUID gameId;
@@ -23,7 +24,10 @@ public class GameSession {
     private final Set<PlayerID> submittedPlayers;
     private ScheduledFuture<?> autoExecuteTask;
     private ScheduledFuture<?> stepTask;
+    private ScheduledFuture<?> respawnTimeoutTask;
     private final int totalPlayers;
+    private int deadRobotsAwaitingRespawn = 0;
+    private final Set<Integer> robotsWithRespawnDirection = new HashSet<>();
 
     /**
      * Creates a new session around a specific game.
@@ -133,11 +137,65 @@ public class GameSession {
         stepTask = null;
     }
 
+    public synchronized void setRespawnTimeoutTask(ScheduledFuture<?> task) {
+        this.respawnTimeoutTask = task;
+    }
+
+    public synchronized void cancelRespawnTimeoutTask() {
+        if (respawnTimeoutTask != null && !respawnTimeoutTask.isDone()) {
+            respawnTimeoutTask.cancel(false);
+        }
+        respawnTimeoutTask = null;
+    }
+
     public synchronized long getMillisecondsRemaining() {
         if (programmingDeadline == null || state != GameState.PROGRAMMING) {
             return 0;
         }
         long ms = programmingDeadline.toEpochMilli() - Instant.now().toEpochMilli();
         return Math.max(0, ms);
+    }
+
+    /**
+     * Set a timeout for respawn direction setting
+     *
+     * @param count for timeout
+     * @author Weihao Mo
+     */
+    public synchronized void setDeadRobotsAwaitingRespawn(int count) {
+        this.deadRobotsAwaitingRespawn = count;
+        this.robotsWithRespawnDirection.clear();
+    }
+
+    /**
+     * Mark the robot that has set the respawn direction
+     *
+     * @param robotId id of the robot
+     * @author Weihao Mo
+     */
+    public synchronized void markRespawnDirectionSet(int robotId) {
+        robotsWithRespawnDirection.add(robotId);
+    }
+
+
+    /**
+     * Checks if all dead robots have set their direction for respawn
+     *
+     * @return true if submitted direction; false otherwise
+     * @author Weihao Mo
+     */
+    public synchronized boolean allRespawnDirectionsSet() {
+        return deadRobotsAwaitingRespawn > 0 &&
+                robotsWithRespawnDirection.size() >= deadRobotsAwaitingRespawn;
+    }
+
+    /**
+     * Clean up all setup and respawn directions for future registration
+     *
+     * @author Weihao Mo
+     */
+    public synchronized void clearDeadRobotsAwaitingRespawn() {
+        this.deadRobotsAwaitingRespawn = 0;
+        this.robotsWithRespawnDirection.clear();
     }
 }

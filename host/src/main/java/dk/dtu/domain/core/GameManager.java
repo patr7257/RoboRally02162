@@ -116,6 +116,7 @@ public class GameManager implements GameObserver {
      * @param cmd the command to execute
      * @return result describing success/failure and message
      * @author William Pii Jæger
+     * @author Weihao Mo
      */
     public synchronized CommandResult execute(GameCommand cmd) {
         return switch (cmd) {
@@ -160,6 +161,30 @@ public class GameManager implements GameObserver {
                     session.setState(GameState.FINISHED);
                 }
                 yield CommandResult.ok("Game ended");
+            }
+
+            case GameCommand.SetRespawnDirection setRespawnDirection -> {
+                GameSession session = activeSessions.get(setRespawnDirection.gameId());
+                if(session == null) yield CommandResult.fail("Game not found");
+
+                try {
+                    synchronized (session) {
+                        Game game = session.getGame();
+                        Robot robot = game.getRobot(setRespawnDirection.player());
+
+                        game.setRespawnDirection(setRespawnDirection.player(), setRespawnDirection.direction());
+                        session.markRespawnDirectionSet(robot.getId());
+
+                        if (session.allRespawnDirectionsSet()) {
+                            if (pacer instanceof GameScheduler scheduler) {
+                                scheduler.continueAfterAllRespawns(session);
+                            }
+                        }
+                    }
+                    yield CommandResult.ok("Respawn direction set to " + setRespawnDirection.direction());
+                } catch (Exception e) {
+                    yield CommandResult.fail("Failed to set respawn direction: " + e.getMessage());
+                }
             }
         };
     }
@@ -283,6 +308,19 @@ public class GameManager implements GameObserver {
     }
 
     /**
+     * Broadcasts that the robot needs respawn
+     *
+     * @param session the session
+     * @param robotId id for the robot
+     * @author Weihao Mo
+     */
+    void broadcastRobotNeedsRespawn(GameSession session, int robotId) {
+        for (GameManagerObserver obs : observers) {
+            obs.onRobotNeedsRespawn(session.getGame(), session.getGameId(), robotId);
+        }
+    }
+
+    /**
      * Internal bridge from {@link RoundPacer.RoundPacerListener} to {@link GameManagerObserver} callbacks.
      *
      * @author William Pii Jæger
@@ -331,6 +369,18 @@ public class GameManager implements GameObserver {
         @Override
         public void onGameFinished(GameSession session) {
             broadcastGameFinished(session);
+        }
+
+        /**
+         * Forwards robot-respawn event.
+         *
+         * @param session current session
+         * @param robotId id for the robot
+         * @author Weihao Mo
+         */
+        @Override
+        public void onRobotNeedsRespawn(GameSession session, int robotId) {
+                broadcastRobotNeedsRespawn(session,robotId);
         }
     }
 

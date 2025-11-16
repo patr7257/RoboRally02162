@@ -5,6 +5,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import dk.dtu.domain.core.*;
+import dk.dtu.domain.model.Direction;
 import dk.dtu.domain.program.ProgramCard;
 import dk.dtu.infrastructure.SnapshotMapper;
 import dk.dtu.infrastructure.dto.*;
@@ -113,6 +114,7 @@ public class GatewaysWsHandler extends TextWebSocketHandler implements GameManag
 
     /**
      * @author William Pii Jæger
+     * @author Weihao Mo
      */
     @Override
     protected void handleTextMessage(WebSocketSession session, TextMessage message) throws Exception {
@@ -264,6 +266,41 @@ public class GatewaysWsHandler extends TextWebSocketHandler implements GameManag
                         Map.of("ms", timeOpt.get())));
             }
 
+            case "setRespawnDirection" -> {
+                try {
+                    String directionStr = msg.payload.get("direction").asText();
+
+                    if (directionStr == null || directionStr.isEmpty()) {
+                        sendError("bad_request", "Direction is required", meta, gameId);
+                        return;
+                    }
+
+                    Direction direction;
+                    try {
+                        direction = Direction.valueOf(directionStr);
+                    } catch (IllegalArgumentException e) {
+                        sendError("bad_request", "Invalid direction: " + directionStr +
+                                ". Must be N, S, E, or W", meta, gameId);
+                        return;
+                    }
+
+                    GameCommand cmd = new GameCommand.SetRespawnDirection(
+                            UUID.randomUUID(), gameId, new PlayerID(msg.playerId), direction);
+                    CommandResult result = gameManager.execute(cmd);
+
+                    if (result.ok()) {
+                        send(new OutgoingMessage<>("ack", Delivery.DIRECT, meta,
+                                Map.of("message", "Respawn direction set to " + direction)));
+                    } else {
+                        sendError("command_failed", result.reason(), meta, gameId);
+                    }
+                } catch (Exception e) {
+                    sendError("bad_request",
+                            "Failed to set respawn direction: " + e.getMessage(),
+                            meta, gameId);
+                }
+            }
+
             default -> {
                 sendError("bad_request", "Unknown payload.type: " + type, meta, gameId);
             }
@@ -355,6 +392,29 @@ public class GatewaysWsHandler extends TextWebSocketHandler implements GameManag
             send(out);
         } catch (Exception e) {
             System.err.println("Failed to broadcast game finished: " + e);
+        }
+    }
+
+    /**
+     * Notifies clients when a robot needs to choose a respawn direction.
+     *
+     * @param game the game instance
+     * @param gameID the game ID
+     * @param robotId the ID of the robot that died
+     *
+     * @author Weihao Mo
+     */
+    @Override
+    public void onRobotNeedsRespawn(Game game, UUID gameID, int robotId) {
+        try {
+            GameDto gameDto = SnapshotMapper.mapGame(gameID, game);
+            EventMetaDTO meta = new EventMetaDTO(gameDto, null);
+
+            OutgoingMessage<?> out = new OutgoingMessage<>("needRespawnDirection", Delivery.BROADCAST, meta,
+                    Map.of("robotId", robotId));
+            send(out);
+        } catch (Exception e) {
+            System.err.println("Failed to broadcast robot needs respawn: " + e);
         }
     }
 

@@ -25,6 +25,7 @@ public class Robot {
     private int nextCheckpoint = 1;
     private transient boolean movedOnActivation;
     private Boolean isAlive = true;
+    private Direction respawnDirection;
 
     private final Deque<ProgramOP> registers = new ArrayDeque<>();
 
@@ -140,5 +141,17 @@ public class Robot {
 
     public Boolean isAlive() {
         return isAlive;
+    }
+
+    public void setRespawnDirection(Direction direction) {
+        this.respawnDirection = direction;
+    }
+
+    public Direction getRespawnDirection() {
+        return respawnDirection;
+    }
+
+    public void clearRespawnDirection() {
+        this.respawnDirection = null;
     }
 }

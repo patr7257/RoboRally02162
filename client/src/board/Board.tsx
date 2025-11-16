@@ -11,7 +11,7 @@ import { GameControls } from "./GameControls";
 import CheckpointChecklist from "../ui/checkpointChecklist";
 import { leaveLobby } from '../lobby/LeaveLobby';
 import { saveGame } from '../lobby/SaveGame';
-
+import { RespawnDirectionModal } from '../ui/RespawnDirectionModal';
 
 /**
 * @author Asger Allin Jensen
@@ -35,6 +35,7 @@ interface ReadinessData {
 * @author Bjarke Søderhamn Petersen
 * @author Patrick Røbel
 * @author William Pii Jæger
+* @author Weihao Mo
 */
 export default function Board() {
   const navigate = useNavigate();
@@ -46,12 +47,14 @@ export default function Board() {
   const [selectedMoves, setSelectedMoves] = useState<(MoveType | null)[]>(Array(5).fill(null));
   const [readiness, setReadiness] = useState<ReadinessData | null>(null);
   const [timeRemaining, setTimeRemaining] = useState<number>(0);
-  const [gameState, setGameState] = useState<'waiting' | 'programming' | 'executing' | 'finished'>('waiting');
+  const [gameState, setGameState] = useState<'waiting' | 'programming' | 'executing' | 'finished' | 'waitingForRespawn'>('waiting');
   const [hasSubmitted, setHasSubmitted] = useState<boolean>(false);
   const [robotID, setRobotID] = useState<string>("");
   const [menuOpen, setMenuOpen] = useState(false);
   const API_BASE_URL = process.env.REACT_APP_API_BASE_URL;
   const [robotMap, setRobotMap] = useState<{ [username: string]: string }>({});
+  const [needsRespawn, setNeedsRespawn] = useState<boolean>(false);
+  const [respawnRobotId, setRespawnRobotId] = useState<number | null>(null);
 
   /**
   * @author Asger Allin Jensen
@@ -61,6 +64,7 @@ export default function Board() {
   * @author Benjamin Benyo Endhal Hansen
   * @author Karl Johannes Agerbo
   * @author Lizette Bloch Dahl Nikolajsen
+  * @author Weihao Mo
   */
   useEffect(() => {
     const unsubscribe = subscribe((message: string) => {
@@ -148,6 +152,21 @@ export default function Board() {
             alert(`Error: ${data.payload.message}`);
             break;
 
+          case "needRespawnDirection":
+            console.log("Robot needs respawn direction:", actualData.payload);
+            const deadRobotId = actualData.payload?.robotId;
+            const currentRobotId = parseInt(robotID);
+            console.log(`Dead robot ID: ${deadRobotId}, Current robot ID: ${currentRobotId}, Raw robotID: ${robotID}`);
+
+            if (deadRobotId === currentRobotId) {
+              console.log("This player's robot died - showing respawn modal");
+              setNeedsRespawn(true);
+              setRespawnRobotId(deadRobotId);
+            } else {
+                console.log("Different player's robot died - not showing modal");
+            }
+            break;
+
           default:
             console.log("Unknown message type:", data.type, data);
         }
@@ -166,7 +185,7 @@ export default function Board() {
       stopReadinessPolling();
       if (unsubscribe) unsubscribe();
     };
-  }, [lobbyId]);
+  }, [lobbyId,robotID]);
 
   let readinessInterval: NodeJS.Timeout | null = null;
 
@@ -189,6 +208,32 @@ export default function Board() {
       readinessInterval = null;
     }
   };
+
+    /**
+    * @author Weihao Mo
+    */
+  const handleRespawnDirection = (direction: 'NORTH' | 'SOUTH' | 'EAST' | 'WEST') => {
+    if (!respawnRobotId) {
+        console.error("No respawn robot ID set");
+        return;
+    }
+
+    console.log(`Sending respawn direction ${direction} for robot ${respawnRobotId}`);
+
+    const backendDirection = direction.charAt(0);
+
+    sendMessage({
+        lobbyID: lobbyId,
+        playerID: parseInt(robotID),
+        payload: {
+            type: "setRespawnDirection",
+            direction: backendDirection
+        }
+    });
+
+    setNeedsRespawn(false);
+    setRespawnRobotId(null);
+};
 
   /**
    * @author Kajsa Alice Ulrika Berlstedt
@@ -347,6 +392,11 @@ export default function Board() {
       {gameData?.game?.winner != null && (
         <WinnerBanner winnerId={gameData.game.winner} />
       )}
+
+    <RespawnDirectionModal
+      isOpen={needsRespawn}
+      onSelectDirection={handleRespawnDirection}
+    />
 
       <div className="board-Left">
         <div className="boardContainer">

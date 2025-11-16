@@ -19,7 +19,7 @@ import java.util.List;
  * {@link BoardAPI#tryMoveOneStep(int, Direction)} to resolve overlaps.
  * </p>
  *
- * @param direction the direction the reboot token faces and uses for setting robot facing direction
+ * @param direction the direction the reboot token faces
  * @see BoardAPI#tryMoveOneStep(int, Direction)
  *
  * @author Weihao Mo
@@ -35,9 +35,16 @@ public record RebootToken(Direction direction) implements TileEffect {
             int x = tile.getX();
             int y = tile.getY();
 
-            for (Robot robot : api.getDeadRobots()) {
+            List<Robot> robotsToRespawn = api.getDeadRobots().stream()
+                    .filter(r -> r.getRespawnDirection() != null)
+                    .toList();
+
+            for (Robot robot : robotsToRespawn) {
+                Direction respawnDir = robot.getRespawnDirection();
+                robot.setDirection(respawnDir);
+                robot.clearRespawnDirection();
                 robot.setPosition(x, y);
-                robot.setDirection(direction);
+                robot.setAlive();
             }
 
             List<Robot> robotsOnTile = api.getRobotsOnTile(x, y);

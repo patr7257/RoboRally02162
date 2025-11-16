@@ -350,6 +350,7 @@ public class Game {
             }
             for (DestroyEvent d : moved.destroys()) {
                 Robot r = robotsMap.get(d.robotId());
+                r.setPosition(d.at().x(), d.at().y());
                 r.clearRegisters();
                 r.setDead();
             }
@@ -390,6 +391,28 @@ public class Game {
     }
 
     /**
+     * Set the respawn direction for the robot with the corresponding ID
+     * @param playerID the player ID for the robot
+     * @param direction the direction the robot should be facing
+     *
+     * @author Weihao Mo
+     */
+    public void setRespawnDirection(PlayerID playerID, Direction direction) {
+        Robot robot = robotMap.get(playerID);
+        robot.setRespawnDirection(direction);
+    }
+
+
+    /**
+     * Returns a list of dead robots
+     *
+     * @author Weihao Mo
+     */
+    public List<Robot> getDeadRobots() {
+        return getRobots().stream().filter(r -> !r.isAlive()).toList();
+    }
+
+    /**
      * Attempts to move a robot one step in a given direction via {@link BoardAPI#tryMoveOneStep(int, Direction)}.
      * Updates robot positions and death states according to the returned events.
      *
@@ -406,6 +429,7 @@ public class Game {
                 robotsMap.get(e.robotId()).setPosition(e.to().x(), e.to().y());
             }
             for (DestroyEvent d : moved.destroys()) {
+                robotsMap.get(d.robotId()).setPosition(d.at().x(), d.at().y());
                 robotsMap.get(d.robotId()).clearRegisters();
                 robotsMap.get(d.robotId()).setDead();
             }

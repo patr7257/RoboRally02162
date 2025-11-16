@@ -23,4 +23,7 @@ public interface GameManagerObserver {
 
     default void onWinnerDeclared(Game game, UUID gameID, PlayerID winner) {
     }
+
+    default void onRobotNeedsRespawn(Game game, UUID gameID, int robotId) {
+    }
 }

@@ -480,7 +480,7 @@ public final class BoardApiImpl implements BoardAPI {
      * Applies conveyor belt rotation to a robot after it has moved
      *
      * @param robot the robot to rotate
-     * @param priority the priority level (2 for blue, 1 for green conveyors)
+     * @param priority the priority level (2 for blue, 1 for green conveyors, 0 for gear)
      * @author Weihao Mo
      */
     private void applyRotation(Robot robot, int priority) {
@@ -494,6 +494,10 @@ public final class BoardApiImpl implements BoardAPI {
             }
             if (priority == 1 && eff instanceof GreenConveyor gc) {
                 rot = gc.rotation();
+            }
+
+            if (eff instanceof Gear g) {
+                rot = g.rotation();
             }
 
             if (rot != null && rot != Rotation.NONE) {
@@ -555,13 +559,7 @@ public final class BoardApiImpl implements BoardAPI {
      * @author Weihao Mo
      */
     public List<Robot> getDeadRobots() {
-        List<Robot> result = new ArrayList<>();
-        for(Robot r: robots.values()) {
-            if(!r.isAlive()) {
-                result.add(r);
-            }
-        }
-        return result;
+        return getRobotsByPriority().stream().filter(r -> !r.isAlive()).toList();
     }
 
     @Override

@@ -1,8 +1,6 @@
 package dk.dtu;
 
-import dk.dtu.domain.core.Game;
-import dk.dtu.domain.core.GameObserver;
-import dk.dtu.domain.core.PlayerID;
+import dk.dtu.domain.core.*;
 import dk.dtu.domain.model.Board;
 import dk.dtu.domain.model.Direction;
 import dk.dtu.domain.model.Robot;
@@ -16,7 +14,7 @@ import java.util.concurrent.atomic.AtomicReference;
 
 import static dk.dtu.util.GameTestSupport.*;
 import static dk.dtu.util.BoardTestUtils.initBoardWithRebootToken;
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.*;
 
 /**
  * @author Weihao Mo
@@ -34,15 +32,18 @@ public class GameRebootTest {
         BoardAPI api = new BoardApiImpl(board, robots);
         Game game = new Game(board, api, robots);
 
-        AtomicReference<PlayerID> observedWinner = new AtomicReference<>();
-        game.addObserver(new GameObserver() {
-            @Override public void onWinnerDeclared(Game g,PlayerID winner) { observedWinner.set(winner); }
-            @Override public void onGameUpdate(Game g) { }
-        });
+        r.loadProgram(List.of(ProgramCard.move3()));
 
-        r.loadProgram(List.of(ProgramCard.move1()));
-        game.startRound();
-        assertPosDir(r,2,2,Direction.E);
+        game.executeRegister(1);
+
+        assertFalse(r.isAlive());
+
+        game.setRespawnDirection(new PlayerID(1), Direction.E);
+
+        game.applyTileEffects(Phase.ACTIVATE_REBOOT);
+
+        assertTrue(r.isAlive());
+        assertPosDir(r, 2, 2, Direction.E);
     }
 
     /**
@@ -50,25 +51,32 @@ public class GameRebootTest {
      */
     @Test
     void robotRespawnAndThenPushed() {
-        Board board = initBoardWithRebootToken(5,5);
-        Robot r1= new Robot(1,0,0, Direction.N);
-        Robot r2= new Robot(2,1,0, Direction.N);
+        Board board = initBoardWithRebootToken(5, 5);
+        Robot r1 = new Robot(1, 0, 0, Direction.N);
+        Robot r2 = new Robot(2, 1, 0, Direction.N);
 
-        List<Robot> robots = List.of(r1,r2);
+        List<Robot> robots = List.of(r1, r2);
         BoardAPI api = new BoardApiImpl(board, robots);
         Game game = new Game(board, api, robots);
 
-        AtomicReference<PlayerID> observedWinner = new AtomicReference<>();
-        game.addObserver(new GameObserver() {
-            @Override public void onWinnerDeclared(Game g,PlayerID winner) { observedWinner.set(winner); }
-            @Override public void onGameUpdate(Game g) { }
-        });
+        r1.loadProgram(List.of(ProgramCard.move3()));
+        r2.loadProgram(List.of(ProgramCard.move3()));
 
-        r1.loadProgram(List.of(ProgramCard.move1()));
-        r2.loadProgram(List.of(ProgramCard.move1()));
-        game.startRound();
-        assertPosDir(r1,3,2,Direction.E);
-        assertPosDir(r2,2,2,Direction.E);
+        game.executeRegister(1);
+
+        assertFalse(r1.isAlive());
+        assertFalse(r2.isAlive());
+
+        game.setRespawnDirection(new PlayerID(1), Direction.E);
+        game.setRespawnDirection(new PlayerID(2), Direction.E);
+
+        game.applyTileEffects(Phase.ACTIVATE_REBOOT);
+
+        assertTrue(r1.isAlive());
+        assertTrue(r2.isAlive());
+
+        assertPosDir(r2, 2, 2, Direction.E);
+        assertPosDir(r1, 3, 2, Direction.E);
     }
 
     /**
@@ -85,18 +93,28 @@ public class GameRebootTest {
         BoardAPI api = new BoardApiImpl(board, robots);
         Game game = new Game(board, api, robots);
 
-        AtomicReference<PlayerID> observedWinner = new AtomicReference<>();
-        game.addObserver(new GameObserver() {
-            @Override public void onWinnerDeclared(Game g,PlayerID winner) { observedWinner.set(winner); }
-            @Override public void onGameUpdate(Game g) { }
-        });
+        r1.loadProgram(List.of(ProgramCard.move3()));
+        r2.loadProgram(List.of(ProgramCard.move3()));
+        r3.loadProgram(List.of(ProgramCard.move3()));
 
-        r1.loadProgram(List.of(ProgramCard.move1(), ProgramCard.move2()));
-        r2.loadProgram(List.of(ProgramCard.move1(),ProgramCard.move2()));
-        r3.loadProgram(List.of(ProgramCard.move1(),ProgramCard.move2()));
-        game.startRound();
-        assertPosDir(r1,4,2,Direction.E);
-        assertPosDir(r2,3,2,Direction.E);
-        assertPosDir(r3,2,2,Direction.E);
+        game.executeRegister(1);
+
+        assertFalse(r1.isAlive());
+        assertFalse(r2.isAlive());
+        assertFalse(r3.isAlive());
+
+        game.setRespawnDirection(new PlayerID(1), Direction.E);
+        game.setRespawnDirection(new PlayerID(2), Direction.E);
+        game.setRespawnDirection(new PlayerID(3), Direction.E);
+
+        game.applyTileEffects(Phase.ACTIVATE_REBOOT);
+
+        assertTrue(r1.isAlive());
+        assertTrue(r2.isAlive());
+        assertTrue(r3.isAlive());
+
+        assertPosDir(r3, 2, 2, Direction.E);
+        assertPosDir(r2, 3, 2, Direction.E);
+        assertPosDir(r1, 4, 2, Direction.E);
     }
 }

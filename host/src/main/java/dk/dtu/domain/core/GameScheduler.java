@@ -1,10 +1,12 @@
 package dk.dtu.domain.core;
 
 import dk.dtu.domain.model.Robot;
+import dk.dtu.domain.model.Direction;
 import dk.dtu.domain.program.ProgramCard;
 
 import java.time.Instant;
 import java.util.List;
+import java.util.Random;
 import java.util.concurrent.*;
 import java.util.concurrent.CopyOnWriteArrayList;
 
@@ -13,6 +15,7 @@ import java.util.concurrent.CopyOnWriteArrayList;
  * Controls transitions between programming, executing, and finishing states.
  *
  * @author William Pii Jæger
+ * @author Weihao Mo
  */
 public class GameScheduler implements RoundPacer {
     private static final long REGISTER_DELAY_MS = 800;
@@ -21,11 +24,13 @@ public class GameScheduler implements RoundPacer {
     private static final long EFFECT_DELAY_MS = 500;
 
     private static final long ROBOT_TURN_DELAY_MS = 400;
-
-
+    private static final long RESPAWN_TIMEOUT_MS = 10_000L;
 
     private final ScheduledExecutorService scheduler;
     private final List<RoundPacerListener> listeners = new CopyOnWriteArrayList<>();
+
+    // Good for future implementation, we now keep track which register we're currently executing
+    private int currentRegister = 0;
 
     /**
      * Creates a default scheduler using a thread pool of size 4.
@@ -82,6 +87,8 @@ public class GameScheduler implements RoundPacer {
         session.setProgrammingDeadline(deadline);
         session.setState(GameState.PROGRAMMING);
         session.clearSubmissions();
+
+        currentRegister = 0;
 
         listeners.forEach(l -> l.onProgrammingStarted(session));
 
@@ -165,6 +172,9 @@ public class GameScheduler implements RoundPacer {
      * @author William Pii Jæger
      */
     private void runRegister(GameSession session, int reg) {
+        // We store current Register here
+        currentRegister = reg;
+
         ScheduledFuture<?> task = scheduler.schedule(() -> {
             try {
                 Game game = session.getGame();
@@ -199,7 +209,6 @@ public class GameScheduler implements RoundPacer {
      */
     private void executeRobotsSequentially(GameSession session, int reg, List<Robot> robots, int robotIndex) {
         if (robotIndex >= robots.size()) {
-
             applyEffectsAndContinue(session, reg);
             return;
         }
@@ -220,11 +229,12 @@ public class GameScheduler implements RoundPacer {
 
     /**
      * Applies board effects after all robots have moved in a register,
-     * then continues to next register or programming phase.
+     * checks for dead robots after EACH register, then continues to next register or programming phase.
      *
      * @param session the current game session
      * @param reg the register index that just completed
      * @author William Pii Jæger
+     * @author Weihao Mo
      */
     private void applyEffectsAndContinue(GameSession session, int reg) {
         ScheduledFuture<?> effectsTask = scheduler.schedule(() -> {
@@ -239,11 +249,21 @@ public class GameScheduler implements RoundPacer {
                     return;
                 }
 
+                List<Robot> deadRobots = game.getDeadRobots();
+                if (!deadRobots.isEmpty()) {
+                    for (Robot robot : deadRobots) {
+                        listeners.forEach(l -> l.onRobotNeedsRespawn(session, robot.getId()));
+                    }
+                    session.setDeadRobotsAwaitingRespawn(deadRobots.size());
+
+                    scheduleRespawnTimeout(session, reg);
+                    return;
+                }
+
                 if (reg < 5) {
                     runRegister(session, reg + 1);
                 } else {
                     game.dealNewHands();
-                    game.rebootRobots();
                     session.cancelStepTask();
                     scheduleProgrammingPhase(session, NEXT_WINDOW_MS);
                 }
@@ -258,6 +278,67 @@ public class GameScheduler implements RoundPacer {
         session.setStepTask(effectsTask);
     }
 
+    /**
+     * Schedules timeout for the direction selecting
+     * @author Weihao Mo
+     */
+    private void scheduleRespawnTimeout(GameSession session, int reg) {
+        ScheduledFuture<?> respawnTimeout = scheduler.schedule(() -> {
+            if (!session.allRespawnDirectionsSet()) {
+                Game game = session.getGame();
+                Random random = new Random();
+                Direction[] directions = Direction.values();
+
+                for (Robot robot : game.getDeadRobots()) {
+                    if (robot.getRespawnDirection() == null) {
+                        Direction randomDirection = directions[random.nextInt(directions.length)];
+                        robot.setRespawnDirection(randomDirection);
+                        session.markRespawnDirectionSet(robot.getId());
+                    }
+                }
+            }
+
+            continueAfterRespawn(session, reg);
+        }, RESPAWN_TIMEOUT_MS, TimeUnit.MILLISECONDS);
+
+        session.setRespawnTimeoutTask(respawnTimeout);
+    }
+
+    /**
+     * Continues the game after respawn directions have been set (either manually or automatically).
+     * This respawns robots immediately and continues with the next register.
+     *
+     * @param session the current game session
+     * @param reg the current register index
+     * @author Weihao Mo
+     */
+    private void continueAfterRespawn(GameSession session, int reg) {
+        Game game = session.getGame();
+
+        game.applyTileEffects(Phase.ACTIVATE_REBOOT);
+        game.rebootRobots();
+        session.clearDeadRobotsAwaitingRespawn();
+
+        if (reg < 5) {
+            runRegister(session, reg + 1);
+        } else {
+            game.dealNewHands();
+            session.cancelStepTask();
+            scheduleProgrammingPhase(session, NEXT_WINDOW_MS);
+        }
+    }
+
+    /**
+     * Called when all robots have set their respawn directions
+     * Cancels the timeout and continues
+     *
+     * @param session the current game session
+     * @author Weihao Mo
+     */
+    public void continueAfterAllRespawns(GameSession session) {
+        session.cancelRespawnTimeoutTask();
+        continueAfterRespawn(session, currentRegister);
+    }
 
     /**
      * Shuts down the scheduler gracefully, waiting up to 5 seconds before forcing shutdown.

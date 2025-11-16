@@ -33,7 +33,6 @@ public record Gear(Rotation rotation) implements TileEffect {
                     break;
                 case NONE:
                     return;
-
             }
         }
     }
