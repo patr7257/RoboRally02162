@@ -40,6 +40,7 @@ public class Lobby {
     private int nextPlayerID = 1;
     private int capacity = 6; //TODO: get this number from either host or client
     public final boolean loadedLobby;
+    private String boardTemplateName = "Random"; // Default to Random
 
     ExecutorService broadcastPool = Executors.newCachedThreadPool();
 
@@ -133,6 +134,7 @@ public class Lobby {
      * @author Bjarke Søderhamn Petersen
      * @author Benjamin Benyo Endahl Hansen
      * @author Karl Johannes Agerbo
+     * @author Patrick Røbel
      */
 
     public void startGame(JsonNode gameInfo) throws Exception {
@@ -169,6 +171,43 @@ public class Lobby {
             this.locked = false; // game failed to start, unlock it again
             System.out.println("Failed to start game: " + e.getMessage());
             // Consider broadcasting an error message to clients here
+        }
+    }
+
+    /**
+     * Starts a game with a board template.
+     * @author Patrick Røbel
+     */
+    public void startGameWithTemplate(JsonNode boardTemplate) throws Exception {
+        if (!areAllPlayersReady()) {
+            broadcastNotReadyMessage();
+            throw new Exception("Game tried to start before all players are ready");
+        }
+
+        if (loadedLobby) {
+            initPlayerUserMapsLoadedLobby();
+        } else {
+            initPlayerUserMaps();
+        }
+
+        this.locked = true;
+        try {
+            this.gameID = host.startGameWithTemplate(players.size(), boardTemplate);
+            this.isRunning = true;
+            notifyObservers(LobbyUpdateReason.GAME_STARTED);
+
+            ObjectNode root = JsonUtil.createObjectNode();
+            root.put("type", "game");
+
+            ObjectNode payload = JsonUtil.createObjectNode();
+            payload.put("action", "start");
+
+            root.set("payload", payload);
+            broadcastToClients(root);
+        } catch (Exception e) {
+            this.locked = false;
+            System.out.println("Failed to start game with template: " + e.getMessage());
+            throw e;
         }
     }
 
@@ -288,6 +327,14 @@ public class Lobby {
         return lobbyID;
     }
 
+    public String getBoardTemplateName() {
+        return boardTemplateName;
+    }
+
+    public void setBoardTemplateName(String boardTemplateName) {
+        this.boardTemplateName = boardTemplateName;
+    }
+
     public UUID getSaveID() {
         return saveID;
     }
@@ -391,7 +438,7 @@ public class Lobby {
      */
 
     public LobbyPrivateJson asPrivateJson() {
-        return new LobbyPrivateJson(this.lobbyName,this.lobbyID,capacity,players.size(),this.isRunning,userNameReadinessMap);
+        return new LobbyPrivateJson(this.lobbyName,this.lobbyID,capacity,players.size(),this.isRunning,userNameReadinessMap,this.boardTemplateName);
     }
 
     /**

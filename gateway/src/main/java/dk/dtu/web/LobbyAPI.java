@@ -13,6 +13,7 @@ import dk.dtu.model.Lobby;
 import dk.dtu.model.database.DynamicGameDatabase;
 import dk.dtu.shared.ServerManager;
 import dk.dtu.util.JsonUtil;
+import dk.dtu.service.BoardTemplateService;
 
 import org.apache.coyote.Response;
 import org.springframework.http.HttpStatus;
@@ -28,20 +29,24 @@ import java.util.*;
  * @author Karl Johannes Agerbo
  * @author Asger Allin Jensen
  * @author Kajsa Alice Ulrika Berlstedt
+ * @author Patrick Røbel
  */
 @RestController
 @RequestMapping("/api")
 public class LobbyAPI {
     private final ServerManager serverManager;
     private final GameDatabase gameDatabase;
+    private final BoardTemplateService boardTemplateService;
 
     /**
      * @author Niklas Emil Lysdal
      * @author Karl Johannes Agerbo
+     * @author Patrick Røbel
      */
-    public LobbyAPI(ServerManager serverManager, DynamicGameDatabase gameDatabase) {
+    public LobbyAPI(ServerManager serverManager, DynamicGameDatabase gameDatabase, BoardTemplateService boardTemplateService) {
         this.serverManager = serverManager;
         this.gameDatabase = gameDatabase;
+        this.boardTemplateService = boardTemplateService;
     }
 
     /**
@@ -86,9 +91,17 @@ public class LobbyAPI {
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("INVALID_CAPACITY");
         }
+        
+        // Get board template name if provided (default to "Random")
+        String boardTemplateName = "Random";
+        if (json.has("boardTemplate") && !json.get("boardTemplate").asText().isBlank()) {
+            boardTemplateName = json.get("boardTemplate").asText();
+        }
+        
         Lobby lob;
         try {
             lob = serverManager.createLobby(creator, lobbyName, capacity);
+            lob.setBoardTemplateName(boardTemplateName); // Store the template name
         } catch (IllegalArgumentException e) {
             return ResponseEntity.status(HttpStatus.CONFLICT).body("LOBBY_NAME_ALREADY_EXISTS");
         }
@@ -140,22 +153,54 @@ public class LobbyAPI {
      * @author Niklas Emil Lysdal
      * @author Karl Johannes Agerbo
      * @author Benjamin Benyo Endahl Hansen
+     * @author Patrick Røbel
      */
     @PostMapping("/lobby/start") // TODO: add check that websocket connection is running
     public ResponseEntity<String> startLobby(@RequestBody JsonNode json) {
         // UUID lobbyID = UUID.fromString(json.get("lobbyID").asText());
         String lobbyID = json.get("lobbyID").asText();
+        System.out.println("=== START GAME REQUEST ===");
+        System.out.println("Lobby ID: " + lobbyID);
+        
         // TODO: add valid ID checking
         Lobby lob = serverManager.getLobbyFromLobbyID(lobbyID);
+        if (lob == null) {
+            System.out.println("ERROR: Lobby not found for ID: " + lobbyID);
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("LOBBY_NOT_FOUND");
+        }
+        
         try {
             if (lob.isLoadedLobby()) {
+                System.out.println("Starting loaded game");
                 JsonNode snapshot = gameDatabase.getGameSnapshot(lob.getSaveID().toString());
                 lob.startGame(snapshot.get("gameSnapshot"));
             } else {
-                lob.startGame(null);
+                // Use the template name stored in the lobby
+                String templateName = lob.getBoardTemplateName();
+                System.out.println("Template name from lobby: " + templateName);
+                
+                // If not "Random", load the template
+                if (templateName != null && !templateName.equals("Random")) {
+                    JsonNode boardTemplate = boardTemplateService.getTemplate(templateName);
+                    
+                    if (boardTemplate == null) {
+                        System.out.println("ERROR: Template not found: " + templateName);
+                        return ResponseEntity.status(HttpStatus.NOT_FOUND).body("TEMPLATE_NOT_FOUND");
+                    }
+                    
+                    System.out.println("Starting game with template: " + templateName);
+                    lob.startGameWithTemplate(boardTemplate);
+                } else {
+                    // Start with random board
+                    System.out.println("Starting game with random board");
+                    lob.startGame(null);
+                }
             }
+            System.out.println("=== GAME STARTED SUCCESSFULLY ===");
             return ResponseEntity.status(HttpStatus.OK).build();
         } catch (Exception e) {
+            System.out.println("ERROR starting game: " + e.getMessage());
+            e.printStackTrace();
             return ResponseEntity.status(HttpStatus.FORBIDDEN).body(e.getMessage());
         }
 

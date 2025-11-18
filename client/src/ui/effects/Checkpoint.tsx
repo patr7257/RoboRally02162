@@ -7,7 +7,15 @@ import type { CheckpointEffect } from "../../types/boardTypes";
  * @author Weihao Mo
  */
 function Checkpoint({ effect }: { effect: CheckpointEffect }) {
-  return <div className="checkpoint-badge" aria-label="checkpoint">{effect.number}</div>;
+  return (
+    <div 
+      className="checkpoint-badge" 
+      aria-label="checkpoint"
+      style={{
+        backgroundImage: `url(${process.env.PUBLIC_URL}/checkpoints/checkpoint${effect.number}.png)`
+      }}
+    />
+  );
 }
 
 registerEffect("checkpoint", Checkpoint);

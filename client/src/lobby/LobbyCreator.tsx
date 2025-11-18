@@ -1,6 +1,9 @@
 import Reac, { useState, useEffect } from "react";
 import Layout from "./Layout";       // import the shared layout
 import { useNavigate } from "react-router-dom";
+import { BoardTemplateInfo } from '../types/boardTypes';
+import { BoardTemplateViewer } from '../board/BoardTemplateViewer';
+import { fetchBoardTemplates } from '../services/boardTemplateService';
 import "./lobby.css";
 import "../styles/lobbyCreator.css"; 
 
@@ -8,12 +11,33 @@ const API_BASE_URL = process.env.REACT_APP_API_BASE_URL;
 
 /**
  *@author: Niklas Emil Lysdal
+ *@author: Patrick Røbel
  */
 export default function LobbyCreator() { //change this name
     const navigate = useNavigate();
     const [lobbyName, setLobbyName] = useState("");
     const [capacity, setCapacity] = useState("");
     const [error, setError] = useState("");
+    const [templates, setTemplates] = useState<BoardTemplateInfo[]>([]);
+    const [selectedTemplate, setSelectedTemplate] = useState<string>("Random");
+    const [showTemplateViewer, setShowTemplateViewer] = useState<boolean>(false);
+
+    useEffect(() => {
+        const loadTemplates = async () => {
+            const availableTemplates = await fetchBoardTemplates();
+            setTemplates(availableTemplates);
+        };
+        loadTemplates();
+    }, []);
+
+    const handleTemplateSelect = (templateName: string) => {
+        setSelectedTemplate(templateName);
+        // Don't close the viewer - let user confirm with button
+    };
+    
+    const handleTemplateConfirm = () => {
+        setShowTemplateViewer(false);
+    };
     
     /**
      *@author: Niklas Emil Lysdal
@@ -24,7 +48,12 @@ export default function LobbyCreator() { //change this name
             const response = await fetch(API_BASE_URL + "/api/lobby/create", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ userID: localStorage.getItem("userID"), capacity: capacity, lobbyName: lobbyName }),
+                body: JSON.stringify({ 
+                    userID: localStorage.getItem("userID"), 
+                    capacity: capacity, 
+                    lobbyName: lobbyName,
+                    boardTemplate: selectedTemplate 
+                }),
             });
             //console.log("Reached backend. Status:", response.status);
             if (!response.ok) {
@@ -142,6 +171,22 @@ export default function LobbyCreator() { //change this name
                                 placeholder="Enter capacity (1-6)"
                             />
                         </div>
+                        
+                        <div className="form-row">
+                            <label htmlFor="boardTemplate">Map</label>
+                            <div className="template-selector">
+                                <span className="selected-template-name">
+                                    {templates.find(t => t.name === selectedTemplate)?.displayName || selectedTemplate}
+                                </span>
+                                <button 
+                                    type="button"
+                                    className="choose-template-button"
+                                    onClick={() => setShowTemplateViewer(true)}
+                                >
+                                    Choose Template
+                                </button>
+                            </div>
+                        </div>
 
                     </div>
                 </div>
@@ -163,6 +208,15 @@ export default function LobbyCreator() { //change this name
                     <label> {error} </label>
                 </div>
             </div>
+            
+            {showTemplateViewer && (
+                <BoardTemplateViewer
+                    templates={templates}
+                    selectedTemplate={selectedTemplate}
+                    onTemplateSelect={handleTemplateSelect}
+                    onClose={handleTemplateConfirm}
+                />
+            )}
         </Layout>
 
     );

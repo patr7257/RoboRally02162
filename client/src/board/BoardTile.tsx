@@ -18,6 +18,13 @@ interface BoardTileProps {
   tileSize: number;
   robot?: Robot | null;
   effects?: TileEffect[];
+  startingAreaInfo?: {
+    direction: string;
+    width: number;
+    height: number;
+    boardWidth?: number;
+    boardHeight?: number;
+  } | null;
 }
 /**
  * @author William Pii Jæger
@@ -41,10 +48,26 @@ const getRotationDegrees = (facing: string): number => {
 * @author William Pii Jæger
 */
 export const BoardTile: React.FC<BoardTileProps> = ({
-  x, y, tileSize, robot, effects = [],
-}) => (
+  x, y, tileSize, robot, effects = [], startingAreaInfo
+}) => {
+
+  const isInStartingArea = (): boolean => {
+    if (!startingAreaInfo) return false;
+    
+    const { direction, width, height, boardWidth, boardHeight } = startingAreaInfo;
+    
+    switch (direction) {
+      case 'W': return x < width;
+      case 'E': return boardWidth ? x >= (boardWidth - width) : false;
+      case 'N': return y < height;
+      case 'S': return boardHeight ? y >= (boardHeight - height) : false;
+      default: return false;
+    }
+  };
+
+  return (
   <div
-    className={`tile ${y === 2 ? 'game-area-separator' : ''}`}
+    className={`tile ${isInStartingArea() ? 'starting-area-tile' : ''}`}
     style={{
       width: tileSize,
       height: tileSize,
@@ -77,4 +100,5 @@ export const BoardTile: React.FC<BoardTileProps> = ({
       </div>
     ))}
   </div>
-);
+  );
+};

@@ -4,6 +4,7 @@ package dk.dtu.domain.model;
  * Represents a two-dimensional game board composed of tiles.
  *
  * @author William Pii Jæger
+ * @author Patrick Røbel
  */
 public class Board {
     private final int width;
@@ -32,6 +33,5 @@ public class Board {
         return x >= 0 && y >= 0 && x < width && y < height;
     }
 
-    public Tile getTile(int x, int y) { return tiles[x][y]; };
-
+    public Tile getTile(int x, int y) { return tiles[x][y]; }
 }

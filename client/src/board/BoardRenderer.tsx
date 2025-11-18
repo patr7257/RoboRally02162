@@ -12,7 +12,16 @@ import "./board.css";
 * @author William Pii Jæger
 */
 
-interface BoardRendererProps { gameData: GameData | null; }
+interface BoardRendererProps { 
+  gameData: GameData | null;
+  startingAreaInfo?: {
+    direction: string;
+    width: number;
+    height: number;
+    boardWidth?: number;
+    boardHeight?: number;
+  } | null;
+}
 
 
 /**
@@ -21,7 +30,7 @@ interface BoardRendererProps { gameData: GameData | null; }
 * @author Patrick Røbel
 * @author William Pii Jæger
 */
-export const BoardRenderer: React.FC<BoardRendererProps> = ({ gameData }) => {
+export const BoardRenderer: React.FC<BoardRendererProps> = ({ gameData, startingAreaInfo }) => {
   if (!gameData) {
     return <div className="board-empty"><p>Waiting for game data...</p></div>;
   }
@@ -59,6 +68,11 @@ export const BoardRenderer: React.FC<BoardRendererProps> = ({ gameData }) => {
               tileSize={tileSize}
               robot={null}
               effects={tile.effects}
+              startingAreaInfo={startingAreaInfo ? {
+                ...startingAreaInfo,
+                boardWidth: gameData.board.width,
+                boardHeight: gameData.board.height
+              } : null}
             />
           ))
         )}

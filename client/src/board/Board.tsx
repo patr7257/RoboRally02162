@@ -53,8 +53,67 @@ export default function Board() {
   const [menuOpen, setMenuOpen] = useState(false);
   const API_BASE_URL = process.env.REACT_APP_API_BASE_URL;
   const [robotMap, setRobotMap] = useState<{ [username: string]: string }>({});
-  const [needsRespawn, setNeedsRespawn] = useState<boolean>(false);
+    const [needsRespawn, setNeedsRespawn] = useState<boolean>(false);
   const [respawnRobotId, setRespawnRobotId] = useState<number | null>(null);
+  const [mapDisplayName, setMapDisplayName] = useState<string>("");
+  const [startingAreaInfo, setStartingAreaInfo] = useState<{
+    direction: string;
+    width: number;
+    height: number;
+  } | null>(null);
+
+  // Fetch lobby info and full board template for Map Banner and starting area info
+  useEffect(() => {
+    const fetchLobbyInfo = async () => {
+      try {
+        const response = await fetch(API_BASE_URL + "/api/lobby/lobbyInfo", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ userID, lobbyID: lobbyId }),
+        });
+        if (response.ok) {
+          const lobbyInfo = await response.json();
+          const templateName = lobbyInfo.boardTemplateName || "";
+          
+          // Fetch template info to get display name
+          const templatesResponse = await fetch(API_BASE_URL + "/api/templates/list");
+          if (templatesResponse.ok) {
+            const templates = await templatesResponse.json();
+            const template = templates.find((t: any) => t.name === templateName);
+            setMapDisplayName(template?.displayName || templateName);
+          } else {
+            setMapDisplayName(templateName);
+          }
+
+          // Get all template infos
+          if (templateName && templateName !== "Random") {
+            const templateResponse = await fetch(API_BASE_URL + "/api/templates/get", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ templateName }),
+            });
+            if (templateResponse.ok) {
+              const fullTemplate = await templateResponse.json();
+              if (fullTemplate.startingBoardDirection) {
+                setStartingAreaInfo({
+                  direction: fullTemplate.startingBoardDirection.toUpperCase(),
+                  width: fullTemplate.startingBoardWidth || 0,
+                  height: fullTemplate.startingBoardHeight || 0,
+                });
+              }
+            }
+          }
+        }
+      } catch (error) {
+        console.error("Failed to fetch lobby info:", error);
+      }
+    };
+
+    if (userID && lobbyId) {
+      fetchLobbyInfo();
+    }
+  }, [userID, lobbyId, API_BASE_URL]);
+
 
   /**
   * @author Asger Allin Jensen
@@ -399,8 +458,14 @@ export default function Board() {
     />
 
       <div className="board-Left">
+        {mapDisplayName && (
+          <div className="map-name-banner">
+            <span className="map-label">Map:</span>
+            <span className="map-name">{mapDisplayName}</span>
+          </div>
+        )}
         <div className="boardContainer">
-          <BoardRenderer gameData={gameData} />
+          <BoardRenderer gameData={gameData} startingAreaInfo={startingAreaInfo} />
         </div>
 
       </div>

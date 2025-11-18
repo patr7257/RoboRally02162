@@ -7,9 +7,7 @@ import type { StartingTileEffect } from "../../types/boardTypes";
  */
 export default function StartingTile({ effect }: { effect: StartingTileEffect }) {
   return (
-    <div className="starting-tile">
-      <div className="player-indicator">P{effect.playerId}</div>
-    </div>
+    <div className="starting-tile" />
   );
 }
 registerEffect("startingtile", StartingTile);

@@ -66,6 +66,28 @@ public class Host { //TODO: maybe make singleton
     }
 
     /**
+     * Starts a game with a board template.
+     * @author Patrick Røbel
+     */
+    public UUID startGameWithTemplate(int amountPlayers, JsonNode boardTemplate) {
+        RestTemplate restTemplate = new RestTemplate();
+        Map<String, Object> body = Map.of(
+                "amountPlayers", amountPlayers,
+                "boardTemplate", boardTemplate
+        );
+
+        String response = restTemplate.postForObject(
+                hostURL + "startGameWithTemplate",
+                body,
+                String.class
+        );
+
+        String gameID = JsonUtil.parser(response).get("gameID").asText();
+
+        return UUID.fromString(gameID);
+    }
+
+    /**
      @author Bjarke Søderhamn Petersen
      @author Benjamin Benyo Endahl Hansen
      @author Karl Johannes Agerbo

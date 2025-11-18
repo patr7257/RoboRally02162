@@ -84,6 +84,7 @@ public final class SnapshotMapper {
 
     /**
      @author Karl Johannes Agerbo
+     @author Patrick Røbel
      */
     public static Board fromBoardDto(BoardDto dto) {
         int w = dto.width();
@@ -96,7 +97,9 @@ public final class SnapshotMapper {
             }
         }
 
-        return new Board(w, h, tiles);
+        Board board = new Board(w, h, tiles);
+
+        return board;
     }
 
     /**

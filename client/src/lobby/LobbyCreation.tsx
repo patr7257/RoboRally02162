@@ -134,11 +134,16 @@ export default function LobbyCreation() {
       return;
     }
     try {
+      console.log("Starting game with lobbyID:", fullLobbyInfo.lobbyID);
       const response = await fetch(API_BASE_URL + '/api/lobby/start', {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ lobbyID: localStorage.getItem("id") }),
+        body: JSON.stringify({ lobbyID: fullLobbyInfo.lobbyID }),
       });
+      console.log("Start game response:", response.status, response.statusText);
+      if (!response.ok) {
+        setError(`Failed to start game: ${response.status}`);
+      }
     } catch (err) {
       console.error("Login error:", err);
       setError("Network error. Try again.");

@@ -21,7 +21,9 @@ import dk.dtu.infrastructure.dto.BoardDto;
 import dk.dtu.infrastructure.dto.RobotDto;
 import dk.dtu.infrastructure.dto.SnapshotPayload;
 import dk.dtu.infrastructure.utils.ConveyorBeltPatterns;
+import dk.dtu.infrastructure.utils.BoardTemplateConverter;
 import dk.dtu.infrastructure.dto.*;
+import com.fasterxml.jackson.databind.JsonNode;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -46,8 +48,9 @@ public class GameController {
     public GameController(GameManager gameManager) {
         this.gameManager = gameManager;
     }
-
+    
     public record StartGameRequest(int amountPlayers, int boardSize) {}
+    public record StartGameWithTemplateRequest(int amountPlayers, JsonNode boardTemplate) {}
     public record StartGameResponse(UUID gameID) {}
     public record EndGameRequest(String gameID) {}
     public record EndGameResponse(boolean endedGame) {}
@@ -278,6 +281,24 @@ public class GameController {
 
 
         BoardAPI boardApi = new BoardApiImpl(board,robots);
+        UUID gameID = gameManager.startGame(board, boardApi, robots);
+
+        return new StartGameResponse(gameID);
+    }
+
+    /**
+     * @author Patrick Røbel
+     */
+    @PostMapping("/startGameWithTemplate")
+    public synchronized StartGameResponse startWithTemplate(@RequestBody StartGameWithTemplateRequest req) {
+        // Convert JSON template to Board using helper class
+        Board board = BoardTemplateConverter.convertTemplateToBoard(req.boardTemplate());
+        
+        // Create robots from the template's starting tiles
+        List<Robot> robots = BoardTemplateConverter.createRobotsFromTemplate(board, req.amountPlayers());
+        
+        // Create the board API and start the game (same as existing logic)
+        BoardAPI boardApi = new BoardApiImpl(board, robots);
         UUID gameID = gameManager.startGame(board, boardApi, robots);
 
         return new StartGameResponse(gameID);

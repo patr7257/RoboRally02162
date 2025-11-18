@@ -60,6 +60,15 @@ export interface GameData {
     robots: Robot[];
 }
 
+export interface BoardTemplateInfo {
+    name: string;           // Template identifier (filename)
+    displayName?: string;   // Optional pretty name for display
+    difficulty: string;
+    maxPlayers: number;
+    gameLength: string;
+    imageUrl: string;
+}
+
 export interface HandData {
   hand: MoveType[];
 }

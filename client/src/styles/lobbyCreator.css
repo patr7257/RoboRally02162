@@ -8,13 +8,13 @@ Author(s): Niklas
   display: flex;
   flex-direction: column;
   gap: 1.5rem;
-  width: 400px;
+  width: 445px;
   margin: 2rem auto;
 }
 
 .form-row {
   display: grid;
-  grid-template-columns: 200px 1fr;
+  grid-template-columns: 140px 1fr;
   align-items: center;
   gap: 1rem;
 }
@@ -22,7 +22,7 @@ Author(s): Niklas
 .form-row label {
   color: white;
   font-weight: bold;
-  text-align: right;
+  text-align: left;
 }
 
 .form-row input {
@@ -133,4 +133,49 @@ Author(s): Niklas
     2px -2px 0 #000,
     -2px 2px 0 #000,
     2px 2px 0 #000;
+}
+
+/* Template Selector Styles */
+.template-selector {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: 100%;
+}
+
+.selected-template-name {
+  color: #f0f0f0;
+  font-weight: 600;
+  font-size: 1rem;
+  padding: 10px 12px;
+  margin: 8px 0;
+  background: #1e1e1e;
+  border: 2px solid #666;
+  border-radius: 6px;
+  text-align: center;
+  width: 100%;
+  box-sizing: border-box;
+  box-shadow:
+    inset 0 1px 3px rgba(255, 255, 255, 0.1),
+    0 0 6px rgba(0, 0, 0, 0.5);
+}
+
+.choose-template-button {
+  width: 100%;
+  padding: 10px 12px;
+  margin: 8px 0;
+  background: linear-gradient(135deg, #4a9eff 0%, #357abd 100%);
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-weight: bold;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: transform 0.2s, box-shadow 0.2s;
+  box-sizing: border-box;
+}
+
+.choose-template-button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(74, 158, 255, 0.4);
 }
