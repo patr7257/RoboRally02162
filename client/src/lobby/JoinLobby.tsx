@@ -16,6 +16,7 @@ interface Lobby {
  * @author Bjarke Søderhamn Petersen
  * @author Niklas Emil Lysdal
  * @author Asger Allin Jensen
+ * @author Kajsa Alice Ulrika Berlstedt
  */
 export default function JoinLobby() {
   const navigate = useNavigate();
@@ -24,6 +25,7 @@ export default function JoinLobby() {
   const [lobbies, setLobbies] = useState<Lobby[]>([]);
   const [error, setError] = useState<string>("");
   const API_BASE_URL = process.env.REACT_APP_API_BASE_URL;
+  const [searchTerm, setSearchTerm] = useState<string>("");
 
   /**
    * @author Niklas Emil Lysdal
@@ -90,6 +92,7 @@ export default function JoinLobby() {
  * @author Bjarke Søderhamn Petersen
  * @author Niklas Emil Lysdal
  * @author Asger Allin Jensen
+ * @author Kajsa Alice Ulrika Berlstedt
  */
   const joinLobby = async (id: string): Promise<boolean> => {
     setError("");
@@ -122,10 +125,6 @@ export default function JoinLobby() {
     }
   };
 
-
-
-
-
   return (
     <Layout>
       <div className="panel-container">
@@ -143,6 +142,15 @@ export default function JoinLobby() {
           {lobbies.length > 0 && (
             <div className="lobbies-terminal">
               <h2 className="terminal-title">Available Lobbies</h2>
+              <div className="terminal-search">
+                <input
+                  type="text"
+                  className="terminal-input"
+                  placeholder="Search by lobby name"
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                />
+              </div>
               <table className="terminal-table">
 
                 <thead>
@@ -156,7 +164,14 @@ export default function JoinLobby() {
                 </thead>
 
                 <tbody>
-                  {lobbies.map((lobby, index) => {
+                  {lobbies
+                      .filter((lobby) => {
+                              const term = searchTerm.trim().toLowerCase();
+                              if (!term) return true; // no search term, include all
+                              const name = lobby.lobbyInfo.lobbyName?.toLowerCase() || "";
+                              return name.includes(term);
+                            })
+                      .map((lobby, index) => {
                     const isFull = lobby.lobbyInfo.playerCount===lobby.lobbyInfo.capacity;
                     const isRunning = lobby.lobbyInfo.status;
                     const isDisabled = isFull || isRunning; 
