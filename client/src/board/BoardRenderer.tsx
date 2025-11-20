@@ -29,6 +29,7 @@ interface BoardRendererProps {
 * @author Bjarke Søderhamn Petersen
 * @author Patrick Røbel
 * @author William Pii Jæger
+* @author Weihao Mo
 */
 export const BoardRenderer: React.FC<BoardRendererProps> = ({ gameData, startingAreaInfo }) => {
   if (!gameData) {
@@ -46,6 +47,10 @@ export const BoardRenderer: React.FC<BoardRendererProps> = ({ gameData, starting
     default: return 0;
   }
 };
+
+  const hasRobotAt = (x: number, y: number): boolean => {
+    return gameData.robots.some(robot => robot.x === x && robot.y === y);
+  };
 
   return (
     <div className="board-wrapper">
@@ -68,6 +73,7 @@ export const BoardRenderer: React.FC<BoardRendererProps> = ({ gameData, starting
               tileSize={tileSize}
               robot={null}
               effects={tile.effects}
+              hasRobot={hasRobotAt(xIdx, yIdx)}
               startingAreaInfo={startingAreaInfo ? {
                 ...startingAreaInfo,
                 boardWidth: gameData.board.width,

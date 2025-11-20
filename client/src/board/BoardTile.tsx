@@ -18,6 +18,7 @@ interface BoardTileProps {
   tileSize: number;
   robot?: Robot | null;
   effects?: TileEffect[];
+  hasRobot?: boolean;
   startingAreaInfo?: {
     direction: string;
     width: number;
@@ -48,14 +49,13 @@ const getRotationDegrees = (facing: string): number => {
 * @author William Pii Jæger
 */
 export const BoardTile: React.FC<BoardTileProps> = ({
-  x, y, tileSize, robot, effects = [], startingAreaInfo
+  x, y, tileSize, robot, effects = [], hasRobot = false,startingAreaInfo = null,
 }) => {
-
   const isInStartingArea = (): boolean => {
     if (!startingAreaInfo) return false;
-    
+
     const { direction, width, height, boardWidth, boardHeight } = startingAreaInfo;
-    
+
     switch (direction) {
       case 'W': return x < width;
       case 'E': return boardWidth ? x >= (boardWidth - width) : false;
@@ -96,7 +96,7 @@ export const BoardTile: React.FC<BoardTileProps> = ({
     )}
     {effects.map(e => (
       <div key={e.id} className={`effect-wrapper kind-${e.kind}`}>
-        {renderEffect(e)}
+        {renderEffect({ ...e, hasRobot } as any)}
       </div>
     ))}
   </div>

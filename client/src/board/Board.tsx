@@ -188,6 +188,7 @@ export default function Board() {
 
           case "update":
             sendMessage({ lobbyID: lobbyId, payload: { type: "getBoard" } });
+            window.dispatchEvent(new Event('roundExecuted'));
             break;
 
           case "gameFinished":

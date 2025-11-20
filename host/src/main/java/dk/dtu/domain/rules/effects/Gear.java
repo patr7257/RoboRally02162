@@ -39,6 +39,6 @@ public record Gear(Rotation rotation) implements TileEffect {
 
     @Override
     public EnumSet<Phase> phases() {
-        return EnumSet.of(Phase.ACTIVATION);
+        return EnumSet.of(Phase.ACTIVATE_GEAR);
     }
 }
