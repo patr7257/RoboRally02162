@@ -191,17 +191,6 @@ export default function LobbyCreation() {
             <button className="metal-button" onClick={handleToggleReadiness}>
               {isReady ? "Not Ready" : "Ready"}
             </button>
-
-            <button
-              className="metal-button"
-              onClick={async () => {
-                await leaveLobby(fullLobbyInfo?.lobbyID, userID, setError);
-                navigate("/lobbyJoinScene");
-              }}
-            >
-              Back to Lobbies
-            </button>
-
             <button
               className="metal-button"
               onClick={async () => {
