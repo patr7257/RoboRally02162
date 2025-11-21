@@ -113,7 +113,7 @@ public class ConnectionEstablishmentTests {
                 .andExpect(jsonPath("$.status").value("successful")).andReturn();
         String responseBody = result.getResponse().getContentAsString();
         JsonNode json = mapper.readTree(responseBody);
-        String token = json.get("userID").asText();
+        String token = json.get("token").asText();
         // Establish and test connection
         ArrayBlockingQueue<WebSocketSession> sessions = new ArrayBlockingQueue<>(1);
 

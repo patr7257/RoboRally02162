@@ -34,7 +34,7 @@ build/
 
 ### Gateway Files ###
 /src/java/config/CorsConfig.java
-
+.env
 ### VS Code ###
 .vscode/
 

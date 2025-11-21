@@ -31,8 +31,11 @@ export default function LobbyCreation() {
       console.log("updating lobby info using id:" + localStorage.getItem("id"));
       const response = await fetch(API_BASE_URL + "/api/lobby/lobbyInfo", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ lobbyID: localStorage.getItem("id"), userID: userID }),
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${localStorage.getItem("userToken")}`
+        },
+        body: JSON.stringify({ lobbyID: localStorage.getItem("id") }),
       });
       if (!response.ok) {
         throw new Error("Server returned error when  getting lobby info");
@@ -52,12 +55,12 @@ export default function LobbyCreation() {
     }
   }, [userID, setFullLobbyInfo, setPlayersReady, setError, API_BASE_URL]);
 
-/**
- * @author Bjarke Søderhamn Petersen
- * @author Niklas Emil Lysdal
- * @author Asger Allin Jensen
- * @author Patrick Røbel
- */
+  /**
+   * @author Bjarke Søderhamn Petersen
+   * @author Niklas Emil Lysdal
+   * @author Asger Allin Jensen
+   * @author Patrick Røbel
+   */
   useEffect(() => {
     updateLobbyInfo();
     const unsubscribe = subscribe((message: string) => {
@@ -87,11 +90,11 @@ export default function LobbyCreation() {
     return () => {
       unsubscribe();
     }
-  }, [navigate,updateLobbyInfo])
+  }, [navigate, updateLobbyInfo])
 
-/**
- * @author Asger Allin Jensen
- */
+  /**
+   * @author Asger Allin Jensen
+   */
 
   const handleToggleReadiness = async () => {
     setError("");
@@ -101,9 +104,11 @@ export default function LobbyCreation() {
     try {
       const response = await fetch(`${API_BASE_URL}/api/lobby/${endpoint}`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${localStorage.getItem("userToken")}`
+        },
         body: JSON.stringify({
-          userID: userID,
           lobbyID: fullLobbyInfo?.lobbyID,
         }),
       });
@@ -122,11 +127,11 @@ export default function LobbyCreation() {
     }
   };
 
-/**
- * @author Bjarke Søderhamn Petersen
- * @author Asger Allin Jensen
- * @author Patrick Røbel
- */
+  /**
+   * @author Bjarke Søderhamn Petersen
+   * @author Asger Allin Jensen
+   * @author Patrick Røbel
+   */
   const startGame = async () => {
     setError("");
     if (fullLobbyInfo === null || fullLobbyInfo === undefined) {
@@ -137,8 +142,11 @@ export default function LobbyCreation() {
       console.log("Starting game with lobbyID:", fullLobbyInfo.lobbyID);
       const response = await fetch(API_BASE_URL + '/api/lobby/start', {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ lobbyID: fullLobbyInfo.lobbyID }),
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${localStorage.getItem("userToken")}`
+        },
+        body: JSON.stringify({ lobbyID: localStorage.getItem("id") }),
       });
       console.log("Start game response:", response.status, response.statusText);
       if (!response.ok) {
@@ -158,22 +166,22 @@ export default function LobbyCreation() {
           <div className="readiness-panel">
             <h2>Players: {fullLobbyInfo?.playerCount}/{fullLobbyInfo?.capacity}</h2> {/*unsure if this can be misinterpreted as players ready.*/}
 
-             <div className = "players-list-scroller">
+            <div className="players-list-scroller">
 
-            <ul>
-              {Object.entries(playersReady).map(([name, ready]) => (
-                <li key={name} className={`player-slot ${ready ? "ready" : "not-ready"}`}>
-                  {name}: {ready ? "Ready" : "Not Ready"}
-                </li>
-              ))}
-              {[...Array(fullLobbyInfo.capacity - Object.keys(playersReady).length)].map((_, index) => (
-              <li key={`empty-${index}`} className="player-slot empty-slot">
-               ---------
-              </li>
+              <ul>
+                {Object.entries(playersReady).map(([name, ready]) => (
+                  <li key={name} className={`player-slot ${ready ? "ready" : "not-ready"}`}>
+                    {name}: {ready ? "Ready" : "Not Ready"}
+                  </li>
+                ))}
+                {[...Array(fullLobbyInfo.capacity - Object.keys(playersReady).length)].map((_, index) => (
+                  <li key={`empty-${index}`} className="player-slot empty-slot">
+                    ---------
+                  </li>
 
-              ))}
+                ))}
 
-            </ul>
+              </ul>
             </div>
           </div>
 
@@ -182,7 +190,7 @@ export default function LobbyCreation() {
           <div className="control-panel">
             <div className="lobby-id-display">
               <span className="lobby-name-label">LOBBY</span>
-              <span className="lobby-name-value">{fullLobbyInfo.lobbyName ? fullLobbyInfo.lobbyName : (fullLobbyInfo.lobbyID ? fullLobbyInfo!.lobbyID :  "Error")}</span>
+              <span className="lobby-name-value">{fullLobbyInfo.lobbyName ? fullLobbyInfo.lobbyName : (fullLobbyInfo.lobbyID ? fullLobbyInfo!.lobbyID : "Error")}</span>
             </div>
 
             <button className="metal-button" onClick={() => startGame()}>

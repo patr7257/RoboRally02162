@@ -10,6 +10,7 @@ import dk.dtu.model.database.DynamicGameDatabase;
 import dk.dtu.model.database.DynamicUserDatabase;
 import dk.dtu.shared.ServerManager;
 import dk.dtu.util.JsonUtil;
+import dk.dtu.util.TokenUtil;
 import org.hamcrest.Matchers;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.AfterEach;
@@ -19,6 +20,7 @@ import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMock
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.context.annotation.Import;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.web.servlet.MockMvc;
@@ -27,9 +29,9 @@ import org.springframework.web.socket.WebSocketSession;
 import java.io.IOException;
 import java.util.*;
 
-import static dk.dtu.LobbyRESTTests.connectWebSocket;
-import static dk.dtu.LobbyRESTTests.createAndLoginUser;
+import static dk.dtu.LobbyRESTTests.*;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -62,11 +64,14 @@ public class GameDatabaseTests {
     @Autowired
     private Server server;
 
+    @Autowired
+    private TokenUtil tokenUtil;
+
     @LocalServerPort
     int port;
 
     private final List<WebSocketSession> sessions = new ArrayList<>();
-    private final List<String> userIDs = new ArrayList<>();
+    private final List<String> userTokens = new ArrayList<>();
 
     @BeforeEach
     void clean() throws IOException {
@@ -76,7 +81,7 @@ public class GameDatabaseTests {
             session.close();
         }
         sessions.clear();
-        userIDs.clear();
+        userTokens.clear();
     }
 
     @AfterEach
@@ -87,7 +92,7 @@ public class GameDatabaseTests {
             session.close();
         }
         sessions.clear();
-        userIDs.clear();
+        userTokens.clear();
     }
 
     /**
@@ -98,10 +103,12 @@ public class GameDatabaseTests {
     @Test
     public void testSaveGame() throws Exception {
         String lobbyID = setupLobby();
-        startLobby(lobbyID);
+        String firstUserToken = userTokens.getFirst();
+        startLobby(firstUserToken, lobbyID);
 
         String response = mockMvc.perform(post("/api/game/save")
                         .contentType(MediaType.APPLICATION_JSON)
+                        .header("Authorization", "Bearer " + firstUserToken)
                         .content(mapper.writeValueAsString(Map.of("lobbyID", lobbyID))))
                 .andExpect(status().isOk())
                 .andExpect(content().string(Matchers.notNullValue()))
@@ -111,8 +118,9 @@ public class GameDatabaseTests {
 
         assertThat(response).isEqualTo("Game Saved");
 
-        for (String u : userIDs) {
-            List<String> saveIDs = gameDatabase.getSavedGames(u);
+        for (String token : userTokens) {
+            String userID = tokenUtil.extractUserToken(token).userID();
+            List<String> saveIDs = gameDatabase.getSavedGames(userID);
             assertThat(saveIDs).isNotEmpty();
 
             for (String saveID : saveIDs) {
@@ -133,12 +141,14 @@ public class GameDatabaseTests {
     @Test
     public void testSeeSavedGames() throws Exception {
         String lobbyID = setupLobby();
-        startLobby(lobbyID);
-        saveGame(lobbyID);
+        String firstUserToken = userTokens.getFirst();
+        startLobby(firstUserToken, lobbyID);
+        saveGame(firstUserToken, lobbyID);
 
-        for (String uid : userIDs) {
-            String response = seeSavedGames(uid);
-            String saveID = gameDatabase.getSavedGames(uid).getFirst();
+        for (String token : userTokens) {
+            String userID = tokenUtil.extractUserToken(token).userID();
+            String response = seeSavedGames(token);
+            String saveID = gameDatabase.getSavedGames(userID).getFirst();
             assertThat(JsonUtil.parser(response)).containsExactly(JsonUtil.parser("{\"saveID\":\"" + saveID + "\"}"));
         }
     }
@@ -151,22 +161,23 @@ public class GameDatabaseTests {
     @Test
     public void testLoadGame() throws Exception {
         String lobbyID = setupLobby();
-        startLobby(lobbyID);
+        String firstUserToken = userTokens.getFirst();
+        startLobby(firstUserToken, lobbyID);
 
         Lobby lobBefore = serverManager.getLobbyFromLobbyID(lobbyID);
         Map<String, String> userToPlayerBefore = lobBefore.getUserToPlayer();
         Map<String, Client> playersBefore = lobBefore.getPlayers();
 
-        saveGame(lobbyID);
+        saveGame(firstUserToken, lobbyID);
 
-        String uid1 = userIDs.getFirst();
-        String saveID = getFirstSaveID(uid1);
-        String loadedLobbyID = loadGame(uid1, saveID);
+        String userID = tokenUtil.extractUserToken(firstUserToken).userID();
+        String saveID = getFirstSaveID(firstUserToken);
+        String loadedLobbyID = loadGame(firstUserToken, saveID);
 
         Lobby lob = serverManager.getLobbyFromLobbyID(loadedLobbyID);
 
         assertThat(lob.getUserToPlayer()).isEqualTo(userToPlayerBefore);
-        assertThat(lob.getPlayers()).containsExactly(Map.entry(uid1, serverManager.getClient(uid1)));
+        assertThat(lob.getPlayers()).containsExactly(Map.entry(userID, serverManager.getClient(userID)));
         assertThat(lob.getPlayerToUser()).isEmpty();
 
         loadPlayers(saveID);
@@ -184,21 +195,23 @@ public class GameDatabaseTests {
     @Test
     public void testStartLoadedGameSuccessful() throws Exception {
         String lobbyID = setupLobby();
-        startLobby(lobbyID);
+        String firstUserToken = userTokens.getFirst();
+        startLobby(firstUserToken, lobbyID);
 
         Lobby lobBefore = serverManager.getLobbyFromLobbyID(lobbyID);
         Map<String, String> playerToUserBefore = lobBefore.getPlayerToUser();
 
-        saveGame(lobbyID);
+        saveGame(firstUserToken, lobbyID);
 
-        String uid1 = userIDs.getFirst();
-        String saveID = getFirstSaveID(uid1);
-        String loadedLobbyID = loadGame(uid1, saveID);
+        String userID = tokenUtil.extractUserToken(firstUserToken).userID();
+        String saveID = getFirstSaveID(firstUserToken);
+        String loadedLobbyID = loadGame(firstUserToken, saveID);
 
         loadPlayers(saveID);
         readyPlayers(loadedLobbyID);
         mockMvc.perform(post("/api/lobby/start")
                         .contentType(MediaType.APPLICATION_JSON)
+                        .header("Authorization", "Bearer " + firstUserToken)
                         .content(mapper.writeValueAsString(Map.of("lobbyID", loadedLobbyID))))
                 .andExpect(status().isOk());
 
@@ -214,16 +227,17 @@ public class GameDatabaseTests {
     @Test
     public void testStartLoadedGameFailed() throws Exception {
         String lobbyID = setupLobby();
-        startLobby(lobbyID);
+        String firstUserToken = userTokens.getFirst();
+        startLobby(firstUserToken, lobbyID);
 
-        saveGame(lobbyID);
+        saveGame(firstUserToken, lobbyID);
 
-        String uid1 = userIDs.getFirst();
-        String saveID = getFirstSaveID(uid1);
-        String loadedLobbyID = loadGame(uid1, saveID);
+        String saveID = getFirstSaveID(firstUserToken);
+        String loadedLobbyID = loadGame(firstUserToken, saveID);
         readyPlayers(loadedLobbyID);
         String response = mockMvc.perform(post("/api/lobby/start")
                         .contentType(MediaType.APPLICATION_JSON)
+                        .header("Authorization", "Bearer " + firstUserToken)
                         .content(mapper.writeValueAsString(Map.of("lobbyID", loadedLobbyID))))
                 .andExpect(status().isForbidden())
                 .andExpect(content().string(Matchers.notNullValue()))
@@ -240,10 +254,11 @@ public class GameDatabaseTests {
      * @author Benjamin Benyo Endahl Hansen
      * @author Karl Johannes Agerbo
      */
-    private void startLobby(String lobbyID) throws Exception {
+    private void startLobby(String userToken, String lobbyID) throws Exception {
         readyPlayers(lobbyID);
         mockMvc.perform(post("/api/lobby/start")
                         .contentType(MediaType.APPLICATION_JSON)
+                        .header("Authorization", "Bearer " + userToken)
                         .content(mapper.writeValueAsString(Map.of("lobbyID", lobbyID))))
                 .andExpect(status().isOk());
 
@@ -254,12 +269,12 @@ public class GameDatabaseTests {
      * @author Karl Johannes Agerbo
      */
     private void readyPlayers(String lobbyID) throws Exception {
-        for (String userID : userIDs) {
+        for (String token : userTokens) {
             Map<String, Object> readyBody1 = new HashMap<>();
-            readyBody1.put("userID", userID);
             readyBody1.put("lobbyID", lobbyID);
             mockMvc.perform(post("/api/lobby/markReady")
                     .contentType(MediaType.APPLICATION_JSON)
+                    .header("Authorization", "Bearer " + token)
                     .content(mapper.writeValueAsString(readyBody1)));
         }
     }
@@ -269,9 +284,10 @@ public class GameDatabaseTests {
      * @author Benjamin Benyo Endahl Hansen
      * @author Karl Johannes Agerbo
      */
-    private void saveGame(String lobbyID) throws Exception {
+    private void saveGame(String userToken, String lobbyID) throws Exception {
         mockMvc.perform(post("/api/game/save")
                         .contentType(MediaType.APPLICATION_JSON)
+                        .header("Authorization", "Bearer " + userToken)
                         .content(mapper.writeValueAsString(Map.of("lobbyID", lobbyID))))
                 .andExpect(status().isOk())
                 .andExpect(content().string(Matchers.notNullValue()));
@@ -282,10 +298,10 @@ public class GameDatabaseTests {
      * @author Benjamin Benyo Endahl Hansen
      * @author Karl Johannes Agerbo
      */
-    private String getFirstSaveID(String userID) throws Exception {
-        String response = mockMvc.perform(post("/api/game/seeSavedGames")
+    private String getFirstSaveID(String userToken) throws Exception {
+        String response = mockMvc.perform(get("/api/game/seeSavedGames")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(mapper.writeValueAsString(Map.of("userID", userID))))
+                        .header("Authorization", "Bearer " + userToken))
                 .andExpect(status().isOk())
                 .andExpect(content().string(Matchers.notNullValue()))
                 .andReturn()
@@ -300,10 +316,11 @@ public class GameDatabaseTests {
      * @author Benjamin Benyo Endahl Hansen
      * @author Karl Johannes Agerbo
      */
-    private String loadGame(String userID, String saveID) throws Exception {
+    private String loadGame(String userToken, String saveID) throws Exception {
         return mockMvc.perform(post("/api/game/loadGame")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(mapper.writeValueAsString(Map.of("userID", userID, "saveID", saveID))))
+                        .header("Authorization", "Bearer " + userToken)
+                        .content(mapper.writeValueAsString(Map.of("saveID", saveID))))
                 .andExpect(status().isCreated())
                 .andExpect(content().string(Matchers.notNullValue()))
                 .andReturn()
@@ -317,13 +334,13 @@ public class GameDatabaseTests {
      * @author Karl Johannes Agerbo
      */
     private void loadPlayers(String saveID) throws Exception {
-        for (int i = 1; i < userIDs.size(); i++) {
+        for (int i = 1; i < userTokens.size(); i++) {
             Map<String, Object> joinBody = Map.of(
-                    "userID", userIDs.get(i),
                     "saveID", saveID
             );
             mockMvc.perform(post("/api/game/loadGame")
                             .contentType(MediaType.APPLICATION_JSON)
+                            .header("Authorization", "Bearer " + userTokens.get(i))
                             .content(mapper.writeValueAsString(joinBody)))
                     .andExpect(status().isCreated());
         }
@@ -334,10 +351,10 @@ public class GameDatabaseTests {
      * @author Benjamin Benyo Endahl Hansen
      * @author Karl Johannes Agerbo
      */
-    private String seeSavedGames(String userID) throws Exception {
-        return mockMvc.perform(post("/api/game/seeSavedGames")
+    private String seeSavedGames(String userToken) throws Exception {
+        return mockMvc.perform(get("/api/game/seeSavedGames")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(mapper.writeValueAsString(Map.of("userID", userID))))
+                        .header("Authorization", "Bearer " + userToken))
                 .andExpect(status().isOk())
                 .andExpect(content().string(Matchers.notNullValue()))
                 .andReturn()
@@ -355,7 +372,7 @@ public class GameDatabaseTests {
 
         String token = createAndLoginUser(username, mapper, mockMvc);
 
-        userIDs.add(token);
+        userTokens.add(token);
 
         Thread.sleep(50);
 
@@ -363,23 +380,22 @@ public class GameDatabaseTests {
         Thread.sleep(50);
         sessions.add(wsSession);
 
-        String lobbyID = LobbyRESTTests.createLobby(token, "testName","6",mapper,mockMvc);
-
+        String lobbyID = createLobby(token, "testName","6",mapper,mockMvc);
 
         for (int i = 2; i <= 3; i++) {
             String usernameLoop = username + i;
             String tokenLoop = createAndLoginUser(usernameLoop, mapper, mockMvc);
-            userIDs.add(tokenLoop);
+            userTokens.add(tokenLoop);
             Thread.sleep(50);
             WebSocketSession wsSessionLoop = connectWebSocket(tokenLoop, port);
             Thread.sleep(50);
             sessions.add(wsSessionLoop);
 
             Map<String, Object> joinBody = new HashMap<>();
-            joinBody.put("userID", tokenLoop);
             joinBody.put("lobbyID", lobbyID);
             mockMvc.perform(post("/api/lobby/join")
                             .contentType(MediaType.APPLICATION_JSON)
+                            .header("Authorization", "Bearer " + tokenLoop)
                             .content(mapper.writeValueAsString(joinBody)))
                     .andExpect(status().isCreated())
                     .andExpect(content().string(lobbyID));

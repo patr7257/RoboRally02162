@@ -53,7 +53,7 @@ export default function Board() {
   const [menuOpen, setMenuOpen] = useState(false);
   const API_BASE_URL = process.env.REACT_APP_API_BASE_URL;
   const [robotMap, setRobotMap] = useState<{ [username: string]: string }>({});
-    const [needsRespawn, setNeedsRespawn] = useState<boolean>(false);
+  const [needsRespawn, setNeedsRespawn] = useState<boolean>(false);
   const [respawnRobotId, setRespawnRobotId] = useState<number | null>(null);
   const [mapDisplayName, setMapDisplayName] = useState<string>("");
   const [startingAreaInfo, setStartingAreaInfo] = useState<{
@@ -74,9 +74,15 @@ export default function Board() {
         if (response.ok) {
           const lobbyInfo = await response.json();
           const templateName = lobbyInfo.boardTemplateName || "";
-          
+
           // Fetch template info to get display name
-          const templatesResponse = await fetch(API_BASE_URL + "/api/templates/list");
+          const templatesResponse = await fetch(API_BASE_URL + "/api/templates/list", {
+            method: "GET",
+            headers: {
+              "Content-Type": "application/json",
+              "Authorization": `Bearer ${localStorage.getItem("userToken")}`
+            },
+          });
           if (templatesResponse.ok) {
             const templates = await templatesResponse.json();
             const template = templates.find((t: any) => t.name === templateName);
@@ -89,7 +95,10 @@ export default function Board() {
           if (templateName && templateName !== "Random") {
             const templateResponse = await fetch(API_BASE_URL + "/api/templates/get", {
               method: "POST",
-              headers: { "Content-Type": "application/json" },
+              headers: {
+                "Content-Type": "application/json",
+                "Authorization": `Bearer ${localStorage.getItem("userToken")}`
+              },
               body: JSON.stringify({ templateName }),
             });
             if (templateResponse.ok) {
@@ -223,7 +232,7 @@ export default function Board() {
               setNeedsRespawn(true);
               setRespawnRobotId(deadRobotId);
             } else {
-                console.log("Different player's robot died - not showing modal");
+              console.log("Different player's robot died - not showing modal");
             }
             break;
 
@@ -245,7 +254,7 @@ export default function Board() {
       stopReadinessPolling();
       if (unsubscribe) unsubscribe();
     };
-  }, [lobbyId,robotID]);
+  }, [lobbyId, robotID]);
 
   let readinessInterval: NodeJS.Timeout | null = null;
 
@@ -269,13 +278,13 @@ export default function Board() {
     }
   };
 
-    /**
-    * @author Weihao Mo
-    */
+  /**
+  * @author Weihao Mo
+  */
   const handleRespawnDirection = (direction: 'NORTH' | 'SOUTH' | 'EAST' | 'WEST') => {
     if (!respawnRobotId) {
-        console.error("No respawn robot ID set");
-        return;
+      console.error("No respawn robot ID set");
+      return;
     }
 
     console.log(`Sending respawn direction ${direction} for robot ${respawnRobotId}`);
@@ -283,17 +292,17 @@ export default function Board() {
     const backendDirection = direction.charAt(0);
 
     sendMessage({
-        lobbyID: lobbyId,
-        playerID: parseInt(robotID),
-        payload: {
-            type: "setRespawnDirection",
-            direction: backendDirection
-        }
+      lobbyID: lobbyId,
+      playerID: parseInt(robotID),
+      payload: {
+        type: "setRespawnDirection",
+        direction: backendDirection
+      }
     });
 
     setNeedsRespawn(false);
     setRespawnRobotId(null);
-};
+  };
 
   /**
    * @author Kajsa Alice Ulrika Berlstedt
@@ -305,10 +314,12 @@ export default function Board() {
     try {
       const response = await fetch(`${API_BASE_URL}/api/lobby/getRobot`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${localStorage.getItem("userToken")}`
+        },
         body: JSON.stringify({
           lobbyID: lobbyId,
-          userID: userID
         }),
       });
 
@@ -453,10 +464,10 @@ export default function Board() {
         <WinnerBanner winnerId={gameData.game.winner} />
       )}
 
-    <RespawnDirectionModal
-      isOpen={needsRespawn}
-      onSelectDirection={handleRespawnDirection}
-    />
+      <RespawnDirectionModal
+        isOpen={needsRespawn}
+        onSelectDirection={handleRespawnDirection}
+      />
 
       <div className="board-Left">
         {mapDisplayName && (
@@ -561,7 +572,7 @@ export default function Board() {
             onSubmitMove={handleSubmitMove}
             onSelectMove={setSelectedMoves}
             discard={discardData?.discard || []}
-            hand={handData?.hand || []}/>
+            hand={handData?.hand || []} />
         </div>
       </div>
     </div>

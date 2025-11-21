@@ -7,10 +7,14 @@ import dk.dtu.model.Client;
 import dk.dtu.model.Lobby;
 import dk.dtu.model.database.DynamicGameDatabase;
 
+import dk.dtu.shared.AuthManager;
 import dk.dtu.shared.ServerManager;
+import dk.dtu.util.APIUtil;
 import dk.dtu.util.JsonUtil;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.*;
@@ -80,9 +84,9 @@ public class GameHandler {
      * @author Benjamin Benyo Endahl Hansen
      * @author Karl Johannes Agerbo
      */
-    @PostMapping("/game/seeSavedGames")
-    public ResponseEntity<String> seeSavedGames(@RequestBody JsonNode json) {
-        String userID = json.get("userID").asText();
+    @GetMapping("/game/seeSavedGames")
+    public ResponseEntity<String> seeSavedGames() {
+        String userID = APIUtil.getCallerID();
         List<String> saveIDs = gameDatabase.getSavedGames(userID);
         List<Map<String, String>> gameMap = new ArrayList<>();
         for (String id : saveIDs) {
@@ -99,7 +103,7 @@ public class GameHandler {
      */
     @PostMapping("/game/loadGame")
     public ResponseEntity<String> loadGame(@RequestBody JsonNode json) {
-        String userID = json.get("userID").asText();
+        String userID = APIUtil.getCallerID();
         String saveID = json.get("saveID").asText();
         Client c = serverManager.getClient(userID);
 

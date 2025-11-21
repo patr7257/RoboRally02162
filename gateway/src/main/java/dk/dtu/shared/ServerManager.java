@@ -34,15 +34,16 @@ public class ServerManager implements LobbyObserver {
     private Host host;
     private final LobbyFactory lobbyFactory;
     private final UserDatabase userDatabase;
-
+    private final AuthManager authManager;
     /**
      * @author Niklas Emil Lysdal
      */
 
-    public ServerManager(Host host, LobbyFactory lobbyFactory, DynamicUserDatabase userDatabase) {
+    public ServerManager(Host host, LobbyFactory lobbyFactory, DynamicUserDatabase userDatabase,AuthManager authManager) {
         this.host = host;
         this.lobbyFactory = lobbyFactory;
         this.userDatabase = userDatabase;
+        this.authManager = authManager;
     }
 
     public Host getHost() {
@@ -96,6 +97,7 @@ public class ServerManager implements LobbyObserver {
         Lobby lob = loadedLobbies.get(lobID);
         return lob == null ? lobbies.get(lobID) : lob;
     }
+
 
     /**
      * @author Niklas Emil Lysdal
@@ -248,6 +250,12 @@ public class ServerManager implements LobbyObserver {
         this.host.setSession(sess);
     }
 
+
+    public boolean isConnected(String userID) {
+        Client client = clients.get(userID);
+        return !(client == null || !client.isSessionOpen());
+
+    }
     /*
      * The following functions are for test purposes only
      */

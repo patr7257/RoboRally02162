@@ -7,7 +7,9 @@ import dk.dtu.interfaces.UserDatabase;
 import dk.dtu.dto.AuthResponse;
 import dk.dtu.dto.LoginRequest;
 import dk.dtu.dto.RegisterRequest;
+import dk.dtu.shared.AuthManager;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.web.bind.annotation.*;
@@ -25,14 +27,15 @@ public class AccountHandler {
 
     private final UserDatabase userDatabase;
     private final BCryptPasswordEncoder encoder = new BCryptPasswordEncoder();
-
+    private final AuthManager authManager;
     /**
      * @author Lizette Bloch Dahl Nikolajsen
      * @author Niklas Emil Lysdal
      * @author Kajsa Alice Ulrika Berlstedt
      */
-    public AccountHandler(DynamicUserDatabase userDatabase) {
+    public AccountHandler(DynamicUserDatabase userDatabase,AuthManager authManager) {
         this.userDatabase = userDatabase;
+        this.authManager = authManager;
     }
 
     /**
@@ -92,7 +95,7 @@ public class AccountHandler {
                     .body(new AuthResponse("unsuccessful", "Invalid credentials", null, null));
         }
 
-        String token = UUID.randomUUID().toString(); // replace with JWT later
+        String token = authManager.getUserToken(user.getUserID()); // replace with JWT later
         return ResponseEntity.ok(new AuthResponse("successful", "Logged in", token, user.getUserID()));
     }
 }

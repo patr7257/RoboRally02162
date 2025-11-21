@@ -14,7 +14,10 @@ export const fetchBoardTemplates = async (): Promise<BoardTemplateInfo[]> => {
     try {
         const response = await fetch(`${API_BASE_URL}/api/templates/list`, {
             method: 'GET',
-            headers: { 'Content-Type': 'application/json' }
+             headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${localStorage.getItem("userToken")}`
+        },
         });
 
         if (!response.ok) {

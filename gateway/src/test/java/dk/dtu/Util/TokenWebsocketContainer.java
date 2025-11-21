@@ -7,16 +7,16 @@ import org.springframework.web.socket.WebSocketSession;
  */
 public class TokenWebsocketContainer {
     private WebSocketSession session;
-    private String userIDToken;
+    private String userToken;
 
     /**
      * @author Niklas Emil Lysdal
      */
-    public TokenWebsocketContainer(WebSocketSession session, String userIDToken) {
+    public TokenWebsocketContainer(WebSocketSession session, String userToken) {
         this.session = session;
-        this.userIDToken = userIDToken;
+        this.userToken = userToken;
     }
 
-    public String getUserIDToken() {return this.userIDToken;}
+    public String getUserToken() {return this.userToken;}
     public WebSocketSession getSession() {return this.session;}
 }

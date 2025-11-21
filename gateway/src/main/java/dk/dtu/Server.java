@@ -126,7 +126,6 @@ public class Server implements WebSocketConfigurer { // TODO: after host connect
                     System.out.println(jSonText);
                     JsonNode json = JsonUtil.parser(jSonText);
                     String lobbyID = json.get("lobbyID").asText();
-                    System.out.println(lobbyID);
                     User user = (User) session.getAttributes().get("user");
                     String userID = user.getUserID();
                     //System.out.println(userID);

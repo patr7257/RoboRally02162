@@ -40,7 +40,7 @@ export default function LoginComp({ onLogin }: LoginCompProps) {
       const data = await response.json();
 
       if (response.ok) {
-        localStorage.setItem("token", data.token);
+        localStorage.setItem("userToken", data.token);
         localStorage.setItem("username", usernameInput);
         localStorage.setItem("userID",data.userID);
         console.log("userID: " + data.userID);

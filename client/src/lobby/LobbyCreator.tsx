@@ -5,7 +5,7 @@ import { BoardTemplateInfo } from '../types/boardTypes';
 import { BoardTemplateViewer } from '../board/BoardTemplateViewer';
 import { fetchBoardTemplates } from '../services/boardTemplateService';
 import "./lobby.css";
-import "../styles/lobbyCreator.css"; 
+import "../styles/lobbyCreator.css";
 
 const API_BASE_URL = process.env.REACT_APP_API_BASE_URL;
 
@@ -44,30 +44,23 @@ export default function LobbyCreator() { //change this name
      */
     const finishCreation = async () => {
 
+
         try {
             const response = await fetch(API_BASE_URL + "/api/lobby/create", {
                 method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ 
-                    userID: localStorage.getItem("userID"), 
-                    capacity: capacity, 
-                    lobbyName: lobbyName,
-                    boardTemplate: selectedTemplate 
-                }),
+                headers: {
+                    "Content-Type": "application/json",
+                    "Authorization": `Bearer ${localStorage.getItem("userToken")}`
+                },
+                body: JSON.stringify({ capacity: capacity, lobbyName: lobbyName, boardTemplate: selectedTemplate  }),
             });
             //console.log("Reached backend. Status:", response.status);
             if (!response.ok) {
 
                 const errorCode = await response.text();
                 switch (errorCode) {
-                    case "INVALID_REQUEST_BODY":
-                        setError("Invalid request - please try again.");
-                        break;
-                    case "USERID_IS_EMPTY":
-                        setError("Login status error - please logout and login again.");
-                        break;
-                    case "INVALID_USER_ID":
-                        setError("Login status error - please logout and login again.");
+                    case "INVALID_TOKEN":
+                        setError("Could not authenticate request (invalid token).");
                         break;
                     case "MISSING_WEBSOCKET_CONNECTION":
                         setError("Missing connection to server - please try login again.");
@@ -111,9 +104,9 @@ export default function LobbyCreator() { //change this name
     /**
      *@author: Niklas Emil Lysdal
      */
-    const handleKeyDown = (event:React.KeyboardEvent<HTMLInputElement>) => {
-       const {key,metaKey,ctrlKey,altKey} = event;
-        if (key.length>1 || metaKey || ctrlKey || altKey) { //don't intercept editing, only input
+    const handleKeyDown = (event: React.KeyboardEvent<HTMLInputElement>) => {
+        const { key, metaKey, ctrlKey, altKey } = event;
+        if (key.length > 1 || metaKey || ctrlKey || altKey) { //don't intercept editing, only input
             return;
         }
         if (/\d/.test(key)) { //if digit, allow input
@@ -121,19 +114,19 @@ export default function LobbyCreator() { //change this name
         }
         event.preventDefault(); //all other cases, don't allow input
     };
-        //number input accepts 'e' for scientific notation.
+    //number input accepts 'e' for scientific notation.
     /**
      * 
      *@author: Niklas Emil Lysdal
      */
     const handleCapacityChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const value:string =  e.target.value
+        const value: string = e.target.value
         if (value === "") {
-            setCapacity(""); 
+            setCapacity("");
             return;
         }
-        const num:number = parseInt (value,10);
-        if (num>6 || num<1) {
+        const num: number = parseInt(value, 10);
+        if (num > 6 || num < 1) {
             setError("Player limit must be in range 1-6");
             return;
         }
@@ -201,7 +194,7 @@ export default function LobbyCreator() { //change this name
                     <button className="metal-button" onClick={() => finishCreation()}>
                         Finish
                     </button>
-                    
+
                 </div>
 
                 <div className="error-text">

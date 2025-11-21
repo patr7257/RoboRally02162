@@ -1,7 +1,7 @@
 
 import { useNavigate } from "react-router-dom";
 import Layout from "./Layout";
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { lobbyInfo } from "../types/lobbyTypes";
 import "../styles/joinLobby.css";
 import { subscribe } from "../utils/ws";
@@ -21,7 +21,7 @@ interface Lobby {
 export default function JoinLobby() {
   const navigate = useNavigate();
   const userID: string | null = localStorage.getItem("userID");
-  const [lobbyId, setLobbyId] = useState<string>("");
+  //const [lobbyId, setLobbyId] = useState<string>("");
   const [lobbies, setLobbies] = useState<Lobby[]>([]);
   const [error, setError] = useState<string>("");
   const API_BASE_URL = process.env.REACT_APP_API_BASE_URL;
@@ -30,17 +30,19 @@ export default function JoinLobby() {
   /**
    * @author Niklas Emil Lysdal
    */
-  const updateLobbyList = async () => {
+  const updateLobbyList = useCallback(async () => {
     setError("");
 
     try {
       const response = await fetch(API_BASE_URL + "/api/lobby/seeLobbies", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ userID: localStorage.getItem("userID") }),
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${localStorage.getItem("userToken")}`
+        },
       });
 
-      const data:lobbyInfo[] = await response.json();
+      const data: lobbyInfo[] = await response.json();
       console.log("received lobby data:", data);
       if (response.ok) {
         const parsedData: Lobby[] = data.map((input: any) => ({
@@ -64,11 +66,11 @@ export default function JoinLobby() {
 
       setError("Network error. Try again.");
     }
-  };
+  }, [setLobbies, setError, API_BASE_URL]);
 
-    /**
-   * @author Niklas Emil Lysdal
-   */
+  /**
+ * @author Niklas Emil Lysdal
+ */
   useEffect(() => {
     updateLobbyList();
     const unsubscribe = subscribe((message: string) => {
@@ -86,7 +88,7 @@ export default function JoinLobby() {
     return () => {
       unsubscribe();
     }
-  },[]);
+  }, [updateLobbyList]);
 
 /**
  * @author Bjarke Søderhamn Petersen
@@ -99,16 +101,19 @@ export default function JoinLobby() {
     try {
       const response = await fetch(API_BASE_URL + "/api/lobby/join", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ userID: userID, lobbyID: id }),
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${localStorage.getItem("userToken")}`
+        },
+        body: JSON.stringify({lobbyID: id }),
       });
 
-      const data:string = await response.text();
+      const data: string = await response.text();
       console.log("data received: " + data);
 
       if (response.status === 201) {
-        setLobbyId(data);
-        localStorage.setItem("id",data);
+        //setLobbyId(data);
+        localStorage.setItem("id", data);
         return true;
       } else if (response.status === 403) { //FORBIDDEN
         setError("Lobby is locked, unable to join.");
@@ -174,27 +179,28 @@ export default function JoinLobby() {
                       .map((lobby, index) => {
                     const isFull = lobby.lobbyInfo.playerCount===lobby.lobbyInfo.capacity;
                     const isRunning = lobby.lobbyInfo.status;
-                    const isDisabled = isFull || isRunning; 
+                    const isDisabled = isFull || isRunning;
                     const rowClassName = isDisabled ? "lobby-item text-red" : "lobby-item";
                     return (
-                    <tr key={index} className={rowClassName}>
-                      <td className="lobby-table-name">{lobby.lobbyInfo.lobbyName}</td>
-                      <td className="lobby-table-players"> {lobby.lobbyInfo.playerCount}/{lobby.lobbyInfo.capacity}</td>
-                      <td className="lobby-table-status">{lobby.lobbyInfo.status ? 'Running' : 'Preparing'}</td>
-                      <td>
-                        <button
-                          className="metal-button small"
-                          onClick={async () => {
-                            if (await joinLobby(lobby.lobbyInfo.lobbyID)) {
-                              navigate("/lobbyCreationScene");
-                            }
-                          }}
-                        >
-                          Join
-                        </button>
-                      </td>
-                    </tr>
-                  )})}
+                      <tr key={index} className={rowClassName}>
+                        <td className="lobby-table-name">{lobby.lobbyInfo.lobbyName}</td>
+                        <td className="lobby-table-players"> {lobby.lobbyInfo.playerCount}/{lobby.lobbyInfo.capacity}</td>
+                        <td className="lobby-table-status">{lobby.lobbyInfo.status ? 'Running' : 'Preparing'}</td>
+                        <td>
+                          <button
+                            className="metal-button small"
+                            onClick={async () => {
+                              if (await joinLobby(lobby.lobbyInfo.lobbyID)) {
+                                navigate("/lobbyCreationScene");
+                              }
+                            }}
+                          >
+                            Join
+                          </button>
+                        </td>
+                      </tr>
+                    )
+                  })}
                 </tbody>
               </table>
             </div>

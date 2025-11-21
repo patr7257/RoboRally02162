@@ -36,10 +36,12 @@ export default function LoadLobby() {
   const seeSavedGames = async () => {
     setError("");
     try {
-      const response = await fetch(API_BASE_URL+"/api/game/seeSavedGames", {
-        method: "Post",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({userID: userID}),
+      const response = await fetch(API_BASE_URL + "/api/game/seeSavedGames", {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${localStorage.getItem("userToken")}`
+        },
       });
 
       const data = await response.text();
@@ -59,27 +61,30 @@ export default function LoadLobby() {
   * @author Karl Johannes Agerbo
   * @author Benjamin Benyo Endahl Hansen
   */
-  const loadGame = async (saveId: string):Promise<boolean>=> {
+  const loadGame = async (saveId: string): Promise<boolean> => {
     setError("");
     try {
-      const response = await fetch(API_BASE_URL+"/api/game/loadGame", {
+      const response = await fetch(API_BASE_URL + "/api/game/loadGame", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ userID: userID, saveID: saveId }),
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${localStorage.getItem("userToken")}`
+        },
+        body: JSON.stringify({ saveID: saveId }),
       });
 
       const data = await response.text();
       console.log("data received: " + data);
-      
+
       if (response.status === 201) {
         localStorage.setItem("id", data);
         setLobbyId(data);
         return true;
-      } else  if (response.status === 403) { //FORBIDDEN
-          setError("Lobby is locked, unable to join.");
-          return false;
+      } else if (response.status === 403) { //FORBIDDEN
+        setError("Lobby is locked, unable to join.");
+        return false;
       }
-      else{
+      else {
         setError("An error occurred. Try again.");
         return false;
       }
@@ -91,45 +96,45 @@ export default function LoadLobby() {
   };
 
   return (
-  <Layout>
-    <div className="panel-container">
-      <h1 className="panel-title">Mission Access Terminal</h1>
+    <Layout>
+      <div className="panel-container">
+        <h1 className="panel-title">Mission Access Terminal</h1>
 
-      <div className="control-panel">
-        <button className="metal-button" onClick={seeSavedGames}>
-          See Saved Games
-        </button>
+        <div className="control-panel">
+          <button className="metal-button" onClick={seeSavedGames}>
+            See Saved Games
+          </button>
 
-        <button className="metal-button" onClick={() => navigate("/lobbyScene")}>
-          Return to Command Center
-        </button>
+          <button className="metal-button" onClick={() => navigate("/lobbyScene")}>
+            Return to Command Center
+          </button>
 
-        {savedGames.length > 0 && (
-          <div className="lobbies-terminal">
-            <h2 className="terminal-title">Saved Games</h2>
-            <ul className="terminal-list">
-              {savedGames.map((game, index) => (
-                <li key={index} className="terminal-item">
-                  <span className="terminal-id">{game.saveID.slice(-5)}</span>
-                  <button
-                    className="metal-button small"
-                    onClick={async () => {
-                      if (await loadGame(game.saveID)) {
-                        navigate("/lobbyCreationScene");
-                      }
-                    }}
-                  >
-                    Continue
-                  </button>
-                </li>
-              ))}
-            </ul>
-          </div>
-        )}
+          {savedGames.length > 0 && (
+            <div className="lobbies-terminal">
+              <h2 className="terminal-title">Saved Games</h2>
+              <ul className="terminal-list">
+                {savedGames.map((game, index) => (
+                  <li key={index} className="terminal-item">
+                    <span className="terminal-id">{game.saveID.slice(-5)}</span>
+                    <button
+                      className="metal-button small"
+                      onClick={async () => {
+                        if (await loadGame(game.saveID)) {
+                          navigate("/lobbyCreationScene");
+                        }
+                      }}
+                    >
+                      Continue
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
 
-        {error && <p className="error-text">{error}</p>}
+          {error && <p className="error-text">{error}</p>}
+        </div>
       </div>
-    </div>
-  </Layout>
-);
+    </Layout>
+  );
 }

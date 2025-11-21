@@ -233,6 +233,9 @@ public class Lobby {
 
     public void handleClientMessage(String userID, JsonNode json) {
         ObjectNode root = JsonUtil.createObjectNode();
+        if (userToPlayer.get(userID)==null) {
+            return; //drop message
+        }
         root.put("gameID", this.gameID.toString());
         root.put("playerID", Integer.parseInt(userToPlayer.get(userID)));
         root.set("payload", json.get("payload"));

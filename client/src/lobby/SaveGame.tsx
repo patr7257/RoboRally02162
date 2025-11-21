@@ -18,8 +18,11 @@ const saveGame = async (
   try {
     const response = await fetch(API_BASE_URL + "/api/game/save", {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ lobbyID: lobbyId}),
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${localStorage.getItem("userToken")}`
+      },
+      body: JSON.stringify({ lobbyID: lobbyId }),
     });
     if (!response.ok) {
       throw new Error("Server returned error when saving game");
