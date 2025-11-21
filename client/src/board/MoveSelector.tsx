@@ -117,30 +117,40 @@ const MoveCard = ({
 
 /**
 * @author Asger Allin Jensen
+* @author Bjarke Søderhamn Petersen
 */
 const DropSlot = ({
   index,
   move,
   onDrop,
-  onRemove,
-  isOver
+  isOver,
+  onDragStart,
+  onDragEnd,
+  isDragging,
 }: {
   index: number;
   move: MoveType | null;
   onDrop: () => void;
-  onRemove: () => void;
   isOver: boolean;
+  onDragStart: () => void;
+  onDragEnd: () => void;
+  isDragging: boolean;
 }) => (
   <motion.div
     onDragOver={(e) => e.preventDefault()}
     onDrop={onDrop}
-    className={`dropSlot ${isOver ? 'dragOver' : ''} ${move ? 'filled' : 'empty'}`}
+    className={`dropSlot ${isOver ? 'dragOver' : ''} ${move ? 'filled' : 'empty'} ${isDragging ? 'is-drag-source' : ''}`}
     whileHover={{ scale: 1.02 }}
   >
     {move ? (
-      <div className="moveCard">
+      <div
+        className="moveCard"
+        draggable
+        onDragStart={onDragStart}
+        onDragEnd={onDragEnd}
+        style={{ cursor: 'grab' }}
+      >
         <CardVisual move={move} />
-        <button className="removeCardBtn" onClick={onRemove}>x</button>
       </div>
     ) : (
       <span className="slotPlaceholder">Slot {index + 1}</span>
@@ -161,6 +171,7 @@ export const MoveSelector: React.FC<MoveSelectorProps> = ({
 }) => {
   const [draggedMove, setDraggedMove] = useState<MoveType | null>(null);
   const [dragOverIndex, setDragOverIndex] = useState<number | null>(null);
+  const [dragSourceIndex, setDragSourceIndex] = useState<number | null>(null);
 
   const getAvailableMoves = () => {
     const moveCounts = new Map<MoveType, number>();
@@ -189,31 +200,62 @@ export const MoveSelector: React.FC<MoveSelectorProps> = ({
 
   /**
   * @author Asger Allin Jensen
+  * @author Bjarke Søderhamn Petersen
   */
   const handleDragStart = (move: MoveType) => {
     setDraggedMove(move);
+    setDragSourceIndex(null);
   };
 
   /**
   * @author Asger Allin Jensen
+  * @author Bjarke Søderhamn Petersen
+  */
+  const handleSlotDragStart = (move: MoveType, index: number) => {
+    setDraggedMove(move);
+    setDragSourceIndex(index);
+  };
+
+  /**
+  * @author Asger Allin Jensen
+  * @author Bjarke Søderhamn Petersen
   */
   const handleDrop = (index: number) => {
     if (draggedMove) {
       const updated = [...selectedMoves];
+      
+      if (dragSourceIndex !== null) {
+        updated[dragSourceIndex] = null;
+      }
+      
       updated[index] = draggedMove;
       onChange(updated);
       setDraggedMove(null);
       setDragOverIndex(null);
+      setDragSourceIndex(null);  
     }
   };
 
   /**
   * @author Asger Allin Jensen
+  * @author Bjarke Søderhamn Petersen
   */
-  const handleRemove = (index: number) => {
-    const updated = [...selectedMoves];
-    updated[index] = null;
-    onChange(updated);
+  const handleDropToHand = () => {
+    if (draggedMove && dragSourceIndex !== null) {
+      const updated = [...selectedMoves];
+      updated[dragSourceIndex] = null;
+      onChange(updated);
+    }
+    setDraggedMove(null);
+    setDragSourceIndex(null);
+  };
+
+  /**
+  * @author Bjarke Søderhamn Petersen
+  */
+  const handleDragEnd = () => {
+    setDraggedMove(null);
+    setDragSourceIndex(null);
   };
 
   return (
@@ -230,8 +272,10 @@ export const MoveSelector: React.FC<MoveSelectorProps> = ({
                 index={index}
                 move={move}
                 onDrop={() => handleDrop(index)}
-                onRemove={() => handleRemove(index)}
                 isOver={dragOverIndex === index}
+                onDragStart={() => move && handleSlotDragStart(move, index)}
+                onDragEnd={handleDragEnd}
+                isDragging={dragSourceIndex === index}
               />
             ))}
           </div>
@@ -244,7 +288,11 @@ export const MoveSelector: React.FC<MoveSelectorProps> = ({
           Make Move
         </button>
       </div>
-      <div className="availableMovesSection">
+      <div
+        className="availableMovesSection"
+        onDragOver={(e) => e.preventDefault()}
+        onDrop={handleDropToHand}
+      >
         <h3 className="sectionTitle">AVAILABLE CARDS</h3>
         <div className={`availableMovesGrid ${availableMoves.length === 0 ? 'emptyGrid' : ''}`}>
           {availableMoves.length > 0 ? (
