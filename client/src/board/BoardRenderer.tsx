@@ -10,6 +10,7 @@ import "./board.css";
 * @author Bjarke Søderhamn Petersen
 * @author Patrick Røbel
 * @author William Pii Jæger
+* @author Kajsa Alice Ulrika Berlstedt
 */
 
 interface BoardRendererProps { 
@@ -30,8 +31,11 @@ interface BoardRendererProps {
 * @author Patrick Røbel
 * @author William Pii Jæger
 * @author Weihao Mo
+* @author Kajsa Alice Ulrika Berlstedt
 */
 export const BoardRenderer: React.FC<BoardRendererProps> = ({ gameData, startingAreaInfo }) => {
+    const rotationHistoryRef = React.useRef<Record<number, number>>({});
+
   if (!gameData) {
     return <div className="board-empty"><p>Waiting for game data...</p></div>;
   }
@@ -47,6 +51,21 @@ export const BoardRenderer: React.FC<BoardRendererProps> = ({ gameData, starting
     default: return 0;
   }
 };
+
+const getSmoothRotation = (robotId: number, newFacing: string): number => {
+    const targetRotation = getRotationDegrees(newFacing);
+    const currentRotation = rotationHistoryRef.current[robotId];
+
+    if (currentRotation === undefined) {
+      rotationHistoryRef.current[robotId] = targetRotation;
+      return targetRotation;
+    }
+
+    const delta = ((targetRotation - currentRotation + 540) % 360) - 180;
+      const nextRotation = currentRotation + delta;
+      rotationHistoryRef.current[robotId] = nextRotation;
+      return nextRotation;
+    };
 
   const hasRobotAt = (x: number, y: number): boolean => {
     return gameData.robots.some(robot => robot.x === x && robot.y === y);
@@ -97,7 +116,7 @@ export const BoardRenderer: React.FC<BoardRendererProps> = ({ gameData, starting
               backgroundImage: `url(${getRobotImage(robot.id)})`,
               backgroundSize: "cover",
               backgroundPosition: "center",
-              transform: `rotate(${getRotationDegrees(robot.facing)}deg)`,
+              transform: `rotate(${getSmoothRotation(robot.id, robot.facing)}deg)`,
               transition: "left 0.3s ease, top 0.3s ease, transform 0.3s ease",
               transformOrigin: "center center",
               pointerEvents: 'none',
