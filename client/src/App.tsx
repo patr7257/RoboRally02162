@@ -14,6 +14,8 @@ import "./ui/registerEffects";
 import LoadLobby from './lobby/LoadLobby';
 import useSound from 'use-sound';
 
+const API_BASE_URL = process.env.REACT_APP_API_BASE_URL;
+
 /**
  * @author Bjarke Søderhamn Petersen
  * @author Asger Allin Jensen
@@ -36,10 +38,35 @@ function Home() {
   const navigate = useNavigate();
   const [username, setUsername] = useState<string>(localStorage.getItem("username") || "");
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
+    const userID = localStorage.getItem("userID");
+
+    if (userID) {
+      try {
+        const response = await fetch(
+          API_BASE_URL + "/api/users/logout?userID=" + userID,
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              "Authorization": `Bearer ${localStorage.getItem("userToken")}`
+            }
+          }
+        );
+
+        if (!response.ok) {
+          console.error("Logout failed with status:", response.status);
+        }
+      } catch (err) {
+        console.error("Logout request error:", err);
+      }
+    }
+
+    // Always clear frontend session, even if backend fails
     localStorage.removeItem("token");
     localStorage.removeItem("username");
     localStorage.removeItem("userID");
+
     setUsername("");
     closeSocket();
   };
@@ -81,7 +108,7 @@ function Home() {
           </div>
         )}
       </div>
-      {/* 🔩 evenly spaced screws along both sides */}
+      {/* evenly spaced screws along both sides */}
       {Array.from({ length: 10 }).map((_, i) => (
         <div
           key={`screw-left-${i}`}
@@ -124,7 +151,7 @@ function App() {
         <Route path="/lobbyScene" element={<Lobby />} />
         <Route path="/lobbyJoinScene" element={<JoinLobby />} />
         <Route path="/lobbyCreatorScene" element={<LobbyCreator />} />
-        <Route path= "/lobbyCreationScene" element={<LobbyCreation />}/>
+        <Route path="/lobbyCreationScene" element={<LobbyCreation />} />
         <Route path="/lobbyLoadScene" element={<LoadLobby />} />
       </Routes>
     </Router>

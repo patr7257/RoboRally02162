@@ -28,7 +28,7 @@ export default function LoginComp({ onLogin }: LoginCompProps) {
     try {
       const clientHash = await sha256Hex(passwordInput);
 
-      const response = await fetch(API_BASE_URL+"/api/users/login", {
+      const response = await fetch(API_BASE_URL + "/api/users/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -42,7 +42,7 @@ export default function LoginComp({ onLogin }: LoginCompProps) {
       if (response.ok) {
         localStorage.setItem("userToken", data.token);
         localStorage.setItem("username", usernameInput);
-        localStorage.setItem("userID",data.userID);
+        localStorage.setItem("userID", data.userID);
         console.log("userID: " + data.userID);
         console.log("pass: " + usernameInput);
         await getSocket();
@@ -53,6 +53,8 @@ export default function LoginComp({ onLogin }: LoginCompProps) {
         onLogin(data.username ?? usernameInput);
       } else if (response.status === 401) {
         setError("Login failed. Invalid username or password.");
+      } else if (response.status === 409) {
+        setError(data.message || "User already logged in");
       } else {
         setError("An error occurred. Try again.");
       }
@@ -89,7 +91,7 @@ export default function LoginComp({ onLogin }: LoginCompProps) {
       <button type="button" className="metal-button" onClick={handleLogin}>
         Login
       </button>
- {/* Themed feedback messages */}
+      {/* Themed feedback messages */}
       {error && <p className="auth-message error">{error}</p>}
     </div>
   );

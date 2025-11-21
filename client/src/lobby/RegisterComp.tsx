@@ -23,6 +23,11 @@ export default function RegisterComp({ }: RegisterCompProps) {
   const handleRegister = async () => {
     setError("");
     setSuccess("");
+    // Block empty username or password BEFORE hashing
+    if (!username.trim() || !password.trim()) {
+      setError("Username and password cannot be empty");
+      return;
+    }
 
     try {
       const clientHash = await sha256Hex(password);

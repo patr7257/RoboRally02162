@@ -26,8 +26,12 @@ import java.util.UUID;
 public class AccountHandler {
 
     private final UserDatabase userDatabase;
-    private final BCryptPasswordEncoder encoder = new BCryptPasswordEncoder();
     private final AuthManager authManager;
+    private final BCryptPasswordEncoder encoder = new BCryptPasswordEncoder();
+
+    // Track which users are logged in (by userID)
+    private final java.util.Set<String> loggedInUsers = java.util.concurrent.ConcurrentHashMap.newKeySet();
+
     /**
      * @author Lizette Bloch Dahl Nikolajsen
      * @author Niklas Emil Lysdal
@@ -83,7 +87,7 @@ public class AccountHandler {
                     .body(new AuthResponse("unsuccessful", "User not found", null, null));
         }
 
-        User user = userDatabase.findUserByNamePassword(req.username,req.passwordHash); // must return stored hash
+        User user = userDatabase.findUserByNamePassword(req.username, req.passwordHash); // must return stored hash
         if (user == null || user.getPasswordHash() == null) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
                     .body(new AuthResponse("unsuccessful", "User not found", null, null));
@@ -94,8 +98,23 @@ public class AccountHandler {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
                     .body(new AuthResponse("unsuccessful", "Invalid credentials", null, null));
         }
+        // Prevent login if already logged in
+        String userID = user.getUserID();
+
+        if (loggedInUsers.contains(userID)) {
+            return ResponseEntity.status(HttpStatus.CONFLICT)
+                    .body(new AuthResponse("unsuccessful", "User already logged in", null, userID));
+        }
+
+        loggedInUsers.add(userID);
 
         String token = authManager.getUserToken(user.getUserID()); // replace with JWT later
         return ResponseEntity.ok(new AuthResponse("successful", "Logged in", token, user.getUserID()));
+    }
+
+    @PostMapping("/users/logout")
+    public ResponseEntity<AuthResponse> logout(@RequestParam String userID) {
+        loggedInUsers.remove(userID);
+        return ResponseEntity.ok(new AuthResponse("successful", "Logged out", null, userID));
     }
 }
