@@ -12,6 +12,7 @@ import dk.dtu.config.ClientHandshakeInterceptor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.boot.autoconfigure.security.servlet.UserDetailsServiceAutoConfiguration;
 import org.springframework.web.socket.*;
 import org.springframework.web.socket.config.annotation.*;
 
@@ -22,7 +23,7 @@ import java.util.*;
  * @author Benjamin Benyo Endahl Hansen
  * @author Niklas Emil Lysdal
  */
-@SpringBootApplication
+@SpringBootApplication(exclude = {UserDetailsServiceAutoConfiguration.class})
 @EnableWebSocket
 public class Server implements WebSocketConfigurer { // TODO: after host connects remove
 
