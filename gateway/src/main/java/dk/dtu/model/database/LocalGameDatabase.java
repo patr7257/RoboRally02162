@@ -34,6 +34,59 @@ public class LocalGameDatabase implements GameDatabase {
     }
 
     /**
+     * Deletes a saved game for all users who have been part of the specific game,
+     * based on the saveID of that game.
+     *
+     * @param saveID The saveID of the game to delete.
+     *
+     @author Benjamin Benyo Endahl Hansen
+     */
+
+    @Override
+    public void deleteSavedGame(String saveID) {
+        List<String> users = this.getUsersBySaveID(saveID);
+
+        for (String userID : users) {
+            List<String> saveIDs = saveIDsFromUserID.get(userID);
+
+            if (saveIDs != null) {
+                saveIDs.remove(saveID);
+                if (saveIDs.isEmpty()) {
+                    saveIDsFromUserID.remove(userID);
+                }
+            }
+        }
+        gamesFromSaveID.remove(saveID);
+    }
+
+    @Override
+    public boolean checkUserInGame(String userID, String saveID) {
+        List<String> saveIDs = saveIDsFromUserID.get(userID);
+        return saveIDs != null && saveIDs.contains(saveID);
+    }
+
+    /**
+     * Returns a list of all users ID's that have been part of a specific game,
+     * based on the saveID of that game.
+     *
+     * @param saveID The save ID of the game to look up.
+     * @return A list of user IDs who have the specified save ID.
+     *
+     @author Benjamin Benyo Endahl Hansen
+     */
+
+    public List<String> getUsersBySaveID(String saveID) {
+        List<String> users = new ArrayList<>();
+        for (Map.Entry<String, List<String>> entry : saveIDsFromUserID.entrySet()) {
+            if (entry.getValue().contains(saveID)) {
+                users.add(entry.getKey());
+            }
+        }
+        return users;
+    }
+
+
+    /**
      * @author Bjarke Søderhamn Petersen
      * @author Benjamin Benyo Endahl Hansen
      * @author Karl Johannes Agerbo
@@ -62,6 +115,8 @@ public class LocalGameDatabase implements GameDatabase {
     public JsonNode getGameSnapshot(String saveID) {
         return gamesFromSaveID.get(saveID);
     }
+
+
 
     /**
      * @author Bjarke Søderhamn Petersen

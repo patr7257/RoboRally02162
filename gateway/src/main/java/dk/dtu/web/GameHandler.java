@@ -49,9 +49,16 @@ public class GameHandler {
      */
     @PostMapping("/game/save")
     public ResponseEntity<String> saveGame(@RequestBody JsonNode json) {
+        String userID = APIUtil.getCallerID();
         String lobbyID = json.get("lobbyID").asText();
 
         Lobby lob = serverManager.getLobbyFromLobbyID(lobbyID);
+        if (lob == null ) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("LOBBY_NOT_FOUND");
+        }
+        if (!lob.hasParticipant(userID)) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("USER_NOT_IN_LOBBY");
+        }
 
         try {
             JsonNode gameSnapshot = lob.saveGame();
@@ -123,6 +130,36 @@ public class GameHandler {
             } else {
                 return ResponseEntity.status(HttpStatus.CONFLICT).body("UNKNOWN_ERROR");
             }
+        }
+    }
+
+
+    /**
+     * Endpoint to delete a saved game based on its saveID.
+     * This method expects a JSON payload with a "saveID" field.
+     * It will attempt to delete the game from the database.
+     *
+     * @param json JSON object containing the "saveID" of the game to delete.
+     * @return ResponseEntity with status 200 (OK) if deletion succeeds,
+     * or 403 (FORBIDDEN) if there was an error during deletion.
+     *
+     * @author Benjamin Benyo Endahl Hansen
+     */
+    @PostMapping("/game/deleteSavedGame")
+    public ResponseEntity<String> deleteSavedGame(@RequestBody JsonNode json) {
+        String userID = APIUtil.getCallerID();
+        String saveID = json.get("saveID").asText();
+
+        try {
+            if (gameDatabase.checkUserInGame(userID, saveID)) {
+                gameDatabase.deleteSavedGame(saveID);
+                return ResponseEntity.status(HttpStatus.OK).body("Game Deleted");
+            } else {
+                return ResponseEntity.status(HttpStatus.FORBIDDEN).body("User not in game");
+            }
+
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body("Error in deleting game");
         }
     }
 

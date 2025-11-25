@@ -76,8 +76,8 @@ public class SQLDatabaseInitializer {
                             UserID CHAR(36),
                             SaveID CHAR(36),
                             PRIMARY KEY (UserID, SaveID),
-                            FOREIGN KEY (UserID) REFERENCES users(UserID),
-                            FOREIGN KEY (SaveID) REFERENCES games(SaveID)
+                            FOREIGN KEY (UserID) REFERENCES users(UserID) ON DELETE CASCADE,
+                            FOREIGN KEY (SaveID) REFERENCES games(SaveID) ON DELETE CASCADE
                         )
                     """;
 

@@ -8,7 +8,6 @@ import React, { useState } from "react";
 * @author Karl Johannes Agerbo
 * @author Benjamin Benyo Endahl Hansen
 */
-
 interface Lobby {
   lobbyID: string;
   [key: string]: any;
@@ -19,7 +18,6 @@ interface Lobby {
 * @author Karl Johannes Agerbo
 * @author Benjamin Benyo Endahl Hansen
 */
-
 export default function LoadLobby() {
   const navigate = useNavigate();
   const userID: string | null = localStorage.getItem("userID");
@@ -61,7 +59,7 @@ export default function LoadLobby() {
   * @author Karl Johannes Agerbo
   * @author Benjamin Benyo Endahl Hansen
   */
-  const loadGame = async (saveId: string): Promise<boolean> => {
+  const loadGame = async (saveId: string):Promise<boolean>=> {
     setError("");
     try {
       const response = await fetch(API_BASE_URL + "/api/game/loadGame", {
@@ -90,6 +88,42 @@ export default function LoadLobby() {
       }
     } catch (err) {
       console.error("Join error:", err);
+      setError("Network error. Try again.");
+      return false;
+    }
+  };
+
+
+  /**
+  * @author Benjamin Benyo Endahl Hansen
+  */
+  const deleteSavedGame = async (saveID: string): Promise<boolean> => {
+    setError("");
+    try {
+      const response = await fetch(API_BASE_URL + "/api/game/deleteSavedGame", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${localStorage.getItem("userToken")}`
+        },
+        body: JSON.stringify({ saveID }),
+      });
+
+      const data = await response.text();
+      console.log("data received: " + data);
+
+      if (response.status === 200) {
+        console.log("Game deleted successfully");
+        return true;
+      } else if (response.status === 403) {
+        setError("Error in deleting game");
+        return false;
+      } else {
+        setError("An error occurred. Try again.");
+        return false;
+      }
+    } catch (err) {
+      console.error("Delete error:", err);
       setError("Network error. Try again.");
       return false;
     }
@@ -125,6 +159,18 @@ export default function LoadLobby() {
                       }}
                     >
                       Continue
+                    </button>
+
+                    <button
+                      className="metal-button small"
+                      onClick={async () => {
+                        const deleted = await deleteSavedGame(game.saveID);
+                        if (deleted) {
+                          await seeSavedGames();
+                        }
+                      }}
+                    >
+                      Delete
                     </button>
                   </li>
                 ))}

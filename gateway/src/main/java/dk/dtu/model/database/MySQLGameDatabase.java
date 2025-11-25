@@ -8,7 +8,6 @@ import org.springframework.stereotype.Service;
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
 /**
  * @author Karl Johannes Agerbo
@@ -56,6 +55,52 @@ public class MySQLGameDatabase implements GameDatabase {
 
         } catch (SQLException e) {
             throw new RuntimeException("MySQL saveGame failed", e);
+        }
+    }
+
+
+
+    /**
+     * Deletes a saved game from the database.
+     *
+     * This method removes the game with a specified saveID from the "games" table.
+     * Since the foreign key in the "saves" table is configured with ON DELETE CASCADE,
+     * all related entries in "saves" will automatically be deleted,
+     * so we only need to delete from the "games" table.
+     *
+     * @param saveID the identifier of the saved game to delete
+     * @throws RuntimeException if the SQL operation fails
+     *
+     * @author Benjamin Benyo Endahl Hansen
+     */
+
+    @Override
+    public void deleteSavedGame(String saveID) {
+        String deleteGame = "DELETE FROM games WHERE SaveID = ?";
+        try (Connection conn = connect();
+             PreparedStatement stmt = conn.prepareStatement(deleteGame)) {
+            stmt.setString(1, saveID);
+            stmt.executeUpdate();
+        } catch (SQLException e) {
+            throw new RuntimeException("MySQL deleteSavedGame failed", e);
+        }
+    }
+
+    /**
+     * @author Karl Johannes Agerbo
+     * @author Benjamin Benyo Endahl Hansen
+     */
+    @Override
+    public boolean checkUserInGame(String userID, String saveID) {
+        String game = "SELECT userID, saveID FROM saves WHERE UserID = ? AND SaveID = ?";
+        try (Connection conn = connect();
+             PreparedStatement stmt = conn.prepareStatement(game)) {
+            stmt.setString(1, userID);
+            stmt.setString(2, saveID);
+            ResultSet rs = stmt.executeQuery();
+            return rs.next();
+        } catch (SQLException e) {
+            throw new RuntimeException("MySQL checkUserInGame failed", e);
         }
     }
 
@@ -127,6 +172,8 @@ public class MySQLGameDatabase implements GameDatabase {
 
         return null;
     }
+
+
 
     /**
      * @author Karl Johannes Agerbo

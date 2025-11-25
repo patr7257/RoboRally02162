@@ -134,6 +134,48 @@ public class GameDatabaseTests {
     }
 
     /**
+     * @author Benjamin Benyo Endahl Hansen
+     */
+    @Test
+    public void testDeleteSavedGame() throws Exception {
+        String lobbyID = setupLobby();
+        String firstUserToken = userTokens.getFirst();
+        startLobby(firstUserToken, lobbyID);
+        saveGame(firstUserToken, lobbyID);
+
+        String saveID = getFirstSaveID(firstUserToken);
+
+        String newToken = createAndLoginUser("Benjamin", mapper, mockMvc);
+        Thread.sleep(50);
+
+        WebSocketSession wsSession = connectWebSocket(newToken, port);
+        Thread.sleep(50);
+        sessions.add(wsSession);
+
+        mockMvc.perform(post("/api/game/deleteSavedGame")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .header("Authorization", "Bearer " + newToken)
+                        .content(mapper.writeValueAsString(Map.of("saveID", saveID))))
+                .andExpect(status().isForbidden())
+                .andExpect(content().string("User not in game"));
+
+        mockMvc.perform(post("/api/game/deleteSavedGame")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .header("Authorization", "Bearer " + firstUserToken)
+                        .content(mapper.writeValueAsString(Map.of("saveID", saveID))))
+                .andExpect(status().isOk())
+                .andExpect(content().string("Game Deleted"));
+
+        for (String token : userTokens) {
+            String uid = tokenUtil.extractUserToken(token).userID();
+            List<String> saves = gameDatabase.getSavedGames(uid);
+            assertThat(saves).doesNotContain(saveID);
+        }
+
+        assertThat(gameDatabase.getGameSnapshot(saveID)).isNull();
+    }
+
+    /**
      * @author Bjarke Søderhamn Petersen
      * @author Benjamin Benyo Endahl Hansen
      * @author Karl Johannes Agerbo

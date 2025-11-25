@@ -2,7 +2,6 @@ package dk.dtu.model.database;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import dk.dtu.interfaces.GameDatabase;
-import dk.dtu.interfaces.UserDatabase;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 
@@ -10,8 +9,6 @@ import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
 import java.util.List;
-import java.util.Map;
-import java.util.Set;
 
 /**
  * @author Bjarke Søderhamn Petersen
@@ -82,6 +79,43 @@ public class DynamicGameDatabase implements GameDatabase {
         } catch (Exception e) {
             disableMySQL();
             local.saveGame(userID, snapshot, saveID);
+        }
+    }
+
+
+    /**
+     * Deletes a saved game using the provided saveID.
+     * This method first attempts to delete the game from the active database.
+     * If an exception occurs (e.g., database unavailable), it disables MySQL
+     * and falls back to deleting the game from the local database.
+     *
+     * @param saveID the identifier of the game to delete
+     *
+     * @author Benjamin Benyo Endahl Hansen
+     */
+
+    @Override
+    public void deleteSavedGame(String saveID) {
+        try {
+            active().deleteSavedGame(saveID);
+        } catch (Exception e) {
+            disableMySQL();
+            local.deleteSavedGame(saveID);
+        }
+    }
+
+
+    /**
+     * @author Benjamin Benyo Endahl Hansen
+     * @author Karl Johannes Agerbo
+     */
+    @Override
+    public boolean checkUserInGame(String userID, String saveID) {
+        try {
+            return active().checkUserInGame(userID, saveID);
+        } catch (Exception e) {
+            disableMySQL();
+            return local.checkUserInGame(userID, saveID);
         }
     }
 
