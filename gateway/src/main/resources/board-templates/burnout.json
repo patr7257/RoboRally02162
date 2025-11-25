@@ -54,6 +54,11 @@
     "_comment_pit_4_11": "Pit at 4,11",
     "_comment_pit_8_8": "Pit at 8,8",
 
+    "5,4":  [{ "kind": "PITS" }],
+    "1,7":  [{ "kind": "PITS" }],
+    "4,11": [{ "kind": "PITS" }],
+    "8,8":  [{ "kind": "PITS" }],
+
       "_comment_lasers": "___________________________ LASERS (Not Yet Implemented) ___________________________",
     "_comment_lasers_5_4": "Laser at 3,5,E",
     "_comment_lasers_1_7": "Laser at 7,6,S",

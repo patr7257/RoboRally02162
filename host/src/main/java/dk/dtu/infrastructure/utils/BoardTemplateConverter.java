@@ -121,6 +121,9 @@ public class BoardTemplateConverter {
                 Rotation rot = Rotation.valueOf(effectNode.get("rotation").asText());
                 yield new Gear(rot);
             }
+            case "pits" -> {
+                yield new Pits();
+            }
             default -> {
                 System.err.println("Unknown effect kind: " + kind);
                 yield null;

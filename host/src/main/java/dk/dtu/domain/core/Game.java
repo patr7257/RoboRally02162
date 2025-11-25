@@ -487,6 +487,8 @@ public class Game {
     private void executeOneRegister() {
         for (Robot r : api.getRobotsByPriority()) {
             executeOneRobotTurn(r);
+
+            applyTileEffects(Phase.ACTIVATE_PITS);
         }
     }
     /**

@@ -18,7 +18,8 @@ export interface GearEffect       extends BaseEffect { kind: "geardto"; rotation
 export interface RebootTokenEffect extends BaseEffect { kind: "reboot_token"; direction: Direction}
 export interface StartingTileEffect extends BaseEffect { kind: "startingtile"; playerId: number; }
 export interface AntennaEffect extends BaseEffect { kind : "antenna"; direction: Direction}
-export type TileEffect = CheckpointEffect | BlueConveyorEffect | GreenConveyorEffect  | WallEffect | StartingTileEffect | RebootTokenEffect | AntennaEffect | GearEffect;
+export interface PitsEffect extends BaseEffect { kind : "pits";}
+export type TileEffect = CheckpointEffect | BlueConveyorEffect | GreenConveyorEffect  | WallEffect | StartingTileEffect | RebootTokenEffect | AntennaEffect | GearEffect | PitsEffect;
 
 export type MoveType =
     | "MOVE1"

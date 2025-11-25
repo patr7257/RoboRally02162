@@ -218,6 +218,8 @@ public class GameScheduler implements RoundPacer {
 
         game.executeOneRobotTurn(currentRobot);
 
+        game.applyTileEffects(Phase.ACTIVATE_PITS);
+
         ScheduledFuture<?> nextTask = scheduler.schedule(
                 () -> executeRobotsSequentially(session, reg, robots, robotIndex + 1),
                 ROBOT_TURN_DELAY_MS,

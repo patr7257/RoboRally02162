@@ -67,6 +67,17 @@
     "_comment_pit_6_7": "Pit at 6,7",
     "_comment_pit_8_7": "Pit at 8,7",
 
+    "1,2": [{ "kind": "PITS" }],
+    "3,2": [{ "kind": "PITS" }],
+    "7,1": [{ "kind": "PITS" }],
+    "7,3": [{ "kind": "PITS" }],
+    "3,4": [{ "kind": "PITS" }],
+    "6,5": [{ "kind": "PITS" }],
+    "2,6": [{ "kind": "PITS" }],
+    "2,8": [{ "kind": "PITS" }],
+    "6,7": [{ "kind": "PITS" }],
+    "8,7": [{ "kind": "PITS" }],
+
     "_comment_green_conveyors": "___________________________ GREEN CONVEYORS ___________________________",
     "_comment_green_scattered": "Single scattered green conveyors",
     "10,9": [{"kind": "GREEN_CONVEYOR", "id": "green_conveyor_10_9", "direction": "W", "rotation": "NONE"}],

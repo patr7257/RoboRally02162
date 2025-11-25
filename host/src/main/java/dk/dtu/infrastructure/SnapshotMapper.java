@@ -76,6 +76,9 @@ public final class SnapshotMapper {
                 if (effect instanceof Gear gr) {
                     effects.add(new GearDto(gr.rotation()));
                 }
+                if (effect instanceof Pits p) {
+                    effects.add(new PitsDto());
+                }
             }
         }
 
@@ -132,6 +135,9 @@ public final class SnapshotMapper {
             }
             if (effect instanceof GearDto(Rotation rotation)) {
                 tile.addEffect(new Gear(rotation));
+            }
+            if (effect instanceof PitsDto()) {
+                tile.addEffect(new Pits());
             }
         }
         return tile;

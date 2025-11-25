@@ -140,7 +140,7 @@ public class GameController {
 
     /**
      * Validates whether a reboot token can be placed on a tile facing a specific direction.
-     * Checks if a robot can move 6 spaces in this direction without walls or going out of bounds.
+     * Checks if a robot can move 6 spaces in this direction without walls or pits or going out of bounds.
      *
      * @param board the game board
      * @param tile the tile to check from
@@ -174,10 +174,10 @@ public class GameController {
 
             Tile nextTile = board.getTile(nextX, nextY);
 
-            if (Walls.hasWall(currentTile, dir)) {
+            if (Walls.hasWall(currentTile, dir) || Pits.hasPits(currentTile)) {
                 return false;
             }
-            if (Walls.hasWall(nextTile, dir.opposite())) {
+            if (Walls.hasWall(nextTile, dir.opposite()) || Pits.hasPits(nextTile)) {
                 return false;
             }
         }
@@ -257,6 +257,11 @@ public class GameController {
 
         for (Tile t : gearTiles) {
             t.addEffect(new Gear(gearDirs[rnd.nextInt(gearDirs.length)]));
+        }
+
+        ArrayList<Tile> pitsTiles = randomTiles(0,3,board);
+        for (Tile t: pitsTiles) {
+            t.addEffect(new Pits());
         }
 
         ArrayList<Tile> rebootTiles = randomTilesWithoutFacingWallsAndEdges(board);

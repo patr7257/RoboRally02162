@@ -111,6 +111,11 @@
     "_comment_pit_5_8": "Pit at 5,8",
     "_comment_pit_4_1": "Pit at 4,1",
     "_comment_pit_1_5": "Pit at 1,5",
-    "_comment_pit_8_4": "Pit at 8,4"
+    "_comment_pit_8_4": "Pit at 8,4",
+
+    "5,8": [{ "kind": "PITS" }],
+    "4,1": [{ "kind": "PITS" }],
+    "1,5": [{ "kind": "PITS" }],
+    "8,4": [{ "kind": "PITS" }]
   }
 }

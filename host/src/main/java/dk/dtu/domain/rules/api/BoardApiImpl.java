@@ -92,7 +92,7 @@ public final class BoardApiImpl implements BoardAPI {
      */
     private Robot robotAt(Coord c) {
         for (Robot r : robots.values()) {
-            if (r.getX() == c.x() && r.getY() == c.y()) return r;
+            if (r.getX() == c.x() && r.getY() == c.y() && r.isAlive()) return r;
         }
         return null;
     }
@@ -522,7 +522,7 @@ public final class BoardApiImpl implements BoardAPI {
     public List<Robot> getRobotsOnTile(int x, int y) {
         List<Robot> result = new ArrayList<>();
         for (Robot r : robots.values()) {
-            if (r.getX() == x && r.getY() == y) {
+            if (r.getX() == x && r.getY() == y && r.isAlive()) {
                 result.add(r);
             }
         }

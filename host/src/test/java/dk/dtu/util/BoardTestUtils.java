@@ -354,4 +354,23 @@ public final class BoardTestUtils {
 
         return new Board(width,height,tiles);
     }
+
+    /**
+     * @author Weihao Mo
+     */
+    public static Board initBoardWithRebootTokenAndPits(int width, int height) {
+        Tile[][] tiles = initEmptyCells(width,height);
+        Tile cp1 = tiles[2][2];
+        cp1.setEffects(List.of(new RebootToken(Direction.E)));
+
+        Tile cp2 = tiles[4][4];
+        cp2.setEffects(List.of(new Checkpoint(1)));
+        Tile cp3 = tiles[0][1];
+        cp3.setEffects(List.of(new Pits()));
+
+
+        return new Board(width,height,tiles);
+    }
+
+
 }
