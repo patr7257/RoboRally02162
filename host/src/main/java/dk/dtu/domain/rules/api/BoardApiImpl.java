@@ -21,6 +21,7 @@ public final class BoardApiImpl implements BoardAPI {
     private final Map<Integer, Robot> robots;
     private final List<BeltIntent> intents = new ArrayList<>();
     private List<Integer> priorityOrder = new ArrayList<>();
+    private final List<DestroyEvent> pendingDestroys = new ArrayList<>();
 
     public BoardApiImpl(Board board, List<Robot> robots) {
         this.board = board;
@@ -210,7 +211,7 @@ public final class BoardApiImpl implements BoardAPI {
      */
     @Override
     public Outcome resolveIntents() {
-        if (intents.isEmpty()) {
+        if (intents.isEmpty() && pendingDestroys.isEmpty()) {
             return new Outcome.Moved(List.of(), List.of());
         }
 
@@ -229,8 +230,10 @@ public final class BoardApiImpl implements BoardAPI {
             List<BeltIntent> priorityIntents = byPriority.get(priority);
             processPriorityGroup(priorityIntents, priority, allMoves, allDestroys);
         }
+        allDestroys.addAll(pendingDestroys);
 
         intents.clear();
+        pendingDestroys.clear();
         return new Outcome.Moved(allMoves, allDestroys);
     }
 
@@ -596,6 +599,15 @@ public final class BoardApiImpl implements BoardAPI {
         }
 
         return sortedRobots;
+    }
+
+    /**
+     * Reports a robot destruction that will be processed when resolveIntents() is called
+     * @author Weihao Mo
+     */
+    @Override
+    public void reportDestroy(int robotId, Coord at, DestroyCause cause) {
+        pendingDestroys.add(new DestroyEvent(robotId, at, cause));
     }
 
 }

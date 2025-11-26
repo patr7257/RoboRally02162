@@ -6,18 +6,22 @@ import dk.dtu.domain.core.PlayerID;
 import dk.dtu.domain.model.Board;
 import dk.dtu.domain.model.Direction;
 import dk.dtu.domain.model.Robot;
+import dk.dtu.domain.model.Tile;
 import dk.dtu.domain.program.ProgramCard;
+import dk.dtu.domain.rules.DestroyCause;
+import dk.dtu.domain.rules.Outcome;
 import dk.dtu.domain.rules.api.BoardAPI;
 import dk.dtu.domain.rules.api.BoardApiImpl;
+import dk.dtu.domain.rules.effects.Pits;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
 
 import static dk.dtu.util.BoardTestUtils.initBoardWithRebootToken;
 import static dk.dtu.util.BoardTestUtils.initBoardWithRebootTokenAndPits;
+import static dk.dtu.util.GameTestSupport.assertMoved;
 import static dk.dtu.util.GameTestSupport.assertPosDir;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 
 public class GamePitsTest {
     /**
@@ -77,4 +81,30 @@ public class GamePitsTest {
         assertPosDir(r2, 2, 2, Direction.E);
         assertPosDir(r1, 3, 2, Direction.E);
     }
+
+    /**
+     * @author Weihao Mo
+     */
+    @Test
+    void pitsReportsDestroyWithPitsCause() {
+        Board board = initBoardWithRebootTokenAndPits(5,5);
+        Robot r = new Robot(1, 0, 1, Direction.S);
+        List<Robot> robots = List.of(r);
+        BoardAPI api = new BoardApiImpl(board, robots);
+
+
+        assertTrue(r.isAlive());
+
+        Tile pitTile = board.getTile(0, 1);
+        Pits pits = new Pits();
+        pits.onPhase(Phase.ACTIVATE_PITS, pitTile, api);
+
+        Outcome out = api.resolveIntents();
+        Outcome.Moved moved = assertMoved(out);
+
+        assertEquals(1, moved.destroys().size());
+        assertEquals(DestroyCause.PITS, moved.destroys().getFirst().cause());
+        assertEquals(r.getId(), moved.destroys().getFirst().robotId());
+    }
+
 }
