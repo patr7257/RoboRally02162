@@ -147,6 +147,7 @@ export default function LobbyCreator() { //change this name
                             <input
                                 type="text"
                                 value={lobbyName}
+                                maxLength={15} // Limit lobby name length
                                 onChange={(e) => setLobbyName(e.target.value)}
                                 placeholder="Enter lobby name"
 
