@@ -428,92 +428,92 @@ button,
 }
 
 /* Individual card positioning using the card-index class */
-.availableMovesSection .card-index-1 { 
-  transform: translateX(-240%)!important; 
+.availableMovesSection .card-index-1 {
+  transform: translateX(-240%)!important;
   z-index: 1;
 }
-.availableMovesSection .card-index-1:hover { 
-  transform: translateX(-240%) translateY(-20px) !important; 
+.availableMovesSection .card-index-1:hover {
+  transform: translateX(-240%) translateY(-20px) !important;
   z-index: 1000 !important;
   box-shadow: 0 8px 16px rgba(255, 255, 255, 0.3);
 }
 
-.availableMovesSection .card-index-2 { 
-  transform: translateX(-180%) !important; 
+.availableMovesSection .card-index-2 {
+  transform: translateX(-180%) !important;
   z-index: 2;
 }
-.availableMovesSection .card-index-2:hover { 
-  transform: translateX(-180%) translateY(-20px)  !important; 
+.availableMovesSection .card-index-2:hover {
+  transform: translateX(-180%) translateY(-20px)  !important;
   z-index: 1000 !important;
   box-shadow: 0 8px 16px rgba(255, 255, 255, 0.3);
 }
 
-.availableMovesSection .card-index-3 { 
-  transform: translateX(-120%) !important; 
+.availableMovesSection .card-index-3 {
+  transform: translateX(-120%) !important;
   z-index: 3;
 }
-.availableMovesSection .card-index-3:hover { 
-  transform: translateX(-120%) translateY(-20px) !important; 
+.availableMovesSection .card-index-3:hover {
+  transform: translateX(-120%) translateY(-20px) !important;
   z-index: 1000 !important;
   box-shadow: 0 8px 16px rgba(255, 255, 255, 0.3);
 }
 
-.availableMovesSection .card-index-4 { 
-  transform: translateX(-60%)!important; 
+.availableMovesSection .card-index-4 {
+  transform: translateX(-60%)!important;
   z-index: 4;
 }
-.availableMovesSection .card-index-4:hover { 
-  transform: translateX(-60%) translateY(-20px) !important; 
+.availableMovesSection .card-index-4:hover {
+  transform: translateX(-60%) translateY(-20px) !important;
   z-index: 1000 !important;
   box-shadow: 0 8px 16px rgba(255, 255, 255, 0.3);
 }
 
-.availableMovesSection .card-index-5 { 
-  transform: translateX(0%)  !important; 
+.availableMovesSection .card-index-5 {
+  transform: translateX(0%)  !important;
   z-index: 5;
 }
-.availableMovesSection .card-index-5:hover { 
-  transform: translateX(0%) translateY(-20px) !important; 
+.availableMovesSection .card-index-5:hover {
+  transform: translateX(0%) translateY(-20px) !important;
   z-index: 1000 !important;
   box-shadow: 0 8px 16px rgba(255, 255, 255, 0.3);
 }
 
-.availableMovesSection .card-index-6 { 
-  transform: translateX(60%)  !important; 
+.availableMovesSection .card-index-6 {
+  transform: translateX(60%)  !important;
   z-index: 6;
 }
-.availableMovesSection .card-index-6:hover { 
-  transform: translateX(60%) translateY(-20px) !important; 
+.availableMovesSection .card-index-6:hover {
+  transform: translateX(60%) translateY(-20px) !important;
   z-index: 1000 !important;
   box-shadow: 0 8px 16px rgba(255, 255, 255, 0.3);
 }
 
-.availableMovesSection .card-index-7 { 
-  transform: translateX(120%)  !important; 
+.availableMovesSection .card-index-7 {
+  transform: translateX(120%)  !important;
   z-index: 7;
 }
-.availableMovesSection .card-index-7:hover { 
-  transform: translateX(120%) translateY(-20px) !important; 
+.availableMovesSection .card-index-7:hover {
+  transform: translateX(120%) translateY(-20px) !important;
   z-index: 1000 !important;
   box-shadow: 0 8px 16px rgba(255, 255, 255, 0.3);
 }
 
-.availableMovesSection .card-index-8 { 
-  transform: translateX(180%)  !important; 
+.availableMovesSection .card-index-8 {
+  transform: translateX(180%)  !important;
   z-index: 8;
 }
-.availableMovesSection .card-index-8:hover { 
-  transform: translateX(180%) translateY(-20px)  !important; 
+.availableMovesSection .card-index-8:hover {
+  transform: translateX(180%) translateY(-20px)  !important;
   z-index: 1000 !important;
   box-shadow: 0 8px 16px rgba(255, 255, 255, 0.3);
 }
 
-.availableMovesSection .card-index-9 { 
-  transform: translateX(240%)  !important; 
+.availableMovesSection .card-index-9 {
+  transform: translateX(240%)  !important;
   z-index: 9;
 }
-.availableMovesSection .card-index-9:hover { 
-  transform: translateX(240%) translateY(-20px)  !important; 
+.availableMovesSection .card-index-9:hover {
+  transform: translateX(240%) translateY(-20px)  !important;
   z-index: 1000 !important;
   box-shadow: 0 8px 16px rgba(255, 255, 255, 0.3);
 }
@@ -583,7 +583,7 @@ button,
   width: 120px;
   height: 180px;
   margin: 0 auto;
-  cursor: grab; 
+  cursor: grab;
   transform: none;
   box-shadow:
     0 4px 8px rgba(0, 0, 0, 0.8),
@@ -593,6 +593,57 @@ button,
 .dropSlot .moveCard[draggable="true"]:active {
   cursor: grabbing;
 }
+
+/* NORMAL PROGRAMMING CARDS (ALL PURPLE) */
+.moveCard-normal {
+  background: radial-gradient(circle at center,
+      #573386 0%,
+      #351458 55%,
+      #2a063f 100%
+    ) !important;
+}
+
+.moveCard-normal .moveCardHeader {
+  background: linear-gradient(180deg, #3c006e, #1e0040) !important;
+}
+/* Grey (special programming cards) */
+.specialCardText {
+  width: 100%;
+  text-align: center;
+  font-family: "Orbitron", sans-serif;
+  font-weight: 900;
+  font-size: 0.82rem;        /* slightly larger */
+  line-height: 1.15rem;      /* more breathing room */
+  text-transform: uppercase;
+  letter-spacing: 1px;
+
+  color: #ffffff;
+  white-space: pre-line;
+
+  /* readability improvements */
+  text-shadow:
+    0 0 3px rgba(0, 0, 0, 0.9),
+    0 0 6px rgba(0, 0, 0, 0.8),
+    0 0 10px rgba(0, 0, 0, 0.6);
+}
+.moveCard-special {
+  background: radial-gradient(circle at center,
+      #5a5a5a 0%,
+      #3a3a3a 55%,
+      #222 100%
+  ) !important;
+  border: 4px solid #d6d6d6 !important;
+  color: white !important;
+}
+.moveCard-special .moveCardHeader {
+  background: linear-gradient(180deg, #7a7a7a, #3d3d3d) !important;
+  color: #fff !important;
+  border-bottom: 2px solid rgba(255, 255, 255, 0.25) !important;
+  text-shadow:
+    0 0 4px rgba(0, 0, 0, 0.8),
+    0 0 8px rgba(0, 0, 0, 0.6);
+}
+
 
 .dropSlot .moveCard.dragging,
 .dropSlot.dragging .moveCard {
@@ -770,7 +821,7 @@ button,
   background: linear-gradient(145deg, #2c3e50, #34495e);
   border: 2px solid #3498db;
   border-radius: 8px;
-  box-shadow: 
+  box-shadow:
     0 4px 8px rgba(0, 0, 0, 0.5),
     inset 0 1px 2px rgba(255, 255, 255, 0.1);
 }
@@ -1061,3 +1112,46 @@ button,
   box-shadow: 0 6px 15px rgba(39, 174, 96, 0.4);
 }
 
+
+
+.overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.7);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000
+}
+
+.popUp {
+    background-color: grey;
+
+    padding: 20px;
+    border-radius: 8px;
+    position: relative;
+    width: 80%;
+    max-width: 500px;
+}
+
+.closeButton {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    background: transparent;
+    border: none;
+    font-size: 18px;
+    cursor: pointer;
+}
+
+.reactionName {
+  text-align: center;
+}
+
+.content {
+  justify-content: center;
+  text-align: center;
+}

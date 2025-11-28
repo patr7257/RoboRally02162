@@ -2,13 +2,14 @@ package dk.dtu.domain.program;
 
 
 
+import dk.dtu.domain.core.reaction.ReactionKind;
 import dk.dtu.domain.model.Direction;
 /**
  * @author Weihao Mo
  * @author William Pii Jæger
  */
 public sealed interface ProgramOP
-        permits ProgramOP.Move, ProgramOP.RotateRight, ProgramOP.RotateLeft, ProgramOP.UTurn {
+        permits ProgramOP.Again, ProgramOP.Move, ProgramOP.Reaction, ProgramOP.RotateLeft, ProgramOP.RotateRight, ProgramOP.UTurn {
 
     default Direction apply(Direction d) {return d; };
 
@@ -26,4 +27,9 @@ public sealed interface ProgramOP
     final class UTurn implements ProgramOP {
         @Override public Direction apply(Direction d) { return d.turnRight().turnRight(); }
     }
+
+    final class Again implements ProgramOP {
+    }
+
+    record Reaction(ReactionKind kind) implements ProgramOP {}
 }

@@ -7,5 +7,6 @@ public enum GameState {
     WAITING_TO_START,
     PROGRAMMING,
     EXECUTING,
+    REACTION,
     FINISHED
 }

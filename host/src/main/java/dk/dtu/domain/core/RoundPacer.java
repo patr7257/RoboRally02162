@@ -1,5 +1,7 @@
 package dk.dtu.domain.core;
 
+import dk.dtu.domain.core.reaction.ReactionRequest;
+
 /**
  * @author William Pii Jæger
  * @author Weihao Mo
@@ -60,5 +62,10 @@ public interface RoundPacer {
          * @author Weihao Mo
          */
         void onRobotNeedsRespawn(GameSession session, int robotId);
+
+        /**
+         * @author William Pii Jæger
+         */
+        void onReactionNeeded(GameSession session, ReactionRequest<?> request);
     }
 }

@@ -17,6 +17,7 @@ import java.util.List;
  * @author William Pii Jæger
  * @author Weihao Mo
  * @author Karl Johannes Agerbo
+ * @author Asger Allin Jensen
  */
 public class Robot {
     private final int id;
@@ -26,6 +27,7 @@ public class Robot {
     private transient boolean movedOnActivation;
     private Boolean isAlive = true;
     private Direction respawnDirection;
+    private ProgramOP lastExecutedOp = null;
 
     private final Deque<ProgramOP> registers = new ArrayDeque<>();
 
@@ -59,13 +61,27 @@ public class Robot {
         registers.clear();
         for (ProgramCard c : cards) registers.addAll(c.toOps());
     }
-    
+
     public ProgramOP pollNextOp() {
         return registers.pollFirst();
     }
 
     public boolean hasPendingOps() {
         return !registers.isEmpty();
+    }
+
+    /**
+     * @author Asger Allin Jensen
+     */
+    public ProgramOP getLastExecutedOp() {
+        return lastExecutedOp;
+    }
+
+    /**
+     * @author Asger Allin Jensen
+     */
+    public void setLastExecutedOp(ProgramOP op) {
+        this.lastExecutedOp = op;
     }
 
     public int getNextCheckpoint() {
@@ -118,6 +134,7 @@ public class Robot {
 
     public void clearRegisters() {
         registers.clear();
+        lastExecutedOp = null;
     }
 
     public void setDirection(Direction direction) {

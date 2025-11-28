@@ -1,5 +1,6 @@
 package dk.dtu.domain.program;
 
+import dk.dtu.domain.core.reaction.ReactionKind;
 import java.util.List;
 
 /**
@@ -18,7 +19,8 @@ public record ProgramCard(Action action, int steps) {
                     throw new IllegalArgumentException("MOVE step must be -1..3");
                 }
             }
-            case ROTATERIGHT, ROTATELEFT, UTURN -> steps = 0;
+            case ROTATERIGHT, ROTATELEFT, UTURN, AGAIN -> steps = 0;
+            case SANDBOX, WEASEL, SPEED -> steps = 0;
         }
     }
 
@@ -32,6 +34,10 @@ public record ProgramCard(Action action, int steps) {
             case ROTATERIGHT -> List.of(new ProgramOP.RotateRight());
             case ROTATELEFT  -> List.of(new ProgramOP.RotateLeft());
             case UTURN       -> List.of(new ProgramOP.UTurn());
+            case AGAIN       -> List.of(new ProgramOP.Again());
+            case SANDBOX     -> List.of(new ProgramOP.Reaction(ReactionKind.SANDBOX));
+            case WEASEL      -> List.of(new ProgramOP.Reaction(ReactionKind.WEASEL));
+            case SPEED       -> List.of(new ProgramOP.Reaction(ReactionKind.SPEED));
         };
     }
 
@@ -45,6 +51,10 @@ public record ProgramCard(Action action, int steps) {
             case ROTATELEFT -> "ROTATELEFT";
             case ROTATERIGHT -> "ROTATERIGHT";
             case UTURN -> "UTURN";
+            case SANDBOX -> "SANDBOX";
+            case WEASEL -> "WEASEL";
+            case SPEED -> "SPEED";
+            case AGAIN -> "AGAIN";
         };
     }
 
@@ -55,6 +65,12 @@ public record ProgramCard(Action action, int steps) {
     public static ProgramCard right() { return new ProgramCard(Action.ROTATERIGHT, 0); }
     public static ProgramCard left()  { return new ProgramCard(Action.ROTATELEFT, 0); }
     public static ProgramCard uturn() { return new ProgramCard(Action.UTURN, 0); }
+    public static ProgramCard sandbox() { return new ProgramCard(Action.SANDBOX, 0); }
+    public static ProgramCard weasel() { return new ProgramCard(Action.WEASEL, 0); }
+    public static ProgramCard speed() { return new ProgramCard(Action.SPEED, 0); }
+    public static ProgramCard again() {
+        return new ProgramCard(Action.AGAIN, 0);
+    }
 
-    public enum Action { MOVE, ROTATERIGHT, ROTATELEFT, UTURN }
+    public enum Action { MOVE, ROTATERIGHT, ROTATELEFT, UTURN, SANDBOX, WEASEL, SPEED, AGAIN }
 }

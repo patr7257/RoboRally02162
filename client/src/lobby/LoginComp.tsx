@@ -47,7 +47,7 @@ export default function LoginComp({ onLogin }: LoginCompProps) {
         console.log("pass: " + usernameInput);
         await getSocket();
         subscribe((message: string) => {
-          console.log("Received game message:", message);
+            // I remove the print statement, it was annoying
         });
 
         onLogin(data.username ?? usernameInput);

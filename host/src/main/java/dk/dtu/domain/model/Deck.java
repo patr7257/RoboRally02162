@@ -148,14 +148,18 @@ public class Deck {
      * @author Kajsa Alice Ulrika Berlstedt
      */
     public static List<ProgramCard> buildStandardDeck() {
-        List<ProgramCard> cards = new ArrayList<>(20);
+        List<ProgramCard> cards = new ArrayList<>(24);
         add(cards, ProgramCard::move1, 4);
         add(cards, ProgramCard::move2, 3);
         add(cards, ProgramCard::move3, 1);
         add(cards, ProgramCard::back1, 1);
+        add(cards, ProgramCard::again, 1);
         add(cards, ProgramCard::left, 4);
         add(cards, ProgramCard::right, 4);
         add(cards, ProgramCard::uturn, 1);
+        add(cards, ProgramCard::sandbox, 1);
+        add(cards, ProgramCard::weasel, 1);
+        add(cards, ProgramCard::speed, 1);
 
         Collections.shuffle(cards);
         return cards;

@@ -1,5 +1,7 @@
 package dk.dtu.domain.core;
 
+import dk.dtu.domain.core.reaction.ReactionRequest;
+import dk.dtu.domain.core.reaction.ReactionResolution;
 import dk.dtu.domain.model.Board;
 import dk.dtu.domain.model.Deck;
 import dk.dtu.domain.model.Robot;
@@ -186,6 +188,38 @@ public class GameManager implements GameObserver {
                     yield CommandResult.fail("Failed to set respawn direction: " + e.getMessage());
                 }
             }
+
+            case GameCommand.SubmitReaction submitReaction -> {
+                GameSession session = activeSessions.get(submitReaction.gameId());
+                if (session == null) yield CommandResult.fail("Game not found");
+
+                try {
+                    synchronized (session) {
+                        ReactionRequest<?> pending = session.getPendingReaction();
+                        if (pending == null) {
+                            yield CommandResult.fail("No pending reaction");
+                        }
+                        if (!pending.id().equals(submitReaction.reactionId())) {
+                            yield CommandResult.fail("Reaction ID mismatch");
+                        }
+                        if (!String.valueOf(submitReaction.player().value()).equals(pending.robotid())) {
+                            yield CommandResult.fail("Wrong player for this reaction");
+                        }
+
+                        ReactionResolution<?> resolution = new ReactionResolution<>(
+                                submitReaction.reactionId(),
+                                submitReaction.choice()
+                        );
+
+                        if (pacer instanceof GameScheduler scheduler) {
+                            scheduler.onReactionSubmitted(session, resolution);
+                        }
+                    }
+                    yield CommandResult.ok("Reaction submitted");
+                } catch (Exception e) {
+                    yield CommandResult.fail("Failed to submit reaction: " + e.getMessage());
+                }
+            }
         };
     }
 
@@ -321,6 +355,20 @@ public class GameManager implements GameObserver {
     }
 
     /**
+     * Broadcasts that a reaction is needed from a player.
+     *
+     * @param session the session
+     * @param request the reaction request
+     *
+     * @author William Pii Jæger
+     */
+    void broadcastReactionNeeded(GameSession session, ReactionRequest<?> request) {
+        for (GameManagerObserver obs : observers) {
+            obs.onReactionNeeded(session.getGame(), session.getGameId(), request);
+        }
+    }
+
+    /**
      * Internal bridge from {@link RoundPacer.RoundPacerListener} to {@link GameManagerObserver} callbacks.
      *
      * @author William Pii Jæger
@@ -380,7 +428,20 @@ public class GameManager implements GameObserver {
          */
         @Override
         public void onRobotNeedsRespawn(GameSession session, int robotId) {
-                broadcastRobotNeedsRespawn(session,robotId);
+            broadcastRobotNeedsRespawn(session, robotId);
+        }
+
+        /**
+         * Forwards reaction-needed event.
+         *
+         * @param session current session
+         * @param request the reaction request
+         *
+         * @author William Pii Jæger
+         */
+        @Override
+        public void onReactionNeeded(GameSession session, ReactionRequest<?> request) {
+            broadcastReactionNeeded(session, request);
         }
     }
 
@@ -392,7 +453,7 @@ public class GameManager implements GameObserver {
      * @author Weihao Mo
      */
     @Override
-    public void onWinnerDeclared(Game game,PlayerID winner) {
+    public void onWinnerDeclared(Game game, PlayerID winner) {
         UUID gameId = null;
         GameSession session = null;
 

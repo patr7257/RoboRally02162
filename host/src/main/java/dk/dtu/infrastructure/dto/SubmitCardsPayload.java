@@ -21,6 +21,10 @@ public record SubmitCardsPayload(String type, List<String> cards) {
                 case "ROTATERIGHT" -> revertCards.add(ProgramCard.right());
                 case "ROTATELEFT" -> revertCards.add(ProgramCard.left());
                 case "UTURN" -> revertCards.add(ProgramCard.uturn());
+                case "AGAIN" -> revertCards.add(ProgramCard.again());
+                case "SANDBOX" -> revertCards.add(ProgramCard.sandbox());
+                case "WEASEL" -> revertCards.add(ProgramCard.weasel());
+                case "SPEED" -> revertCards.add(ProgramCard.speed());
             };
         }
         return revertCards;

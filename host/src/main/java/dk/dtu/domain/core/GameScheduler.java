@@ -1,8 +1,10 @@
 package dk.dtu.domain.core;
 
+import dk.dtu.domain.core.reaction.*;
 import dk.dtu.domain.model.Robot;
 import dk.dtu.domain.model.Direction;
 import dk.dtu.domain.program.ProgramCard;
+import dk.dtu.domain.program.ProgramOP;
 
 import java.time.Instant;
 import java.util.List;
@@ -22,14 +24,13 @@ public class GameScheduler implements RoundPacer {
     private static final long PRE_ROUND_DELAY_MS = 300;
     private static final long NEXT_WINDOW_MS = 60_000L;
     private static final long EFFECT_DELAY_MS = 500;
-
     private static final long ROBOT_TURN_DELAY_MS = 400;
     private static final long RESPAWN_TIMEOUT_MS = 10_000L;
+    private static final long REACTION_TIMEOUT_MS = 20_000L;
 
     private final ScheduledExecutorService scheduler;
     private final List<RoundPacerListener> listeners = new CopyOnWriteArrayList<>();
 
-    // Good for future implementation, we now keep track which register we're currently executing
     private int currentRegister = 0;
 
     /**
@@ -172,7 +173,6 @@ public class GameScheduler implements RoundPacer {
      * @author William Pii Jæger
      */
     private void runRegister(GameSession session, int reg) {
-        // We store current Register here
         currentRegister = reg;
 
         ScheduledFuture<?> task = scheduler.schedule(() -> {
@@ -200,6 +200,7 @@ public class GameScheduler implements RoundPacer {
 
     /**
      * Recursively executes robot turns with delays between each robot.
+     * Now checks for interactive cards and pauses for player input when needed.
      *
      * @param session the current game session
      * @param reg the register index (1-5)
@@ -216,8 +217,13 @@ public class GameScheduler implements RoundPacer {
         Game game = session.getGame();
         Robot currentRobot = robots.get(robotIndex);
 
-        game.executeOneRobotTurn(currentRobot);
+        ProgramOP nextOp = peekNextOp(currentRobot);
+        if (nextOp instanceof ProgramOP.Reaction reaction) {
+            handleReaction(session, reg, robots, robotIndex, currentRobot, reaction);
+            return;
+        }
 
+        game.executeOneRobotTurn(currentRobot);
         game.applyTileEffects(Phase.ACTIVATE_PITS);
 
         ScheduledFuture<?> nextTask = scheduler.schedule(
@@ -227,6 +233,182 @@ public class GameScheduler implements RoundPacer {
         );
 
         session.setStepTask(nextTask);
+    }
+
+    /**
+     * Handles an interactive card by creating a reaction request and waiting for player input.
+     * Stores the execution context so we can resume exactly where we paused.
+     *
+     * @author William Pii Jæger
+     */
+    private void handleReaction(GameSession session, int reg, List<Robot> robots,
+                                int robotIndex, Robot robot, ProgramOP.Reaction reaction) {
+
+        GameSession.ReactionExecutionContext context =
+                new GameSession.ReactionExecutionContext(reg, robots, robotIndex);
+        session.setReactionContext(context);
+
+        ReactionSpec<?> spec = createReactionSpec(reaction.kind());
+        ReactionId reactionId = ReactionId.random();
+        Instant deadline = Instant.now().plusMillis(REACTION_TIMEOUT_MS);
+
+        ReactionRequest<?> request = new ReactionRequest<>(
+                reactionId,
+                String.valueOf(robot.getId()),
+                reg,
+                0,
+                spec,
+                deadline
+        );
+
+        session.setPendingReaction(request);
+
+        listeners.forEach(l -> l.onReactionNeeded(session, request));
+
+        ScheduledFuture<?> timeoutTask = scheduler.schedule(() -> {
+            synchronized (session) {
+                if (!session.isReactionResolved()) {
+                    applyReactionChoice(session, robot, spec.defaultChoice());
+
+                    continueAfterReaction(session);
+                }
+            }
+        }, REACTION_TIMEOUT_MS, TimeUnit.MILLISECONDS);
+
+        session.setReactionTimeoutTask(timeoutTask);
+    }
+
+    /**
+     * Called when a player submits their reaction choice.
+     * Applies the choice and continues execution from the stored context.
+     *
+     * @author William Pii Jæger
+     */
+    public void onReactionSubmitted(GameSession session, ReactionResolution<?> resolution) {
+        synchronized (session) {
+            ReactionRequest<?> pending = session.getPendingReaction();
+            if (pending == null || !pending.id().equals(resolution.id())) {
+                return;
+            }
+
+            session.setReactionResolution(resolution);
+            session.cancelReactionTimeoutTask();
+
+            Game game = session.getGame();
+            Robot robot = game.getRobots().stream()
+                    .filter(r -> String.valueOf(r.getId()).equals(pending.robotid()))
+                    .findFirst()
+                    .orElse(null);
+
+            if (robot != null) {
+                applyReactionChoice(session, robot, resolution.choice());
+            }
+
+            scheduler.schedule(() -> {
+                continueAfterReaction(session);
+            }, ROBOT_TURN_DELAY_MS, TimeUnit.MILLISECONDS);
+        }
+    }
+
+    /**
+     * Continues execution after a reaction has been resolved.
+     * Uses the stored execution context to resume at the exact point where we paused.
+     *
+     * @author William Pii Jæger
+     */
+    private void continueAfterReaction(GameSession session) {
+        GameSession.ReactionExecutionContext context = session.getReactionContext();
+        if (context == null) {
+            System.err.println("No reaction context found - cannot continue");
+            return;
+        }
+
+        Game game = session.getGame();
+        game.applyTileEffects(Phase.ACTIVATE_PITS);
+
+        session.clearReaction();
+
+        executeRobotsSequentially(
+                session,
+                context.getRegisterIndex(),
+                context.getRobotsInOrder(),
+                context.getRobotIndex() + 1
+        );
+    }
+
+    /**
+     * Applies the chosen reaction to the robot.
+     * Replaces the Reaction operation with the chosen operation.
+     *
+     * @author William Pii Jæger
+     */
+    private void applyReactionChoice(GameSession session, Robot robot, ReactionChoice choice) {
+        Game game = session.getGame();
+
+        robot.pollNextOp();
+
+        switch (choice) {
+            case ReactionChoice.SandBoxChoice sandbox -> {
+                switch (sandbox) {
+                    case MOVE1 -> robot.getRegisters().addFirst(new ProgramOP.Move(1));
+                    case MOVE2 -> robot.getRegisters().addFirst(new ProgramOP.Move(2));
+                    case MOVE3 -> robot.getRegisters().addFirst(new ProgramOP.Move(3));
+                    case BACKUP -> robot.getRegisters().addFirst(new ProgramOP.Move(-1));
+                    case LEFT -> robot.getRegisters().addFirst(new ProgramOP.RotateLeft());
+                    case RIGHT -> robot.getRegisters().addFirst(new ProgramOP.RotateRight());
+                    case UTURN -> robot.getRegisters().addFirst(new ProgramOP.UTurn());
+                }
+            }
+            case ReactionChoice.WeaselChoice weasel -> {
+                switch (weasel) {
+                    case LEFT -> robot.getRegisters().addFirst(new ProgramOP.RotateLeft());
+                    case RIGHT -> robot.getRegisters().addFirst(new ProgramOP.RotateRight());
+                    case UTURN -> robot.getRegisters().addFirst(new ProgramOP.UTurn());
+                }
+            }
+            case ReactionChoice.SpeedChoice speed -> {
+                if (speed == ReactionChoice.SpeedChoice.MOVE3) {
+                    robot.getRegisters().addFirst(new ProgramOP.Move(3));
+                }
+            }
+        }
+
+        game.executeOneRobotTurn(robot);
+    }
+
+    /**
+     * Creates a reaction spec for a given reaction kind.
+     *
+     * @author William Pii Jæger
+     */
+    @SuppressWarnings("unchecked")
+    private <C extends ReactionChoice> ReactionSpec<C> createReactionSpec(ReactionKind kind) {
+        return switch (kind) {
+            case SANDBOX -> (ReactionSpec<C>) new ReactionSpec<>(
+                    ReactionKind.SANDBOX,
+                    List.of(ReactionChoice.SandBoxChoice.values()),
+                    ReactionChoice.SandBoxChoice.MOVE1
+            );
+            case WEASEL -> (ReactionSpec<C>) new ReactionSpec<>(
+                    ReactionKind.WEASEL,
+                    List.of(ReactionChoice.WeaselChoice.values()),
+                    ReactionChoice.WeaselChoice.LEFT
+            );
+            case SPEED -> (ReactionSpec<C>) new ReactionSpec<>(
+                    ReactionKind.SPEED,
+                    List.of(ReactionChoice.SpeedChoice.values()),
+                    ReactionChoice.SpeedChoice.MOVE3
+            );
+        };
+    }
+
+    /**
+     * Peeks at the next operation without removing it from the queue.
+     *
+     * @author William Pii Jæger
+     */
+    private ProgramOP peekNextOp(Robot robot) {
+        return robot.getRegisters().peekFirst();
     }
 
     /**

@@ -26,6 +26,7 @@ import java.util.*;
  * @author Bjarke Søderhamn Petersen
  * @author Benjamin Benyo Endahl Hansen
  * @author Karl Johannes Agerbo
+ * @author Asger Allin Jensen
  */
 public class Game {
     private final Board board;
@@ -447,10 +448,20 @@ public class Game {
      *
      * @param robot the robot to execute
      * @author William Pii Jæger
+     * @author Asger Allin Jensen
      */
     public void executeOneRobotTurn(Robot robot) {
         ProgramOP op = robot.pollNextOp();
         if (op == null) return;
+
+        if (op instanceof ProgramOP.Again) {
+            ProgramOP lastOp = robot.getLastExecutedOp();
+            if (lastOp != null && !(lastOp instanceof ProgramOP.Again)) {
+                op = lastOp;
+            } else {
+                return;
+            }
+        }
 
         if (op instanceof ProgramOP.Move(int stepsVal)) {
             Direction dir = robot.getDirection();
@@ -465,6 +476,10 @@ public class Game {
             }
         } else {
             robot.setDirection(op.apply(robot.getDirection()));
+        }
+
+        if (!(op instanceof ProgramOP.Again)) {
+            robot.setLastExecutedOp(op);
         }
 
         notifyGameUpdate();

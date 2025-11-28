@@ -5,6 +5,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import dk.dtu.domain.core.*;
+import dk.dtu.domain.core.reaction.*;
 import dk.dtu.domain.model.Direction;
 import dk.dtu.domain.program.ProgramCard;
 import dk.dtu.infrastructure.SnapshotMapper;
@@ -301,8 +302,80 @@ public class GatewaysWsHandler extends TextWebSocketHandler implements GameManag
                 }
             }
 
+            case "submitReaction" -> {
+                try {
+                    String choiceStr = msg.payload.get("choice").asText();
+
+                    if (choiceStr == null) {
+                        sendError("bad_request", "choice is required", meta, gameId);
+                        return;
+                    }
+
+                    ReactionChoice choice = parseReactionChoice(choiceStr);
+
+                    if (choice == null) {
+                        sendError("bad_request", "Invalid choice: " + choiceStr, meta, gameId);
+                        return;
+                    }
+
+                    Optional<GameSession> sessionOpt = gameManager.findSessionByID(gameId);
+                    if (sessionOpt.isEmpty()) {
+                        sendError("not_found", "Game not found", meta, gameId);
+                        return;
+                    }
+
+                    GameSession gs = sessionOpt.get();
+                    ReactionRequest<?> pending = gs.getPendingReaction();
+                    if (pending == null) {
+                        sendError("command_failed", "No pending reaction", meta, gameId);
+                        return;
+                    }
+
+                    GameCommand cmd = new GameCommand.SubmitReaction(
+                            UUID.randomUUID(),
+                            gameId,
+                            new PlayerID(msg.playerId),
+                            pending.id(),
+                            choice
+                    );
+                    CommandResult result = gameManager.execute(cmd);
+
+                    if (result.ok()) {
+                        send(new OutgoingMessage<>("ack", Delivery.DIRECT, meta,
+                                Map.of("message", "Reaction submitted")));
+                    } else {
+                        sendError("command_failed", result.reason(), meta, gameId);
+                    }
+                } catch (Exception e) {
+                    sendError("bad_request",
+                            "Failed to submit reaction: " + e.getMessage(),
+                            meta, gameId);
+                }
+            }
+
             default -> {
                 sendError("bad_request", "Unknown payload.type: " + type, meta, gameId);
+            }
+        }
+    }
+
+    /**
+     * Parses a reaction choice string into the appropriate ReactionChoice type.
+     *
+     * @author William Pii Jæger
+     */
+    private ReactionChoice parseReactionChoice(String choice) {
+        try {
+            return ReactionChoice.SandBoxChoice.valueOf(choice);
+        } catch (IllegalArgumentException e1) {
+            try {
+                return ReactionChoice.WeaselChoice.valueOf(choice);
+            } catch (IllegalArgumentException e2) {
+                try {
+                    return ReactionChoice.SpeedChoice.valueOf(choice);
+                } catch (IllegalArgumentException e3) {
+                    return null;
+                }
             }
         }
     }
@@ -415,6 +488,37 @@ public class GatewaysWsHandler extends TextWebSocketHandler implements GameManag
             send(out);
         } catch (Exception e) {
             System.err.println("Failed to broadcast robot needs respawn: " + e);
+        }
+    }
+
+    /**
+     * Notifies the specific player that they need to make a reaction choice.
+     *
+     * @param game the game instance
+     * @param gameID the game ID
+     * @param request the reaction request with details about the choice needed
+     *
+     * @author William Pii Jæger
+     */
+    @Override
+    public void onReactionNeeded(Game game, UUID gameID, ReactionRequest<?> request) {
+        try {
+            GameDto gameDto = SnapshotMapper.mapGame(gameID, game);
+            int playerId = Integer.parseInt(request.robotid());
+            PlayerDto playerDto = new PlayerDto(playerId);
+            EventMetaDTO meta = new EventMetaDTO(gameDto, playerDto);
+
+            Map<String, Object> payload = new HashMap<>();
+            payload.put("kind", request.spec().kind().toString());
+            payload.put("options", request.spec().options().stream()
+                    .map(Object::toString)
+                    .collect(Collectors.toList()));
+            payload.put("deadline", request.deadline().toEpochMilli());
+
+            OutgoingMessage<?> out = new OutgoingMessage<>("reactionNeeded", Delivery.DIRECT, meta, payload);
+            send(out);
+        } catch (Exception e) {
+            System.err.println("Failed to broadcast reaction needed: " + e);
         }
     }
 

@@ -1,28 +1,15 @@
-
-
-import React, { useState, useEffect } from "react";
-import { Menu, X } from "lucide-react"; // lightweight icons
+import React, { useState, useEffect, useRef } from "react";
+import { Menu, X } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { subscribe, sendMessage } from "../utils/ws";
 import { MoveType, GameData, HandData, ROBOT_COLORS, DiscardData } from "../types/boardTypes";
 import { WinnerBanner } from "./WinnerBanner";
 import { BoardRenderer } from "./BoardRenderer";
 import { GameControls } from "./GameControls";
+import ReactionPopUp from "./actionSelector";
 import CheckpointChecklist from "../ui/checkpointChecklist";
-import { leaveLobby } from '../lobby/LeaveLobby';
-import { RespawnDirectionModal } from '../ui/RespawnDirectionModal';
-
-/**
-* @author Asger Allin Jensen
-* @author Bjarke Søderhamn Petersen
-* @author Patrick Røbel
-* @author William Pii Jæger
-* @author Kajsa Alice Ulrika Berlstedt
-* @author Benjamin Benyo Endhal Hansen
-* @author Karl Johannes Agerbo
-* @author Lizette Bloch Dahl Nikolajsen
-* @author Weihao Mo
-*/
+import { leaveLobby } from "../lobby/LeaveLobby";
+import { RespawnDirectionModal } from "../ui/RespawnDirectionModal";
 
 interface ReadinessData {
   playerSubmitted: Record<number, boolean>;
@@ -30,12 +17,16 @@ interface ReadinessData {
 }
 
 /**
-* @author Asger Allin Jensen
-* @author Bjarke Søderhamn Petersen
-* @author Patrick Røbel
-* @author William Pii Jæger
-* @author Weihao Mo
-*/
+ * @author Asger Allin Jensen
+ * @author Bjarke Søderhamn Petersen
+ * @author Patrick Røbel
+ * @author William Pii Jæger
+ * @author Kajsa Alice Ulrika Berlstedt
+ * @author Benjamin Benyo Endhal Hansen
+ * @author Karl Johannes Agerbo
+ * @author Lizette Bloch Dahl Nikolajsen
+ * @author Weihao Mo
+ */
 export default function Board() {
   const navigate = useNavigate();
   const [userID] = useState<string>(localStorage.getItem("userID") || "");
@@ -43,10 +34,14 @@ export default function Board() {
   const [gameData, setGameData] = useState<GameData | null>(null);
   const [handData, setHandData] = useState<HandData | null>(null);
   const [discardData, setDiscardData] = useState<DiscardData | null>(null);
-  const [selectedMoves, setSelectedMoves] = useState<(MoveType | null)[]>(Array(5).fill(null));
+  const [selectedMoves, setSelectedMoves] = useState<(MoveType | null)[]>(
+    Array(5).fill(null)
+  );
   const [readiness, setReadiness] = useState<ReadinessData | null>(null);
   const [timeRemaining, setTimeRemaining] = useState<number>(0);
-  const [gameState, setGameState] = useState<'waiting' | 'programming' | 'executing' | 'finished' | 'waitingForRespawn'>('waiting');
+  const [gameState, setGameState] = useState<
+    "waiting" | "programming" | "executing" | "finished" | "waitingForRespawn" | "reaction"
+  >("waiting");
   const [hasSubmitted, setHasSubmitted] = useState<boolean>(false);
   const [robotID, setRobotID] = useState<string>("");
   const [menuOpen, setMenuOpen] = useState(false);
@@ -61,6 +56,15 @@ export default function Board() {
     height: number;
   } | null>(null);
 
+  const [reactionPopup, setReactionPopup] = useState<{
+    kind: string;
+    options: string[];
+    deadline?: number;
+  } | null>(null);
+
+  const readinessIntervalRef = useRef<NodeJS.Timeout | null>(null);
+
+
   // Fetch lobby info and full board template for Map Banner and starting area info
   useEffect(() => {
     const fetchLobbyInfo = async () => {
@@ -70,18 +74,23 @@ export default function Board() {
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ userID, lobbyID: lobbyId }),
         });
+
         if (response.ok) {
           const lobbyInfo = await response.json();
           const templateName = lobbyInfo.boardTemplateName || "";
 
           // Fetch template info to get display name
-          const templatesResponse = await fetch(API_BASE_URL + "/api/templates/list", {
-            method: "GET",
-            headers: {
-              "Content-Type": "application/json",
-              "Authorization": `Bearer ${localStorage.getItem("userToken")}`
-            },
-          });
+          const templatesResponse = await fetch(
+            API_BASE_URL + "/api/templates/list",
+            {
+              method: "GET",
+              headers: {
+                "Content-Type": "application/json",
+                Authorization: `Bearer ${localStorage.getItem("userToken")}`,
+              },
+            }
+          );
+
           if (templatesResponse.ok) {
             const templates = await templatesResponse.json();
             const template = templates.find((t: any) => t.name === templateName);
@@ -122,7 +131,6 @@ export default function Board() {
     }
   }, [userID, lobbyId, API_BASE_URL]);
 
-
   /**
   * @author Asger Allin Jensen
   * @author Bjarke Søderhamn Petersen
@@ -138,8 +146,6 @@ export default function Board() {
       try {
         const data = JSON.parse(message);
 
-        console.log("Received message:", data);
-
         let actualData = data;
         if (data.type === "game" && data.payload) {
           actualData = data.payload;
@@ -154,7 +160,6 @@ export default function Board() {
 
           case "hand":
             console.log("Setting hand data:", actualData.payload || actualData);
-
             const handPayload = actualData.payload;
             setHandData(handPayload);
             setSelectedMoves(Array(5).fill(null));
@@ -205,8 +210,21 @@ export default function Board() {
             sendMessage({ lobbyID: lobbyId, payload: { type: "getBoard" } });
             break;
 
+          case "reactionNeeded":
+            setGameState("reaction");
+            console.log(actualData)
+            if (actualData.payload?.kind && actualData.payload?.options) {
+              setReactionPopup({
+                kind: actualData.payload.kind,
+                options: actualData.payload.options,
+                deadline: actualData.payload.deadline
+              });
+            }
+            break;
+
           case "gameSaved":
             console.log("Game has been saved!");
+            break;
 
           case "ack":
             console.log("Command acknowledged:", data.payload.message);
@@ -255,14 +273,33 @@ export default function Board() {
     };
   }, [lobbyId, robotID]);
 
-  let readinessInterval: NodeJS.Timeout | null = null;
+  /**
+   * @author Asger Allin Jensen
+   */
+  useEffect(() => {
+    if (!reactionPopup?.deadline) return;
+
+    const now = Date.now();
+    const remaining = reactionPopup.deadline - now;
+
+    if (remaining <= 0) {
+      setReactionPopup(null);
+      return;
+    }
+
+    const timer = setTimeout(() => {
+      setReactionPopup(null);
+    }, remaining);
+
+    return () => clearTimeout(timer);
+  }, [reactionPopup]);
 
   /**
    * @author William Pii Jæger
    */
   const startReadinessPolling = () => {
     stopReadinessPolling();
-    readinessInterval = setInterval(() => {
+    readinessIntervalRef.current = setInterval(() => {
       sendMessage({ lobbyID: lobbyId, payload: { type: "getReadiness" } });
     }, 1000);
   };
@@ -271,15 +308,15 @@ export default function Board() {
    * @author William Pii Jæger
    */
   const stopReadinessPolling = () => {
-    if (readinessInterval) {
-      clearInterval(readinessInterval);
-      readinessInterval = null;
+    if (readinessIntervalRef.current) {
+      clearInterval(readinessIntervalRef.current);
+      readinessIntervalRef.current = null;
     }
   };
 
   /**
-  * @author Weihao Mo
-  */
+   * @author Weihao Mo
+   */
   const handleRespawnDirection = (direction: 'NORTH' | 'SOUTH' | 'EAST' | 'WEST') => {
     if (!respawnRobotId) {
       console.error("No respawn robot ID set");
@@ -347,7 +384,6 @@ export default function Board() {
       } else {
         console.warn(`No robot ID found for username "${username}" in`, data);
       }
-
     } catch (error) {
       console.error("Error fetching robot ID:", error);
     }
@@ -419,10 +455,7 @@ export default function Board() {
     const username = localStorage.getItem("username") || "";
     const entries = Object.entries(robotMap);
     if (!robotID || entries.length === 0) {
-      return
-      <div className="player-info">
-        No players are assigned yet
-      </div>;
+      return <div className="player-info">No players are assigned yet</div>;
     }
     const list = entries
       .map(([name, idStr]) => {
@@ -467,6 +500,28 @@ export default function Board() {
         isOpen={needsRespawn}
         onSelectDirection={handleRespawnDirection}
       />
+
+      {reactionPopup && (
+        <ReactionPopUp
+          reactionKind={reactionPopup.kind}
+          options={reactionPopup.options}
+          onClose={() => {
+            setReactionPopup(null);
+          }}
+          onSelect={(option) => {
+            console.log("Submitting reaction choice:", option);
+            sendMessage({
+              lobbyID: lobbyId,
+              playerID: parseInt(robotID),
+              payload: {
+                type: "submitReaction",
+                choice: option,
+              },
+            });
+            setReactionPopup(null);
+          }}
+        />
+      )}
 
       <div className="board-Left">
         {mapDisplayName && (
@@ -567,6 +622,5 @@ export default function Board() {
         </div>
       </div>
     </div>
-
   );
 }

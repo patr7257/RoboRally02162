@@ -1,5 +1,7 @@
 package dk.dtu.domain.core;
 
+import dk.dtu.domain.core.reaction.ReactionChoice;
+import dk.dtu.domain.core.reaction.ReactionId;
 import dk.dtu.domain.model.Direction;
 import dk.dtu.domain.program.ProgramCard;
 
@@ -20,7 +22,7 @@ import java.util.UUID;
  * @author Weihao Mo
  * @author William Pii Jæger
  */
-public sealed interface GameCommand permits GameCommand.EndGame, GameCommand.SetRespawnDirection, GameCommand.StartProgramming, GameCommand.SubmitPrograms {
+public sealed interface GameCommand permits GameCommand.EndGame, GameCommand.SetRespawnDirection, GameCommand.StartProgramming, GameCommand.SubmitPrograms, GameCommand.SubmitReaction {
 
     record StartProgramming(UUID commandId, UUID gameId, long windowMs) implements GameCommand {
     }
@@ -34,4 +36,6 @@ public sealed interface GameCommand permits GameCommand.EndGame, GameCommand.Set
 
     record SetRespawnDirection(UUID commandId, UUID gameId, PlayerID player, Direction direction) implements GameCommand{
     }
+
+    record SubmitReaction(UUID commandId, UUID gameId, PlayerID player, ReactionId reactionId, ReactionChoice choice) implements GameCommand {}
 }

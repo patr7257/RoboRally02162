@@ -1,7 +1,11 @@
 package dk.dtu.domain.core;
 
+import dk.dtu.domain.core.reaction.*;
+import dk.dtu.domain.model.Robot;
+
 import java.time.Instant;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ScheduledFuture;
@@ -28,6 +32,33 @@ public class GameSession {
     private final int totalPlayers;
     private int deadRobotsAwaitingRespawn = 0;
     private final Set<Integer> robotsWithRespawnDirection = new HashSet<>();
+
+    private ReactionRequest<?> pendingReaction;
+    private ReactionResolution<?> reactionResolution;
+    private ScheduledFuture<?> reactionTimeoutTask;
+    private ReactionExecutionContext reactionContext;
+
+    /**
+     * Stores execution context when pausing for a reaction.
+     * Allows resuming at the exact point where we paused.
+     *
+     * @author William Pii Jæger
+     */
+    public static class ReactionExecutionContext {
+        private final int registerIndex;
+        private final List<Robot> robotsInOrder;
+        private final int robotIndex;
+
+        public ReactionExecutionContext(int registerIndex, List<Robot> robotsInOrder, int robotIndex) {
+            this.registerIndex = registerIndex;
+            this.robotsInOrder = robotsInOrder;
+            this.robotIndex = robotIndex;
+        }
+
+        public int getRegisterIndex() { return registerIndex; }
+        public List<Robot> getRobotsInOrder() { return robotsInOrder; }
+        public int getRobotIndex() { return robotIndex; }
+    }
 
     /**
      * Creates a new session around a specific game.
@@ -197,5 +228,92 @@ public class GameSession {
     public synchronized void clearDeadRobotsAwaitingRespawn() {
         this.deadRobotsAwaitingRespawn = 0;
         this.robotsWithRespawnDirection.clear();
+    }
+
+    /**
+     * Sets a pending reaction request that needs to be resolved.
+     *
+     * @author William Pii Jæger
+     */
+    public synchronized void setPendingReaction(ReactionRequest<?> request) {
+        this.pendingReaction = request;
+        this.reactionResolution = null;
+    }
+
+    /**
+     * Gets the current pending reaction request, if any.
+     *
+     * @author William Pii Jæger
+     */
+    public synchronized ReactionRequest<?> getPendingReaction() {
+        return pendingReaction;
+    }
+
+    /**
+     * Clears the pending reaction and its resolution.
+     *
+     * @author William Pii Jæger
+     */
+    public synchronized void clearReaction() {
+        this.pendingReaction = null;
+        this.reactionResolution = null;
+        this.reactionContext = null;
+    }
+
+    /**
+     * Sets the resolution for the current pending reaction.
+     *
+     * @author William Pii Jæger
+     */
+    public synchronized void setReactionResolution(ReactionResolution<?> resolution) {
+        this.reactionResolution = resolution;
+    }
+
+    /**
+     * Checks if the pending reaction has been resolved.
+     *
+     * @author William Pii Jæger
+     */
+    public synchronized boolean isReactionResolved() {
+        return reactionResolution != null;
+    }
+
+    /**
+     * Sets the timeout task for reaction resolution.
+     *
+     * @author William Pii Jæger
+     */
+    public synchronized void setReactionTimeoutTask(ScheduledFuture<?> task) {
+        this.reactionTimeoutTask = task;
+    }
+
+    /**
+     * Cancels the reaction timeout task.
+     *
+     * @author William Pii Jæger
+     */
+    public synchronized void cancelReactionTimeoutTask() {
+        if (reactionTimeoutTask != null && !reactionTimeoutTask.isDone()) {
+            reactionTimeoutTask.cancel(false);
+        }
+        reactionTimeoutTask = null;
+    }
+
+    /**
+     * Stores the execution context when pausing for a reaction.
+     *
+     * @author William Pii Jæger
+     */
+    public synchronized void setReactionContext(ReactionExecutionContext context) {
+        this.reactionContext = context;
+    }
+
+    /**
+     * Gets the stored execution context.
+     *
+     * @author William Pii Jæger
+     */
+    public synchronized ReactionExecutionContext getReactionContext() {
+        return reactionContext;
     }
 }
