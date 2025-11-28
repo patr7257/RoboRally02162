@@ -51,7 +51,7 @@ export function getSocket(): WebSocket {
       });
       socket = null;
 
-      if (reconnectAttempts < maxReconnectAttempts) {
+      if (reconnectAttempts < maxReconnectAttempts && !e.wasClean) {
         reconnectAttempts++;
         console.log(`Reconnecting in ${reconnectInterval / 1000}s...`);
         setTimeout(getSocket, reconnectInterval);
