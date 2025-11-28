@@ -124,12 +124,10 @@ public class Server implements WebSocketConfigurer { // TODO: after host connect
             public void handleMessage(WebSocketSession session, WebSocketMessage<?> message) throws Exception {
                 try {
                     String jSonText = message.getPayload().toString();
-                    System.out.println(jSonText);
                     JsonNode json = JsonUtil.parser(jSonText);
                     String lobbyID = json.get("lobbyID").asText();
                     User user = (User) session.getAttributes().get("user");
                     String userID = user.getUserID();
-                    //System.out.println(userID);
                     Lobby lob = serverManager.getLobbyFromLobbyID(lobbyID); // TODO: check for valid ID
                     lob.handleClientMessage(userID, json); // TODO: Check that toString() is correct
                 } catch (Exception e) {
@@ -237,7 +235,6 @@ public class Server implements WebSocketConfigurer { // TODO: after host connect
                     }
 
                     String lobbyID = serverManager.getLobbyIDFromGameID(gameID);
-
                     if (lobbyID == null) {
                         System.err.println("[HOST] Unknown gameID " + gameID + " — no lobby mapping yet");
                         return;

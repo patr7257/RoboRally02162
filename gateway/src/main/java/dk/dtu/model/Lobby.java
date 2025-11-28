@@ -218,11 +218,7 @@ public class Lobby {
      */
 
     public JsonNode saveGame() {
-        JsonNode gameSnapshot = host.saveGame(gameID);
-
-        notifyObservers(LobbyUpdateReason.DESTROYED);
-
-        return gameSnapshot;
+        return host.saveGame(gameID);
     }
 
     /**
@@ -252,6 +248,12 @@ public class Lobby {
         ObjectNode root = JsonUtil.createObjectNode();
         root.put("type", json.get("type"));
         root.set("payload", json.get("payload"));
+
+        String type = json.get("type").asText();
+        if (type.equals("programmingStarted") || type.equals("gameFinished")) {
+            //System.out.println("GAME IS SAVING!");
+            notifyObservers(LobbyUpdateReason.GAME_UPDATE);
+        }
 
         switch (json.get("delivery").asText()) {
             case "DIRECT":

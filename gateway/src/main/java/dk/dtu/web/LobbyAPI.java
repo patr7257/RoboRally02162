@@ -322,9 +322,7 @@ public class LobbyAPI {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("USER_NOT_IN_LOBBY");
         }
         Map<String, String> result = lob.getUsernamePlayerIDMaps();
-        System.out.println("api call");
         String json = JsonUtil.toJson(result);
-        System.out.println(json);
         return ResponseEntity.ok(json);
     }
 

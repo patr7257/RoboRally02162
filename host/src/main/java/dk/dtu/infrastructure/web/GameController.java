@@ -368,20 +368,16 @@ public class GameController {
         Map<Integer, Map<String, Object>> decks = new HashMap<>();
 
         for (Integer pid : players) {
-            Optional<List<ProgramCard>> handOpt = gameManager.query(gameID, new GameQuery.GetHand(pid));
-
             Deck deck = session.getGame().getDeckMap().get(pid);
             decks.put(
                 pid,
                     Map.of(
                        "drawPile", deck.getDrawPile(),
                        "discardPile", deck.getDiscardPile(),
-                       "hand", handOpt.orElse(Collections.emptyList())
+                       "hand", deck.getHand()
                     )
             );
         }
-
-        gameManager.endGame(gameID);
 
         return new SaveGameResponse(snapShotPayload, decks);
     }

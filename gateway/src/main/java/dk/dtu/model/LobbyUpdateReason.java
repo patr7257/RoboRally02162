@@ -10,4 +10,5 @@ public enum LobbyUpdateReason {
     UNLOCKED,
     GAME_ENDED,
     GAME_STARTED,
+    GAME_UPDATE
 }

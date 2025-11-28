@@ -10,7 +10,6 @@ import { BoardRenderer } from "./BoardRenderer";
 import { GameControls } from "./GameControls";
 import CheckpointChecklist from "../ui/checkpointChecklist";
 import { leaveLobby } from '../lobby/LeaveLobby';
-import { saveGame } from '../lobby/SaveGame';
 import { RespawnDirectionModal } from '../ui/RespawnDirectionModal';
 
 /**
@@ -207,7 +206,7 @@ export default function Board() {
             break;
 
           case "gameSaved":
-            navigate("/");
+            console.log("Game has been saved!");
 
           case "ack":
             console.log("Command acknowledged:", data.payload.message);
@@ -502,14 +501,6 @@ export default function Board() {
                 }}
               >
                 Go to Homepage
-              </button>
-
-              <button
-                className="go-home-btn"
-                onClick={() => saveGame(lobbyId)}
-                disabled={gameState === "executing"}
-              >
-                Save and Quit
               </button>
             </div>
           </div>

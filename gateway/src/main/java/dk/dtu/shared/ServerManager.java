@@ -1,12 +1,14 @@
 package dk.dtu.shared;
 
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import dk.dtu.interfaces.GameDatabase;
 import dk.dtu.interfaces.UserDatabase;
 import dk.dtu.model.*;
 import dk.dtu.model.database.DynamicUserDatabase;
 import dk.dtu.observer.LobbyObserver;
 import dk.dtu.util.JsonUtil;
 import dk.dtu.util.LobbyFactory;
+import dk.dtu.web.GameHandler;
 import org.springframework.stereotype.Component;
 import org.springframework.web.socket.WebSocketSession;
 
@@ -35,15 +37,17 @@ public class ServerManager implements LobbyObserver {
     private final LobbyFactory lobbyFactory;
     private final UserDatabase userDatabase;
     private final AuthManager authManager;
+    private final GameService gameService;
     /**
      * @author Niklas Emil Lysdal
      */
 
-    public ServerManager(Host host, LobbyFactory lobbyFactory, DynamicUserDatabase userDatabase,AuthManager authManager) {
+    public ServerManager(Host host, LobbyFactory lobbyFactory, DynamicUserDatabase userDatabase, AuthManager authManager, GameService gameService) {
         this.host = host;
         this.lobbyFactory = lobbyFactory;
         this.userDatabase = userDatabase;
         this.authManager = authManager;
+        this.gameService = gameService;
     }
 
     public Host getHost() {
@@ -80,6 +84,9 @@ public class ServerManager implements LobbyObserver {
             case GAME_STARTED:
                 gameToLobby.put(lobby.getGameID().toString(), lobby.getLobbyID());
                 notifyClientsOfLobbies();
+                break;
+            case GAME_UPDATE:
+                gameService.saveGame(lobby);
                 break;
             default:
 
