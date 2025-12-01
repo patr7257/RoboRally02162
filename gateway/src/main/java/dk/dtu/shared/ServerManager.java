@@ -25,7 +25,6 @@ import java.util.concurrent.ConcurrentHashMap;
  * @author Karl Johannes Agerbo
  * @author Niklas Emil Lysdal
  */
-
 @Component
 public class ServerManager implements LobbyObserver {
     private final Map<String, Client> clients = new ConcurrentHashMap<>();
@@ -41,8 +40,7 @@ public class ServerManager implements LobbyObserver {
     /**
      * @author Niklas Emil Lysdal
      */
-
-    public ServerManager(Host host, LobbyFactory lobbyFactory, DynamicUserDatabase userDatabase, AuthManager authManager, GameService gameService) {
+    public ServerManager(Host host, LobbyFactory lobbyFactory, DynamicUserDatabase userDatabase,AuthManager authManager, GameService gameService) {
         this.host = host;
         this.lobbyFactory = lobbyFactory;
         this.userDatabase = userDatabase;
@@ -57,7 +55,6 @@ public class ServerManager implements LobbyObserver {
     /**
      * @author Niklas Emil Lysdal
      */
-
     @Override
     public void handleUpdate(LobbyUpdateReason reason, Lobby lobby) {
         switch (reason) {
@@ -70,7 +67,7 @@ public class ServerManager implements LobbyObserver {
                     lobbies.remove(lobID);
                     loadedLobbies.remove(lobID);
                     lobbyIDFromSaveID.remove(lobby.getSaveID().toString());
-                    notifyClientsOfLobbies();
+                    notifyClientsOfUpdates("lobbies", "updatedLobbies");
                 }
                 break;
 
@@ -83,10 +80,10 @@ public class ServerManager implements LobbyObserver {
                 break;
             case GAME_STARTED:
                 gameToLobby.put(lobby.getGameID().toString(), lobby.getLobbyID());
-                notifyClientsOfLobbies();
+                notifyClientsOfUpdates("lobbies", "updatedLobbies");
                 break;
             case GAME_UPDATE:
-                gameService.saveGame(lobby);
+                gameService.saveGame(this, lobby);
                 break;
             default:
 
@@ -99,18 +96,15 @@ public class ServerManager implements LobbyObserver {
      * @author Benjamin Benyo Endahl Hansen
      * @author Karl Johannes Agerbo
      */
-
     public Lobby getLobbyFromLobbyID(String lobID) {
         Lobby lob = loadedLobbies.get(lobID);
         return lob == null ? lobbies.get(lobID) : lob;
     }
 
-
     /**
      * @author Niklas Emil Lysdal
      * @return Returns whether the userID has a corresponding user in database.
      */
-
     public boolean validateUserID(String userID) {
         return userDatabase.existsID(userID);
     }
@@ -118,7 +112,6 @@ public class ServerManager implements LobbyObserver {
     /**
      * @author Niklas Emil Lysdal
      */
-
     public ArrayList<Lobby> getLobbiesListCopy() {
         return new ArrayList<>(lobbies.values());
     }
@@ -147,7 +140,6 @@ public class ServerManager implements LobbyObserver {
     /**
      * @author Niklas Emil Lysdal
      */
-
     public void putClient(Client client) {
         clients.put(client.getUserID(), client);
     }
@@ -155,7 +147,6 @@ public class ServerManager implements LobbyObserver {
     /**
      * @author Niklas Emil Lysdal
      */
-
     public Client createClient(User user, WebSocketSession session) {
         Client newClient = new Client(user, session);
         putClient(newClient);
@@ -165,7 +156,6 @@ public class ServerManager implements LobbyObserver {
     /**
      * @author Niklas Emil Lysdal
      */
-
     public Client removeClient(String clientID) {
         return clients.remove(clientID);
     }
@@ -173,7 +163,6 @@ public class ServerManager implements LobbyObserver {
     /**
      * @author Niklas Emil Lysdal
      */
-
     public String removeGameMapping(String gameID) {
         return gameToLobby.remove(gameID); // returns such that caller can check if object was originally in map
     }
@@ -181,7 +170,6 @@ public class ServerManager implements LobbyObserver {
     /**
      * @author Niklas Emil Lysdal
      */
-
     public synchronized Lobby createLobby(Client creator, Host host, String lobbyName, int capacity) {
         return createLobbyBody(creator, host, lobbyName, capacity);
     }
@@ -189,7 +177,6 @@ public class ServerManager implements LobbyObserver {
     /**
      * @author Niklas Emil Lysdal
      */
-
     public synchronized Lobby createLobby(Client creator, String lobbyName, int capacity) {
         return createLobbyBody(creator, this.host, lobbyName, capacity);
     }
@@ -197,7 +184,6 @@ public class ServerManager implements LobbyObserver {
     /**
      * @author Niklas Emil Lysdal
      */
-
     private synchronized Lobby createLobbyBody(Client creator, Host host, String lobbyName, int capacity) {
         boolean invalidLobbyName = lobbies.values().stream().anyMatch(lobby -> lobby.getLobbyName().equals(lobbyName));
         if (invalidLobbyName) {
@@ -207,26 +193,25 @@ public class ServerManager implements LobbyObserver {
         lobbies.put(lob.getLobbyID(), lob);
         lob.addObserver(this);
 
-        notifyClientsOfLobbies();
+        notifyClientsOfUpdates("lobbies", "updatedLobbies");
 
         return lob;
     }
 
     /**
      * @author Niklas Emil Lysdal
+     * @author Benjamin Benyo Endahl Hansen
      */
-
-    private void notifyClientsOfLobbies() {
+    public void notifyClientsOfUpdates(String type, String action) {
         ObjectNode msg = JsonUtil.createObjectNode();
-        msg.put("type", "lobbies");
-        msg.put("action", "updatedLobbies");
+        msg.put("type", type);
+        msg.put("action", action);
         broadcastToClients(msg);
     }
 
     /**
      * @author Niklas Emil Lysdal
      */
-
     private void broadcastToClients(ObjectNode msg) {
         for (Client client : clients.values()) {
             if (client.isSessionOpen()) {
@@ -240,14 +225,21 @@ public class ServerManager implements LobbyObserver {
      * @author Benjamin Benyo Endahl Hansen
      * @author Karl Johannes Agerbo
      */
-
-    public Lobby recreateLobby(Client c, Map<String, String> userToPlayer, UUID saveID) {
-        Lobby lob = lobbyFactory.recreateLobby(c, this.host, userToPlayer, saveID);
+    public Lobby recreateLobby(Client c, String lobbyName, Map<String, String> userToPlayer, UUID saveID) {
+        Lobby lob = lobbyFactory.recreateLobby(c, lobbyName, this.host, userToPlayer, saveID);
         lobbyIDFromSaveID.put(lob.getSaveID().toString(), lob.getLobbyID());
         loadedLobbies.put(lob.getLobbyID(), lob);
         lob.addObserver(this);
         return lob;
     }
+
+    /**
+     * @author Benjamin Benyo Endahl Hansen
+     */
+    public String getUsernameFromUUID(String UUID){
+        return userDatabase.findUserById(UUID).getName();
+    }
+
 
     /**
      * @author Niklas Emil Lysdal

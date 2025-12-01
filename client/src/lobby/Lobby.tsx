@@ -34,6 +34,11 @@ export default function Lobby() {
        Continue Game
     </button>
 
+    <button className="metal-button" onClick={() => navigate("/seeAllGamesScene")}>
+       Game Administration
+    </button>
+
+
     <button className="metal-button" onClick={() => navigate("/")}>
       Go to homepage
     </button>

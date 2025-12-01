@@ -37,8 +37,8 @@ public  class LobbyFactory {
      * @author Karl Johannes Agerbo
      */
 
-    public Lobby recreateLobby(Client c, Host host, Map<String, String> userToPlayer, UUID saveID) {
-        return new Lobby("R" + nextRecreatedLobbyID++, c, host, userToPlayer, saveID);
+    public Lobby recreateLobby(Client c, String lobbyName, Host host, Map<String, String> userToPlayer, UUID saveID) {
+        return new Lobby("R" + nextRecreatedLobbyID++, lobbyName, c, host, userToPlayer, saveID);
     }
 
 }

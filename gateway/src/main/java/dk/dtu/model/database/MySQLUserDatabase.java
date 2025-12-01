@@ -15,9 +15,6 @@ import java.util.UUID;
 @Service("mysqlUserDatabase")
 public class MySQLUserDatabase implements UserDatabase {
 
-    private static final String URL = "jdbc:mysql://localhost:3306/RoboRallyDatabase";
-    private static final String USER = "RoboRallyUser";
-    private static final String PASSWORD = "RoboRallyDatabaseUser";
     private final BCryptPasswordEncoder encoder = new BCryptPasswordEncoder();
 
     /**
@@ -25,7 +22,7 @@ public class MySQLUserDatabase implements UserDatabase {
      */
 
     private Connection connect() throws SQLException {
-        return DriverManager.getConnection(URL, USER, PASSWORD);
+        return DriverManager.getConnection(DatabaseCredentials.DBURL, DatabaseCredentials.USER, DatabaseCredentials.PASSWORD);
     }
 
     /**

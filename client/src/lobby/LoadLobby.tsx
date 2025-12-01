@@ -1,6 +1,6 @@
 import { useNavigate } from "react-router-dom";
 import Layout from "./Layout";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 
 
 /** 
@@ -53,13 +53,16 @@ export default function LoadLobby() {
       setError("Network error. Try again.");
     }
   };
+  useEffect(() => {
+    seeSavedGames();
+  }, []);
 
   /** 
   * @author Bjarke Søderhamn Petersen
   * @author Karl Johannes Agerbo
   * @author Benjamin Benyo Endahl Hansen
   */
-  const loadGame = async (saveId: string):Promise<boolean>=> {
+  const loadGame = async (saveId: string): Promise<boolean> => {
     setError("");
     try {
       const response = await fetch(API_BASE_URL + "/api/game/loadGame", {
@@ -149,7 +152,7 @@ export default function LoadLobby() {
               <ul className="terminal-list">
                 {savedGames.map((game, index) => (
                   <li key={index} className="terminal-item">
-                    <span className="terminal-id">{game.saveID.slice(-5)}</span>
+                    <span className="terminal-id">{game.lobbyName}</span>
                     <button
                       className="metal-button small"
                       onClick={async () => {

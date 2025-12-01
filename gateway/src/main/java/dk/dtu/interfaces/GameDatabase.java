@@ -3,6 +3,7 @@ package dk.dtu.interfaces;
 import com.fasterxml.jackson.databind.JsonNode;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * @author Bjarke Søderhamn Petersen
@@ -18,4 +19,6 @@ public interface GameDatabase {
     JsonNode getGameSnapshot(String saveID);
     void deleteSavedGame(String saveID);
     boolean checkUserInGame(String userID, String saveID);
+    Map<String, JsonNode> getAllGames();
+    JsonNode getLobbyName(String saveID);
 }

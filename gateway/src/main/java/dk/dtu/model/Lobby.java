@@ -69,13 +69,14 @@ public class Lobby {
      * @author Karl Johannes Agerbo
      */
 
-    public Lobby(String lobbyID, Client c, Host host, Map<String, String> userToPlayer, UUID saveID) {
+    public Lobby(String lobbyID, String lobbyName, Client c, Host host, Map<String, String> userToPlayer, UUID saveID) {
         this.userToPlayer = userToPlayer;
         this.lobbyID = lobbyID;
         this.host = host;
         this.saveID = saveID;
         loadedLobby = true;
-        this.capacity=userToPlayer.size();
+        this.capacity = userToPlayer.size();
+        this.lobbyName = lobbyName;
         addPlayer(c);
     }
 

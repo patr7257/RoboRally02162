@@ -116,7 +116,18 @@ public class LocalGameDatabase implements GameDatabase {
         return gamesFromSaveID.get(saveID);
     }
 
+    /**
+     * @author Benjamin Benyo Endahl Hansen
+     */
+    @Override
+    public Map<String, JsonNode> getAllGames() {
+        return new HashMap<>(gamesFromSaveID);
+    }
 
+    @Override
+    public JsonNode getLobbyName(String saveID) {
+        return gamesFromSaveID.get(saveID).get("lobbyName");
+    }
 
     /**
      * @author Bjarke Søderhamn Petersen

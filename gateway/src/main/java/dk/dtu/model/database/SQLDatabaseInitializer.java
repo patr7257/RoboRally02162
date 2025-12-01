@@ -12,12 +12,6 @@ import java.sql.SQLException;
 
 public class SQLDatabaseInitializer {
 
-    //Credentials
-    private static final String URL = "jdbc:mysql://localhost:3306/";
-    private static final String DBURL = "jdbc:mysql://localhost:3306/RoboRallyDatabase";
-    private static final String USER = "RoboRallyUser";
-    private static final String PASSWORD = "RoboRallyDatabaseUser";
-
     /**
      * @author Asger Allin Jensen
      */
@@ -32,7 +26,7 @@ public class SQLDatabaseInitializer {
      */
 
     public static void createDatabase() {
-        try (Connection conn = DriverManager.getConnection(URL, USER, PASSWORD);
+        try (Connection conn = DriverManager.getConnection(DatabaseCredentials.URL, DatabaseCredentials.USER, DatabaseCredentials.PASSWORD);
                 Statement stmt = conn.createStatement()) {
 
             stmt.executeUpdate("CREATE DATABASE IF NOT EXISTS RoboRallyDatabase");
@@ -51,7 +45,7 @@ public class SQLDatabaseInitializer {
 
     public static void createTables() {
 
-        try (Connection conn = DriverManager.getConnection(DBURL, USER, PASSWORD);
+        try (Connection conn = DriverManager.getConnection(DatabaseCredentials.DBURL, DatabaseCredentials.USER, DatabaseCredentials.PASSWORD);
                 Statement stmt = conn.createStatement()) {
 
             String createUserTable = """

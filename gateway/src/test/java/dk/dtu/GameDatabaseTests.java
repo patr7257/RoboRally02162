@@ -185,7 +185,7 @@ public class GameDatabaseTests {
             String userID = tokenUtil.extractUserToken(token).userID();
             String response = seeSavedGames(token);
             String saveID = gameDatabase.getSavedGames(userID).getFirst();
-            assertThat(JsonUtil.parser(response)).containsExactly(JsonUtil.parser("{\"saveID\":\"" + saveID + "\"}"));
+            assertThat(JsonUtil.parser(response)).containsExactly(JsonUtil.parser("{\"saveID\":\"" + saveID + "\",\"lobbyName\":\"" + "testName" + "\"}"));
         }
     }
 
@@ -321,7 +321,7 @@ public class GameDatabaseTests {
      */
     private void saveGame(String lobbyID) {
         Lobby lob = serverManager.getLobbyFromLobbyID(lobbyID);
-        gameService.saveGame(lob);
+        gameService.saveGame(serverManager, lob);
     }
 
     /**

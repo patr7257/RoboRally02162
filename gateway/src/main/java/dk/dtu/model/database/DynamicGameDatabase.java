@@ -9,6 +9,7 @@ import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
 import java.util.List;
+import java.util.Map;
 
 /**
  * @author Bjarke Søderhamn Petersen
@@ -80,6 +81,7 @@ public class DynamicGameDatabase implements GameDatabase {
             disableMySQL();
             local.saveGame(userID, snapshot, saveID);
         }
+
     }
 
 
@@ -164,6 +166,31 @@ public class DynamicGameDatabase implements GameDatabase {
         } catch (Exception e) {
             disableMySQL();
             return local.getGameSnapshot(saveID);
+        }
+    }
+
+    /**
+     * Fetch a map of saveID and gameInfo for all games in the databse.
+     * @returns Map<saveID, gameInfo>
+     * @author Benjamin Benyo Endahl Hansen
+     */
+    @Override
+    public Map<String, JsonNode> getAllGames() {
+        try {
+            return active().getAllGames();
+        } catch (Exception e) {
+            disableMySQL();
+            return local.getAllGames();
+        }
+    }
+
+    @Override
+    public JsonNode getLobbyName(String saveID) {
+        try {
+            return active().getLobbyName(saveID);
+        } catch (Exception e) {
+            disableMySQL();
+            return local.getLobbyName(saveID);
         }
     }
 

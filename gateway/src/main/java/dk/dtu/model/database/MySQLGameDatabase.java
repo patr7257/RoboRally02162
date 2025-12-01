@@ -4,10 +4,14 @@ import com.fasterxml.jackson.databind.JsonNode;
 import dk.dtu.interfaces.GameDatabase;
 import dk.dtu.util.JsonUtil;
 import org.springframework.stereotype.Service;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 import java.sql.*;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * @author Karl Johannes Agerbo
@@ -16,15 +20,11 @@ import java.util.List;
 @Service("mysqlGameDatabase")
 public class MySQLGameDatabase implements GameDatabase {
 
-    private static final String URL = "jdbc:mysql://localhost:3306/RoboRallyDatabase";
-    private static final String USER = "RoboRallyUser";
-    private static final String PASSWORD = "RoboRallyDatabaseUser";
-
     /**
      * @author Karl Johannes Agerbo
      */
     private Connection connect() throws SQLException {
-        return DriverManager.getConnection(URL, USER, PASSWORD);
+        return DriverManager.getConnection(DatabaseCredentials.DBURL, DatabaseCredentials.USER, DatabaseCredentials.PASSWORD);
     }
 
     /**
@@ -174,6 +174,44 @@ public class MySQLGameDatabase implements GameDatabase {
     }
 
 
+
+    /**
+     * @author Benjamin Benyo Endahl Hansen
+     */
+    @Override
+    public Map<String, JsonNode> getAllGames() {
+        Map<String, JsonNode> saveSnapshots = new HashMap<>();
+        String query = """
+        SELECT * FROM games
+    """;
+
+        ObjectMapper objectMapper = new ObjectMapper();
+
+        try (Connection conn = connect();
+             PreparedStatement stmt = conn.prepareStatement(query);
+             ResultSet rs = stmt.executeQuery()) {
+
+            while (rs.next()) {
+                String saveID = rs.getString("SaveID");
+                String jsonString = rs.getString("Snapshot");
+                JsonNode jsonNode = objectMapper.readTree(jsonString);
+                saveSnapshots.put(saveID, jsonNode);
+            }
+
+        } catch (SQLException e) {
+            throw new RuntimeException("MySQL getAllSaveSnapshots failed", e);
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to parse JSON snapshot", e);
+        }
+
+        return saveSnapshots;
+    }
+
+    @Override
+    public JsonNode getLobbyName(String saveID) {
+        JsonNode snapshot = getGameSnapshot(saveID);
+        return snapshot != null ? snapshot.get("lobbyName") : null;
+    }
 
     /**
      * @author Karl Johannes Agerbo

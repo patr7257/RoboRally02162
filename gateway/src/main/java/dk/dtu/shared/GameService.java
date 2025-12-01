@@ -24,11 +24,13 @@ public class GameService {
      * @author Benjamin Benyo Endahl Hansen
      * @author Karl Johannes Agerbo
      */
-    public void saveGame(Lobby lob) {
+    public void saveGame(ServerManager serverManager, Lobby lob) {
         try {
             JsonNode gameSnapshot = lob.saveGame();
             Map<String, String> userToPlayer = lob.getUserToPlayer();
+            String lobbyName = lob.getLobbyName();
             Map<String, Object> game = Map.of(
+                    "lobbyName", lobbyName,
                     "users", userToPlayer,
                     "gameSnapshot", gameSnapshot
             );
@@ -38,8 +40,10 @@ public class GameService {
                 gameDatabase.saveGame(u, gameInfo, lob.getSaveID().toString());
             }
             lob.notifyGameSaved(true);
+            serverManager.notifyClientsOfUpdates("games", "updatedGames");
         } catch (Exception e) {
             lob.notifyGameSaved(false);
+            e.printStackTrace();
         }
     }
 
@@ -57,6 +61,14 @@ public class GameService {
 
     public void deleteSavedGame(String saveID) {
         gameDatabase.deleteSavedGame(saveID);
+    }
+
+    public Map<String, JsonNode> getAllGames() {
+        return gameDatabase.getAllGames();
+    }
+
+    public JsonNode getLobbyName(String saveID) {
+        return gameDatabase.getLobbyName(saveID);
     }
 
 }
