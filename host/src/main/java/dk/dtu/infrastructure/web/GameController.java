@@ -48,7 +48,7 @@ public class GameController {
     public GameController(GameManager gameManager) {
         this.gameManager = gameManager;
     }
-    
+
     public record StartGameRequest(int amountPlayers, int boardSize) {}
     public record StartGameWithTemplateRequest(int amountPlayers, JsonNode boardTemplate) {}
     public record StartGameResponse(UUID gameID) {}
@@ -56,11 +56,11 @@ public class GameController {
     public record EndGameResponse(boolean endedGame) {}
 
     public record SaveGameRequest(String gameID) {}
-    public record SaveGameResponse(Object snapshotPayload, Object decks){}
+    public record SaveGameResponse(Object snapshotPayload, Object decks, Object damageDecks){}
 
     public record SnapshotLoadedPayload(GameDto game, BoardDto board, List<RobotDto> robots){}
     public record DeckDto(List<ProgramCard> drawPile, List<ProgramCard> discardPile, List<ProgramCard> hand){}
-    public record GameInfo(SnapshotLoadedPayload snapshotPayload, Map<Integer, DeckDto> decks){}
+    public record GameInfo(SnapshotLoadedPayload snapshotPayload, Map<Integer, DeckDto> decks, DamageDecksDto damageDecks){}
     public record StartLoadedGameRequest(int amountPlayers, int boardSize, String gameID, GameInfo gameInfo) {}
 
     /**
@@ -219,8 +219,8 @@ public class GameController {
 
         // Place robots in starting area (rows 0-1) with starting tiles
         int[][] startingPositions = {
-            {1, 0}, {2, 0}, {3, 0}, {4, 0}, {5, 0}, {6, 0}, {7, 0}, {8, 0},
-            {1, 1}, {2, 1}, {3, 1}, {4, 1}, {5, 1}, {6, 1}, {7, 1}, {8, 1}
+                {1, 0}, {2, 0}, {3, 0}, {4, 0}, {5, 0}, {6, 0}, {7, 0}, {8, 0},
+                {1, 1}, {2, 1}, {3, 1}, {4, 1}, {5, 1}, {6, 1}, {7, 1}, {8, 1}
         };
 
         for (int i = 0; i < req.amountPlayers() && i < startingPositions.length; i++) {
@@ -298,10 +298,10 @@ public class GameController {
     public synchronized StartGameResponse startWithTemplate(@RequestBody StartGameWithTemplateRequest req) {
         // Convert JSON template to Board using helper class
         Board board = BoardTemplateConverter.convertTemplateToBoard(req.boardTemplate());
-        
+
         // Create robots from the template's starting tiles
         List<Robot> robots = BoardTemplateConverter.createRobotsFromTemplate(board, req.amountPlayers());
-        
+
         // Create the board API and start the game (same as existing logic)
         BoardAPI boardApi = new BoardApiImpl(board, robots);
         UUID gameID = gameManager.startGame(board, boardApi, robots);
@@ -313,6 +313,7 @@ public class GameController {
      * @author Bjarke Søderhamn Petersen
      * @author Benjamin Benyo Endahl Hansen
      * @author Karl Johannes Agerbo
+     * @author Weihao Mo
      */
     @PostMapping("/startLoadedGame")
     public synchronized StartGameResponse start(@RequestBody StartLoadedGameRequest req) {
@@ -321,11 +322,30 @@ public class GameController {
 
         Board board = SnapshotMapper.fromBoardDto(boardDto);
         List<Robot> robots = SnapshotMapper.fromRobotDtos(snapshot.robots());
-        Map<Integer, Deck> deckMap = SnapshotMapper.fromMapDeckDto(req.gameInfo().decks());
+
+        DamageDecksDto damageDeckDto = req.gameInfo().damageDecks();
+        DamageDecks damageDecks;
+        if (damageDeckDto != null) {
+            damageDecks = new DamageDecks(
+                    damageDeckDto.spamCount(),
+                    damageDeckDto.trojanHorseCount(),
+                    damageDeckDto.wormCount()
+            );
+        } else {
+            damageDecks = null;
+        }
+
+        Map<Integer, Deck> deckMap = SnapshotMapper.fromMapDeckDto(req.gameInfo().decks(), damageDecks);
 
         BoardAPI boardApi = new BoardApiImpl(board, robots);
 
-        UUID gameID = gameManager.startGame(board, boardApi, robots, deckMap);
+        UUID gameID = gameManager.startGame(board, boardApi, robots, deckMap,damageDecks);
+
+        if (damageDecks != null) {
+            gameManager.findByID(gameID).ifPresent(game -> {
+                game.setDamageDecks(damageDecks);
+            });
+        }
 
         return new StartGameResponse(gameID);
     }
@@ -349,6 +369,7 @@ public class GameController {
      * @author Bjarke Søderhamn Petersen
      * @author Benjamin Benyo Endahl Hansen
      * @author Karl Johannes Agerbo
+     * @author Weihao Mo
      */
     @PostMapping("/saveGame")
     public SaveGameResponse save(@RequestBody SaveGameRequest req) throws Exception {
@@ -370,15 +391,22 @@ public class GameController {
         for (Integer pid : players) {
             Deck deck = session.getGame().getDeckMap().get(pid);
             decks.put(
-                pid,
+                    pid,
                     Map.of(
-                       "drawPile", deck.getDrawPile(),
-                       "discardPile", deck.getDiscardPile(),
-                       "hand", deck.getHand()
+                            "drawPile", deck.getDrawPile(),
+                            "discardPile", deck.getDiscardPile(),
+                            "hand", deck.getHand()
                     )
             );
         }
 
-        return new SaveGameResponse(snapShotPayload, decks);
+        DamageDecks gameDamageDecks = session.getGame().getDamageDecks();
+        Map<String, Object> damageDecksMap = Map.of(
+                "spamCount", gameDamageDecks.getSpamDrawPile(),
+                "trojanHorseCount", gameDamageDecks.getTrojanHorseDrawPile(),
+                "wormCount", gameDamageDecks.getWormDrawPile()
+        );
+
+        return new SaveGameResponse(snapShotPayload, decks, damageDecksMap);
     }
 }

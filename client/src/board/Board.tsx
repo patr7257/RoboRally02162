@@ -56,6 +56,11 @@ export default function Board() {
     width: number;
     height: number;
   } | null>(null);
+  const [damageDecks, setDamageDecks] = useState<{
+    spamCount: number;
+    trojanHorseCount: number;
+    wormCount: number;
+  } | null>(null);
 
   const [reactionPopup, setReactionPopup] = useState<{
     kind: string;
@@ -191,6 +196,7 @@ export default function Board() {
             setGameState('programming');
             setHasSubmitted(false);
             sendMessage({ lobbyID: lobbyId, payload: { type: "getDiscard" } });
+            sendMessage({ lobbyID: lobbyId, payload: { type: "getDamageDecks" } });
             sendMessage({ lobbyID: lobbyId, payload: { type: "getHand" } });
 
             startReadinessPolling();
@@ -259,6 +265,12 @@ export default function Board() {
             }
             break;
 
+          case "damageDecks":
+            console.log("Setting damage deck data:", actualData.payload);
+            setDamageDecks(actualData.payload);
+            break;
+
+
           default:
             console.log("Unknown message type:", data.type, data);
         }
@@ -269,6 +281,7 @@ export default function Board() {
 
     sendMessage({ lobbyID: lobbyId, payload: { type: "getBoard" } });
     sendMessage({ lobbyID: lobbyId, payload: { type: "getDiscard" } });
+    sendMessage({ lobbyID: lobbyId, payload: { type: "getDamageDecks" } });
     sendMessage({ lobbyID: lobbyId, payload: { type: "getHand" } });
 
     getRobotIDS();
@@ -616,6 +629,17 @@ export default function Board() {
           </div>
         </div>
         <div className="controls">
+          <div className="damageDecksViewer">
+            <p>Damage Cards Left</p>
+            {damageDecks && (
+              <div className="damage-decks-info">
+                <p>Spam: {damageDecks.spamCount} </p>
+                <p>Trojan Horse: {damageDecks.trojanHorseCount} </p>
+                <p>Worm: {damageDecks.wormCount} </p>
+              </div>
+            )}
+          </div>
+
           <GameControls
             selectedMoves={selectedMoves}
             onSubmitMove={handleSubmitMove}

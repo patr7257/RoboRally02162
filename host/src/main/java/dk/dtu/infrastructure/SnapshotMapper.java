@@ -171,9 +171,14 @@ public final class SnapshotMapper {
     }
 
     /**
-     @author Karl Johannes Agerbo
+     * @author Karl Johannes Agerbo
+     * @author Weihao Mo
      */
-    public static Map<Integer, Deck> fromMapDeckDto(Map<Integer, GameController.DeckDto> deckDtoMap) {
+    public static Map<Integer, Deck> fromMapDeckDto(Map<Integer, GameController.DeckDto> deckDtoMap, DamageDecks sharedDamageDecks) {
+        if (sharedDamageDecks == null) {
+            sharedDamageDecks = new DamageDecks(38, 15, 15);
+        }
+
         Map<Integer, Deck> deckMap = new HashMap<>();
         for (Map.Entry<Integer, GameController.DeckDto> entry : deckDtoMap.entrySet()) {
             Integer playerId = entry.getKey();
@@ -182,7 +187,8 @@ public final class SnapshotMapper {
             Deck deck = new Deck(
                     new ArrayDeque<>(dto.drawPile()),
                     dto.discardPile(),
-                    dto.hand()
+                    dto.hand(),
+                    sharedDamageDecks
             );
             deckMap.put(playerId, deck);
         }

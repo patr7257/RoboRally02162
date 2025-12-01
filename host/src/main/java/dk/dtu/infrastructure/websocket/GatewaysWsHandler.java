@@ -5,6 +5,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import dk.dtu.domain.core.*;
+import dk.dtu.domain.model.DamageDecks;
 import dk.dtu.domain.core.reaction.*;
 import dk.dtu.domain.model.Direction;
 import dk.dtu.domain.program.ProgramCard;
@@ -245,6 +246,23 @@ public class GatewaysWsHandler extends TextWebSocketHandler implements GameManag
                 DiscardPayload payload = new DiscardPayload("discard", cardStrings);
                 send(new OutgoingMessage<>("discard", Delivery.DIRECT,
                         withGame(meta, gameDto), payload));
+            }
+            case "getDamageDecks" -> {
+                DamageDecks damageDecks = gameManager.query(
+                        gameId,
+                        new GameQuery.GetDamageDecks()
+                ).get();
+
+                Optional<Game> gameOpt = gameManager.findByID(gameId);
+                GameDto gameDto = gameOpt.map(g -> SnapshotMapper.mapGame(gameId, g))
+                        .orElse(new GameDto(gameId, null));
+                int spamCount = damageDecks.getSpamDrawPile();
+                int trojanHorseCount = damageDecks.getTrojanHorseDrawPile();
+                int wormCount = damageDecks.getWormDrawPile();
+
+                DamageDecksDto dto = new DamageDecksDto(spamCount,trojanHorseCount,wormCount);
+
+                send(new OutgoingMessage<>("damageDecks", Delivery.DIRECT, withGame(meta, gameDto), dto));
             }
 
             case "getReadiness" -> {

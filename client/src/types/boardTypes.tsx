@@ -33,7 +33,10 @@ export type MoveType =
     | "AGAIN"
     | "SPEED"
     | "SANDBOX"
-    | "WEASEL";
+    | "WEASEL"
+    | "SPAM"
+    | "TROJAN_HORSE"
+    | "WORM";
 
 export interface Tile {
     x: number;

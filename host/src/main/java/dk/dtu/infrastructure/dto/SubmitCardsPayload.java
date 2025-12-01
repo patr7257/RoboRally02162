@@ -21,6 +21,9 @@ public record SubmitCardsPayload(String type, List<String> cards) {
                 case "ROTATERIGHT" -> revertCards.add(ProgramCard.right());
                 case "ROTATELEFT" -> revertCards.add(ProgramCard.left());
                 case "UTURN" -> revertCards.add(ProgramCard.uturn());
+                case "SPAM" -> revertCards.add(ProgramCard.spam());
+                case "TROJAN_HORSE" -> revertCards.add(ProgramCard.trojanHorse());
+                case "WORM" -> revertCards.add(ProgramCard.worm());
                 case "AGAIN" -> revertCards.add(ProgramCard.again());
                 case "SANDBOX" -> revertCards.add(ProgramCard.sandbox());
                 case "WEASEL" -> revertCards.add(ProgramCard.weasel());

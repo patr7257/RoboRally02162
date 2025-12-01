@@ -3,22 +3,27 @@ package dk.dtu.domain.core;
 import dk.dtu.domain.model.*;
 import dk.dtu.domain.program.ProgramCard;
 import dk.dtu.domain.program.ProgramOP;
+import dk.dtu.domain.rules.DestroyCause;
 import dk.dtu.domain.rules.DestroyEvent;
 import dk.dtu.domain.rules.MoveEvent;
 import dk.dtu.domain.rules.Outcome;
 import dk.dtu.domain.rules.api.BoardAPI;
 import dk.dtu.domain.rules.effects.*;
+import dk.dtu.infrastructure.dto.DamageDecksDto;
 
 import java.util.*;
 
 /**
  * Core game engine for RoboRally.
  * <p>
- * This class owns the board state, robots, decks, and phase index; executes rounds/registers;
- * applies tile effects via {@link BoardAPI}; evaluates win conditions; and notifies observers.
+ * This class owns the board state, robots, decks, and phase index; executes
+ * rounds/registers;
+ * applies tile effects via {@link BoardAPI}; evaluates win conditions; and
+ * notifies observers.
  * </p>
  * <p>
- * Thread-safety: not thread-safe; expected to be used from a single game-loop thread.
+ * Thread-safety: not thread-safe; expected to be used from a single game-loop
+ * thread.
  * </p>
  *
  * @author William Pii Jæger
@@ -39,6 +44,7 @@ public class Game {
 
     private PlayerID winner;
     private final List<GameObserver> observers = new ArrayList<>();
+    private DamageDecks damageDecks;
 
     /**
      * @author William Pii Jæger
@@ -50,6 +56,7 @@ public class Game {
         this.robots = robots;
         this.winner = null;
         this.robotsMap = new HashMap<>();
+        this.damageDecks = new DamageDecks(38, 15, 15);
         initGame(robots, null);
         this.phaseIndex = buildPhaseIndex(board.getCells());
         dealNewHands();
@@ -59,13 +66,15 @@ public class Game {
      * @author Bjarke Søderhamn Petersen
      * @author Benjamin Benyo Endahl Hansen
      * @author Karl Johannes Agerbo
+     * @author Weihao Mo
      */
-    public Game(Board board, BoardAPI api, List<Robot> robots, Map<Integer, Deck> decks) {
+    public Game(Board board, BoardAPI api, List<Robot> robots, Map<Integer, Deck> decks, DamageDecks damageDecks) {
         this.board = board;
         this.api = api;
         this.robots = robots;
         this.winner = null;
         this.robotsMap = new HashMap<>();
+        this.damageDecks = damageDecks;
         initGame(robots, decks);
         this.phaseIndex = buildPhaseIndex(board.getCells());
     }
@@ -79,7 +88,7 @@ public class Game {
 
         for (Robot r : robots) {
             this.robotMap.put(new PlayerID(playerCounter), r);
-            this.deckMap.put(r.getId(), decks == null ? new Deck() : decks.get(r.getId()));
+            this.deckMap.put(r.getId(), decks == null ? new Deck(damageDecks) : decks.get(r.getId()));
             playerCounter++;
         }
 
@@ -104,12 +113,15 @@ public class Game {
 
         if (tiles != null) {
             for (Tile[] row : tiles) {
-                if (row == null) continue;
+                if (row == null)
+                    continue;
                 for (Tile tile : row) {
-                    if (tile == null) continue;
+                    if (tile == null)
+                        continue;
                     for (TileEffect e : tile.getEffects()) {
                         var phases = e.phases();
-                        if (phases == null) continue;
+                        if (phases == null)
+                            continue;
                         for (Phase p : phases) {
                             temp.get(p).add(tile);
                         }
@@ -147,7 +159,8 @@ public class Game {
     }
 
     /**
-     * Submits and validates a player's selected program (fills remaining slots if allowed) and loads it on the robot.
+     * Submits and validates a player's selected program (fills remaining slots if
+     * allowed) and loads it on the robot.
      *
      * @param player the player ID
      * @param picked the list of picked program cards for this round/registers
@@ -157,7 +170,8 @@ public class Game {
      */
     public void submitProgram(PlayerID player, List<ProgramCard> picked) {
         Robot robot = robotMap.get(player);
-        if (robot == null) throw new IllegalArgumentException("No robot for player " + player.value());
+        if (robot == null)
+            throw new IllegalArgumentException("No robot for player " + player.value());
         Deck deck = deckMap.get(robot.getId());
         List<ProgramCard> program = deck.validateAndCompleteOrThrow(picked);
         robot.loadProgram(program);
@@ -179,7 +193,8 @@ public class Game {
 
     /**
      * Executes a full round: five registers, checking win conditions after each.
-     * If a winner is found, the round stops early. At the end, new hands are dealt and observers notified.
+     * If a winner is found, the round stops early. At the end, new hands are dealt
+     * and observers notified.
      *
      * @author William Pii Jæger
      * @author Weihao Mo
@@ -187,14 +202,16 @@ public class Game {
     public void startRound() {
         for (int reg = 1; reg <= 5; reg++) {
             executeRegister(reg);
-            if (evaluateWinConditions()) break;
+            if (evaluateWinConditions())
+                break;
         }
         dealNewHands();
         notifyGameUpdate();
     }
 
     /**
-     * Executes a single register inside the ACTIVATION phase and notifies observers afterward.
+     * Executes a single register inside the ACTIVATION phase and notifies observers
+     * afterward.
      * Also re-evaluates win conditions after execution.
      *
      * @param registerIndex the register number (1..5)
@@ -270,11 +287,12 @@ public class Game {
      */
     public void runPhase(Phase phase, Runnable body) {
         if (phase == Phase.ACTIVATION) {
-            for (Robot r : robots) r.setMovedOnActivation(false);
+            for (Robot r : robots)
+                r.setMovedOnActivation(false);
         }
         body.run();
-        for(Phase sub : Phase.values()) {
-            if(sub != Phase.ACTIVATE_ANTENNA) {
+        for (Phase sub : Phase.values()) {
+            if (sub != Phase.ACTIVATE_ANTENNA) {
                 applyTileEffects(sub);
             }
         }
@@ -282,20 +300,23 @@ public class Game {
 
     /**
      * Executes robot for the current register without applying tile effect.
-     * It differs from {@link #executeRegister(int)} in that it does not apply tile effects after movement
+     * It differs from {@link #executeRegister(int)} in that it does not apply tile
+     * effects after movement
      *
      * @author William Pii Jæger
      * @author Weihao Mo
      */
     public void executeRegisterMovesOnly() {
-        for (Robot r : robots) r.setMovedOnActivation(false);
+        for (Robot r : robots)
+            r.setMovedOnActivation(false);
         executeOneRegister();
         evaluateWinConditions();
         notifyGameUpdate();
     }
 
     /**
-     * Runs through all phases and applies their associated tile effects,then evaluate win conditions and notify observer
+     * Runs through all phases and applies their associated tile effects,then
+     * evaluate win conditions and notify observer
      *
      * @author William Pii Jæger
      */
@@ -306,13 +327,12 @@ public class Game {
     }
 
     /**
-     *
      * @author William Pii Jæger
      * @author Weihao Mo
      */
     private void runAllTilePhases() {
         for (Phase sub : Phase.values()) {
-            if(sub != Phase.ACTIVATE_ANTENNA) {
+            if (sub != Phase.ACTIVATE_ANTENNA) {
                 applyTileEffects(sub);
             }
         }
@@ -321,18 +341,22 @@ public class Game {
     /**
      * Applies all tile effects associated with a specific phase.
      * <p>
-     * This method retrieves all tiles that have effects in the given phase, executes those effects
-     * via {@link TileEffect#onPhase(Phase, Tile, BoardAPI)}, and then resolves the resulting
-     * movement and destruction intents through the BoardAPI. Robots are updated accordingly:
-     * moved robots have their positions updated, and destroyed robots are marked as dead and
+     * This method retrieves all tiles that have effects in the given phase,
+     * executes those effects
+     * via {@link TileEffect#onPhase(Phase, Tile, BoardAPI)}, and then resolves the
+     * resulting
+     * movement and destruction intents through the BoardAPI. Robots are updated
+     * accordingly:
+     * moved robots have their positions updated, and destroyed robots are marked as
+     * dead and
      * have their registers cleared.
      * </p>
      *
      * @param phase the phase for which to apply tile effects
-     * @see TileEffect#onPhase(Phase, Tile, BoardAPI)
-     * @see BoardAPI#resolveIntents()
      * @author Weihao Mo
      * @author William Pii Jæger
+     * @see TileEffect#onPhase(Phase, Tile, BoardAPI)
+     * @see BoardAPI#resolveIntents()
      */
     public void applyTileEffects(Phase phase) {
         List<Tile> tiles = phaseIndex.getOrDefault(phase, List.of());
@@ -351,6 +375,9 @@ public class Game {
             }
             for (DestroyEvent d : moved.destroys()) {
                 Robot r = robotsMap.get(d.robotId());
+                if (r.isAlive()) {
+                    applyRebootPenalty(d.robotId(), 2);
+                }
                 r.setPosition(d.at().x(), d.at().y());
                 r.clearRegisters();
                 r.setDead();
@@ -358,9 +385,9 @@ public class Game {
         }
     }
 
-
     /**
-     * Counts the number of checkpoints available on the board by scanning the ACTIVATION phase tiles.
+     * Counts the number of checkpoints available on the board by scanning the
+     * ACTIVATION phase tiles.
      *
      * @param idx phase index mapping
      * @return number of checkpoints present on the board
@@ -371,7 +398,8 @@ public class Game {
         List<Tile> activationTiles = phaseIndex.getOrDefault(Phase.ACTIVATE_CHECKPOINTS, List.of());
         for (Tile tile : activationTiles) {
             for (TileEffect effect : tile.getEffects()) {
-                if (effect instanceof Checkpoint) count++;
+                if (effect instanceof Checkpoint)
+                    count++;
             }
         }
         return count;
@@ -393,16 +421,15 @@ public class Game {
 
     /**
      * Set the respawn direction for the robot with the corresponding ID
-     * @param playerID the player ID for the robot
-     * @param direction the direction the robot should be facing
      *
+     * @param playerID  the player ID for the robot
+     * @param direction the direction the robot should be facing
      * @author Weihao Mo
      */
     public void setRespawnDirection(PlayerID playerID, Direction direction) {
         Robot robot = robotMap.get(playerID);
         robot.setRespawnDirection(direction);
     }
-
 
     /**
      * Returns a list of dead robots
@@ -414,7 +441,8 @@ public class Game {
     }
 
     /**
-     * Attempts to move a robot one step in a given direction via {@link BoardAPI#tryMoveOneStep(int, Direction)}.
+     * Attempts to move a robot one step in a given direction via
+     * {@link BoardAPI#tryMoveOneStep(int, Direction)}.
      * Updates robot positions and death states according to the returned events.
      *
      * @param api the board API used to attempt movement
@@ -422,6 +450,7 @@ public class Game {
      * @param dir the direction of attempted movement
      * @return true if movement occurred; false if blocked or no movement happened
      * @author William Pii Jæger
+     * @author Weihao Mo
      */
     private boolean applyOneStep(BoardAPI api, Robot r, Direction dir) {
         Outcome out = api.tryMoveOneStep(r.getId(), dir);
@@ -430,6 +459,9 @@ public class Game {
                 robotsMap.get(e.robotId()).setPosition(e.to().x(), e.to().y());
             }
             for (DestroyEvent d : moved.destroys()) {
+                if (r.isAlive()) {
+                    applyRebootPenalty(d.robotId(), 2);
+                }
                 robotsMap.get(d.robotId()).setPosition(d.at().x(), d.at().y());
                 robotsMap.get(d.robotId()).clearRegisters();
                 robotsMap.get(d.robotId()).setDead();
@@ -448,11 +480,63 @@ public class Game {
      *
      * @param robot the robot to execute
      * @author William Pii Jæger
+     * @author Weihao Mo
+     * @author Bjarke Søderhamn Petersen
      * @author Asger Allin Jensen
      */
     public void executeOneRobotTurn(Robot robot) {
         ProgramOP op = robot.pollNextOp();
         if (op == null) return;
+
+        Deck deck = deckMap.get(robot.getId());
+
+        boolean resolvingDamage = true;
+        while (resolvingDamage) {
+            if (op instanceof ProgramOP.Spam) {
+                damageDecks.setSpamDrawPile(damageDecks.getSpamDrawPile() + 1);
+                deck.removeFromHand(ProgramCard.spam());
+                op = playTopCard(deck);
+            } else if (op instanceof ProgramOP.TrojanHorse) {
+                for (int i = 0; i < 2; i++) {
+                    if (damageDecks.getSpamDrawPile() > 0) {
+                        deck.addToDiscard(ProgramCard.spam());
+                        damageDecks.setSpamDrawPile(damageDecks.getSpamDrawPile() - 1);
+                    } else {
+                        List<ProgramCard> availableCards = new ArrayList<>();
+                        if (damageDecks.getTrojanHorseDrawPile() > 0) {
+                            availableCards.add(ProgramCard.trojanHorse());
+                        }
+                        if (damageDecks.getWormDrawPile() > 0) {
+                            availableCards.add(ProgramCard.worm());
+                        }
+                        if (!availableCards.isEmpty()) {
+                            ProgramCard selected = availableCards.get(new Random().nextInt(availableCards.size()));
+                            deck.addToDiscard(selected);
+                            if (selected.equals(ProgramCard.trojanHorse())) {
+                                damageDecks.setTrojanHorseDrawPile(damageDecks.getTrojanHorseDrawPile() - 1);
+                            } else if (selected.equals(ProgramCard.worm())) {
+                                damageDecks.setWormDrawPile(damageDecks.getWormDrawPile() - 1);
+                            }
+                        }
+                    }
+                }
+                damageDecks.setTrojanHorseDrawPile(damageDecks.getTrojanHorseDrawPile() + 1);
+                deck.removeFromHand(ProgramCard.trojanHorse());
+                op = playTopCard(deck);
+            } else if (op instanceof ProgramOP.Worm) {
+                if (robot.isAlive()) {
+                    applyRebootPenalty(robot.getId(), 2);
+                }
+                robot.setDead();
+                robot.clearRegisters();
+                damageDecks.setWormDrawPile(damageDecks.getWormDrawPile() + 1);
+                deck.removeFromHand(ProgramCard.worm());
+                notifyGameUpdate();
+                return;
+            } else {
+                resolvingDamage = false;
+            }
+        }
 
         if (op instanceof ProgramOP.Again) {
             ProgramOP lastOp = robot.getLastExecutedOp();
@@ -463,9 +547,9 @@ public class Game {
             }
         }
 
-        if (op instanceof ProgramOP.Move(int stepsVal)) {
+        if (op instanceof ProgramOP.Move moveOp) {
             Direction dir = robot.getDirection();
-            int steps = stepsVal;
+            int steps = moveOp.steps();
             if (steps < 0) {
                 dir = dir.opposite();
                 steps = -steps;
@@ -486,6 +570,58 @@ public class Game {
     }
 
     /**
+     * Add spam cards to discard pile. If there are not enough spam cards, we add Trojan horse or worm instead
+     *
+     * @param robotId the id of the robot to execute
+     * @author Weihao Mo
+     */
+    private void applyRebootPenalty(int robotId, int count) {
+        Deck deck = deckMap.get(robotId);
+        if (!robotsMap.get(robotId).isAlive()) {
+            return;
+        }
+        for (int i = 0; i < count; i++) {
+            if (damageDecks.getSpamDrawPile() > 0) {
+                deck.addToDiscard(ProgramCard.spam());
+                damageDecks.setSpamDrawPile(damageDecks.getSpamDrawPile() - 1);
+            } else {
+                List<ProgramCard> availableCards = new ArrayList<>();
+
+                if (damageDecks.getTrojanHorseDrawPile() > 0) {
+                    availableCards.add(ProgramCard.trojanHorse());
+                }
+                if (damageDecks.getWormDrawPile() > 0) {
+                    availableCards.add(ProgramCard.worm());
+                }
+
+                if (availableCards.isEmpty()) {
+                    break;
+                }
+
+                ProgramCard selected = availableCards.get(new Random().nextInt(availableCards.size()));
+                deck.addToDiscard(selected);
+
+                if (selected.equals(ProgramCard.trojanHorse())) {
+                    damageDecks.setTrojanHorseDrawPile(damageDecks.getTrojanHorseDrawPile() - 1);
+                } else if (selected.equals(ProgramCard.worm())) {
+                    damageDecks.setWormDrawPile(damageDecks.getWormDrawPile() - 1);
+                }
+            }
+        }
+    }
+
+    /**
+     * @author Weihao Mo
+     * @author Bjarke Søderhamn Petersen
+     * @author Asger Allin Jensen
+     */
+    private ProgramOP playTopCard(Deck deck) {
+        ProgramCard card = deck.popTop();
+        deck.discard(card);
+        return card.toOp();
+    }
+
+    /**
      * Returns the list of robots in priority order for the current register.
      *
      * @return list of robots ordered by priority
@@ -495,9 +631,9 @@ public class Game {
         return api.getRobotsByPriority();
     }
 
-
     /**
-     * @deprecated Use {@link #executeOneRobotTurn(Robot)} with scheduling for visual delays
+     * @deprecated Use {@link #executeOneRobotTurn(Robot)} with scheduling for
+     * visual delays
      */
     private void executeOneRegister() {
         for (Robot r : api.getRobotsByPriority()) {
@@ -506,6 +642,7 @@ public class Game {
             applyTileEffects(Phase.ACTIVATE_PITS);
         }
     }
+
     /**
      * Registers a game observer.
      *
@@ -534,10 +671,9 @@ public class Game {
      */
     private void notifyWinner(PlayerID win) {
         for (GameObserver obs : observers) {
-            obs.onWinnerDeclared(this,win);
+            obs.onWinnerDeclared(this, win);
         }
     }
-
 
     /**
      * Notifies observers that the game state has been updated.
@@ -559,7 +695,8 @@ public class Game {
      * @author Weihao Mo
      */
     public void declareWinner(PlayerID win) {
-        if (this.winner != null) return;
+        if (this.winner != null)
+            return;
         this.winner = win;
         notifyWinner(win);
     }
@@ -567,20 +704,42 @@ public class Game {
     /**
      * Returns the current winner, if any.
      *
-     * @return an {@link Optional} containing the winner if declared; otherwise empty
+     * @return an {@link Optional} containing the winner if declared; otherwise
+     * empty
      * @author Weihao Mo
      */
     public Optional<PlayerID> getWinner() {
         return Optional.ofNullable(winner);
     }
 
-
     /**
-     @author Bjarke Søderhamn Petersen
-     @author Benjamin Benyo Endahl Hansen
-     @author Karl Johannes Agerbo
+     * @author Bjarke Søderhamn Petersen
+     * @author Benjamin Benyo Endahl Hansen
+     * @author Karl Johannes Agerbo
      */
     public Map<Integer, Deck> getDeckMap() {
         return deckMap;
+    }
+
+    /**
+     * @author Weihao Mo
+     */
+    public void setDeck(Deck d, int robotId) {
+        deckMap.put(robotId, d);
+    }
+
+    /**
+     * @author Weihao Mo
+     */
+    public void setDamageDecks(DamageDecks damageDecks) {
+        this.damageDecks = damageDecks;
+    }
+
+    /**
+     * @return the current damage decks
+     * @author Weihao Mo
+     */
+    public DamageDecks getDamageDecks() {
+        return damageDecks;
     }
 }

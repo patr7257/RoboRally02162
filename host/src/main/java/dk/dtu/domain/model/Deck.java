@@ -1,6 +1,7 @@
 package dk.dtu.domain.model;
 
 import dk.dtu.domain.program.ProgramCard;
+import dk.dtu.domain.program.ProgramOP;
 
 import java.util.*;
 import java.util.function.Supplier;
@@ -12,19 +13,23 @@ import java.util.function.Supplier;
  * @author Benjamin Benyo Endahl Hansen
  * @author Niklas Emil Lysdal
  * @author Karl Johannes Agerbo
+ * @author Weihao Mo
  * @author Bjarke Søderhamn Petersen
+ * @author Asger Allin Jensen
  */
 public class Deck {
     private Deque<ProgramCard> drawPile = new ArrayDeque<>();
     private List<ProgramCard> discardPile = new ArrayList<>();
     private List<ProgramCard> hand = new ArrayList<>(9);
+    private DamageDecks dDecks;
 
     /**
      * @author Lizette Bloch Dahl Nikolajsen
      * @author Kajsa Alice Ulrika Berlstedt
      */
-    public Deck() {
+    public Deck(DamageDecks dDecks) {
         // Use the standard 20-card RoboRally deck
+        this.dDecks = dDecks;
         List<ProgramCard> startingCards = buildStandardDeck();
         drawPile.addAll(startingCards);
     }
@@ -32,10 +37,11 @@ public class Deck {
     /**
      * @author Karl Johannes Agerbo
      */
-    public Deck(Deque<ProgramCard> drawPile, List<ProgramCard> discardPile, List<ProgramCard> hand) {
+    public Deck(Deque<ProgramCard> drawPile, List<ProgramCard> discardPile, List<ProgramCard> hand,DamageDecks dDecks) {
         this.drawPile = drawPile;
         this.discardPile = discardPile;
         this.hand = hand;
+        this.dDecks = dDecks;
     }
 
     /**
@@ -49,12 +55,24 @@ public class Deck {
     }
 
     /**
+     * @author Weihao Mo
+     * @author Bjarke Søderhamn Petersen
+     * @author Asger Allin Jensen
+     */
+    public ProgramCard popTop(){
+        return drawPile.pop();
+    }
+
+    /**
      * @author Lizette Bloch Dahl Nikolajsen
      * @author Kajsa Alice Ulrika Berlstedt
+     * @author Weihao Mo
+     * @author Bjarke Søderhamn Petersen
+     * @author Asger Allin Jensen
      */
     public void dealHand(int count) {
-        discardHand();
-        for (int i = 0; i < count; i++) {
+        int size = discardHand();
+        for (int i = 0; i < count-size; i++) {
             draw();
         }
     }
@@ -62,20 +80,63 @@ public class Deck {
     /**
      * @author Lizette Bloch Dahl Nikolajsen
      * @author Kajsa Alice Ulrika Berlstedt
+     * @author Weihao Mo
+     * @author Bjarke Søderhamn Petersen
+     * @author Asger Allin Jensen
      */
-    public void discardHand() {
-        for (ProgramCard programCard : hand) {
-            discard(programCard);
+    public int discardHand() {
+        List<ProgramCard> damageCards = new ArrayList<>();
+        List<ProgramCard> regularCards = new ArrayList<>();
+
+        for (ProgramCard card : hand) {
+            if (isDamageCard(card)) {
+                damageCards.add(card);
+            } else {
+                regularCards.add(card);
+            }
         }
+
+        for (ProgramCard card : regularCards) {
+            discard(card);
+        }
+
         hand.clear();
+        hand.addAll(damageCards);
+
+        return damageCards.size();
     }
 
     /**
      * @author Lizette Bloch Dahl Nikolajsen
      * @author Kajsa Alice Ulrika Berlstedt
+     * @author Weihao Mo
+     * @author Bjarke Søderhamn Petersen
+     * @author Asger Allin Jensen
      */
     public void discard(ProgramCard card) {
+        if (isDamageCard(card)){
+            dDecks.putBack(card);
+        } else {
+            discardPile.add(card);
+        }
+    }
+
+    /**
+     * @author Weihao Mo
+     */
+    public void addToDiscard(ProgramCard card) {
         discardPile.add(card);
+    }
+
+    /**
+     * @author Weihao Mo
+     * @author Bjarke Søderhamn Petersen
+     * @author Asger Allin Jensen
+     */
+    public boolean isDamageCard(ProgramCard card) {
+        return (card.toOp() instanceof  ProgramOP.Spam()
+                || card.toOp() instanceof ProgramOP.TrojanHorse()
+                || card.toOp() instanceof ProgramOP.Worm());
     }
 
     /**
@@ -122,6 +183,7 @@ public class Deck {
         }
         return List.copyOf(result);
     }
+
 
     /**
      * @author Lizette Bloch Dahl Nikolajsen
@@ -189,5 +251,12 @@ public class Deck {
      */
     public ArrayList<ProgramCard> getDiscardPile() {
         return new ArrayList<>(discardPile);
+    }
+
+    /**
+     * @author Weihao Mo
+     */
+    public void removeFromHand(ProgramCard card) {
+        hand.remove(card);
     }
 }

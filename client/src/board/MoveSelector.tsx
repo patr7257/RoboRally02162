@@ -6,9 +6,13 @@ import { MoveType } from "../types/boardTypes";
 * @author Asger Allin Jensen
 * @author Bjarke Søderhamn Petersen
 * @author Lizette Bloch Dahl Nikolajsen
+* @author Weihao Mo
 */
 const isSpecialCard = (move: MoveType) =>
   move === "SPEED" || move === "SANDBOX" || move === "WEASEL";
+
+const isDamageCard = (move: MoveType) =>
+  move === "SPAM" || move === "TROJAN_HORSE" || move === "WORM";
 
 interface MoveSelectorProps {
   moves: MoveType[];
@@ -23,7 +27,7 @@ interface MoveSelectorProps {
 const CardVisual = ({ move }: { move: MoveType }) => (
   <>
     <div className="moveCardHeader">
-      {move.replace("ROTATE", "").replace("MOVE", "MOVE ")}
+      {move.replace("ROTATE", "").replace("MOVE", "MOVE ").replace("_", " ")}
     </div>
     <div className="moveCardBody">
       {move === "MOVE1" && (
@@ -156,6 +160,36 @@ const CardVisual = ({ move }: { move: MoveType }) => (
           U-TURN
         </div>
       )}
+
+      {move === "SPAM" && (
+        <div className="damageCardText">
+          PLAY THE TOP<br />
+          CARD OF YOUR<br />
+          PROGRAMMING<br />
+          DECK THIS<br />
+          REGISTER.
+        </div>
+      )}
+
+      {move === "TROJAN_HORSE" && (
+        <div className="damageCardText">
+          IMMEDIATELY<br />
+          TAKE 2 SPAM.<br />
+          PLAY THE TOP<br />
+          CARD OF YOUR<br />
+          PROGRAMMING<br />
+          DECK THIS<br />
+          REGISTER.
+        </div>
+      )}
+
+      {move === "WORM" && (
+        <div className="damageCardText">
+          IMMEDIATELY<br />
+          REBOOT<br />
+          YOUR ROBOT.
+        </div>
+      )}
     </div>
   </>
 );
@@ -177,7 +211,11 @@ const MoveCard = ({
   <motion.div
     draggable
     onDragStart={onDragStart}
-    className={`moveCard ${isSpecialCard(move) ? "moveCard-special" : "moveCard-normal"} card-index-${index + 1}`}
+    className={`moveCard ${
+      isDamageCard(move) ? "moveCard-damage" :
+      isSpecialCard(move) ? "moveCard-special" :
+      "moveCard-normal"
+    } card-index-${index + 1}`}
     whileTap={{ scale: 0.95 }}
     initial={{ opacity: 0, y: 20 }}
     animate={{ opacity: 1, y: 0 }}
@@ -218,7 +256,11 @@ const DropSlot = ({
   >
     {move ? (
       <div
-        className={`moveCard ${isSpecialCard(move) ? "moveCard-special" : "moveCard-normal"}`}
+        className={`moveCard ${
+          isDamageCard(move) ? "moveCard-damage" :
+          isSpecialCard(move) ? "moveCard-special" :
+          "moveCard-normal"
+        }`}
         draggable
         onDragStart={onDragStart}
         onDragEnd={onDragEnd}

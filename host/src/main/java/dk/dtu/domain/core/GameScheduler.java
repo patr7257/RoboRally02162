@@ -148,6 +148,7 @@ public class GameScheduler implements RoundPacer {
      *
      * @param session the current game session
      * @author William Pii Jæger
+     * @author Weihao Mo
      */
     private void executeRound(GameSession session) {
         session.setState(GameState.EXECUTING);
@@ -224,7 +225,6 @@ public class GameScheduler implements RoundPacer {
         }
 
         game.executeOneRobotTurn(currentRobot);
-        game.applyTileEffects(Phase.ACTIVATE_PITS);
 
         ScheduledFuture<?> nextTask = scheduler.schedule(
                 () -> executeRobotsSequentially(session, reg, robots, robotIndex + 1),
@@ -315,6 +315,7 @@ public class GameScheduler implements RoundPacer {
      * Uses the stored execution context to resume at the exact point where we paused.
      *
      * @author William Pii Jæger
+     * @author Weihao Mo
      */
     private void continueAfterReaction(GameSession session) {
         GameSession.ReactionExecutionContext context = session.getReactionContext();

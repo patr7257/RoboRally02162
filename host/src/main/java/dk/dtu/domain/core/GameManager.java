@@ -3,11 +3,13 @@ package dk.dtu.domain.core;
 import dk.dtu.domain.core.reaction.ReactionRequest;
 import dk.dtu.domain.core.reaction.ReactionResolution;
 import dk.dtu.domain.model.Board;
+import dk.dtu.domain.model.DamageDecks;
 import dk.dtu.domain.model.Deck;
 import dk.dtu.domain.model.Robot;
 import dk.dtu.domain.program.ProgramCard;
 import dk.dtu.domain.rules.api.BoardAPI;
 import dk.dtu.infrastructure.SnapshotMapper;
+import dk.dtu.infrastructure.dto.DamageDecksDto;
 import dk.dtu.infrastructure.dto.ReadinessDto;
 import dk.dtu.infrastructure.dto.SnapshotPayload;
 
@@ -63,10 +65,11 @@ public class GameManager implements GameObserver {
      * @author Bjarke Søderhamn Petersen
      * @author Benjamin Benyo Endahl Hansen
      * @author Karl Johannes Agerbo
+     * @author Weihao Mo
      */
-    public UUID startGame(Board board, BoardAPI api, List<Robot> players, Map<Integer, Deck> decks) {
+    public UUID startGame(Board board, BoardAPI api, List<Robot> players, Map<Integer, Deck> decks, DamageDecks damageDecks) {
         UUID id = UUID.randomUUID();
-        Game game = new Game(board, api, players, decks);
+        Game game = new Game(board, api, players, decks,damageDecks);
         game.addObserver(this);
         GameSession session = new GameSession(id, game);
         activeSessions.put(id, session);
@@ -254,6 +257,11 @@ public class GameManager implements GameObserver {
                     List<ProgramCard> cards = game.getRobotDiscard(discard.robotId());
                     yield Optional.of((T) cards);
                 }
+                case GameQuery.GetDamageDecks damageDecks -> {
+                    Game game = session.getGame();
+                    DamageDecks decks = game.getDamageDecks();
+                    yield Optional.of((T) decks);
+                }
                 case GameQuery.GetReadiness ready -> {
                     Map<Integer, Boolean> submitted = new HashMap<>();
                     for (Robot robot : session.getGame().getRobots()) {
@@ -268,6 +276,7 @@ public class GameManager implements GameObserver {
                     Long ms = session.getMillisecondsRemaining();
                     yield Optional.of((T) ms);
                 }
+
             };
         }
     }

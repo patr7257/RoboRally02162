@@ -1,6 +1,8 @@
 package dk.dtu.domain.core;
 
+import dk.dtu.domain.model.DamageDecks;
 import dk.dtu.domain.program.ProgramCard;
+import dk.dtu.infrastructure.dto.DamageDecksDto;
 import dk.dtu.infrastructure.dto.ReadinessDto;
 import dk.dtu.infrastructure.dto.SnapshotPayload;
 
@@ -8,13 +10,9 @@ import java.util.List;
 
 /**
  * @author William Pii Jæger
+ * @author Weihao Mo
  */
-public sealed interface GameQuery<T> permits
-        GameQuery.GetSnapshot,
-        GameQuery.GetHand,
-        GameQuery.GetReadiness,
-        GameQuery.GetTimeRemaining,
-        GameQuery.GetDiscard {
+public sealed interface GameQuery<T> permits GameQuery.GetDamageDecks, GameQuery.GetDiscard, GameQuery.GetHand, GameQuery.GetReadiness, GameQuery.GetSnapshot, GameQuery.GetTimeRemaining {
 
     record GetSnapshot() implements GameQuery<SnapshotPayload> {
     }
@@ -29,5 +27,7 @@ public sealed interface GameQuery<T> permits
     }
 
     record GetDiscard(int robotId) implements GameQuery<List<ProgramCard>> {
+    }
+    record GetDamageDecks() implements GameQuery<DamageDecks> {
     }
 }
