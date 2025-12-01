@@ -50,6 +50,7 @@ export default function Board() {
   const [needsRespawn, setNeedsRespawn] = useState<boolean>(false);
   const [respawnRobotId, setRespawnRobotId] = useState<number | null>(null);
   const [mapDisplayName, setMapDisplayName] = useState<string>("");
+  const [firstSubmissionDelayed, setFirstSubmissionDelayed] = useState(false);
   const [startingAreaInfo, setStartingAreaInfo] = useState<{
     direction: string;
     width: number;
@@ -182,6 +183,7 @@ export default function Board() {
             break;
 
           case "programmingStarted":
+            setFirstSubmissionDelayed(false);
             setGameState('programming');
             setHasSubmitted(false);
             sendMessage({ lobbyID: lobbyId, payload: { type: "getDiscard" } });
@@ -393,27 +395,33 @@ export default function Board() {
    * @author William Pii Jæger
    */
   const handleSubmitMove = (moves: MoveType[]) => {
-    if (moves.length === 0) {
-      alert("Please select at least one move");
-      return;
+    if (gameState === "waiting") {
+      handleStartProgramming();
     }
+  
     if (hasSubmitted) {
       alert("You have already submitted for this round");
       return;
     }
-    if (gameState !== 'programming') {
-      alert("Cannot submit moves outside of programming phase");
-      return;
+  
+    const submit = () => {
+      sendMessage({
+        lobbyID: lobbyId,
+        payload: {
+          type: "submitProgram",
+          cards: moves
+        }
+      });
+    };
+  
+    if (!firstSubmissionDelayed) {
+      setFirstSubmissionDelayed(true);
+      setTimeout(submit, 200);
+    } else {
+      submit();
     }
-
-    sendMessage({
-      lobbyID: lobbyId,
-      payload: {
-        type: "submitProgram",
-        cards: moves
-      }
-    });
   };
+  
 
   /**
    * @author William Pii Jæger
@@ -585,15 +593,6 @@ export default function Board() {
               <div className="executing-message">
                 Round is executing...
               </div>
-            )}
-
-            {gameState === 'waiting' && (
-              <button
-                className="start-programming-btn"
-                onClick={handleStartProgramming}
-              >
-                Start Programming Phase
-              </button>
             )}
             {gameData && (
               <CheckpointChecklist board={gameData.board} robots={gameData.robots} />
