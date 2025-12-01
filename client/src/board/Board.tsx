@@ -72,7 +72,11 @@ export default function Board() {
       try {
         const response = await fetch(API_BASE_URL + "/api/lobby/lobbyInfo", {
           method: "POST",
-          headers: { "Content-Type": "application/json" },
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${localStorage.getItem("userToken")}`
+
+          },
           body: JSON.stringify({ userID, lobbyID: lobbyId }),
         });
 
@@ -354,7 +358,7 @@ export default function Board() {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          "Authorization": `Bearer ${localStorage.getItem("userToken")}`
+          Authorization: `Bearer ${localStorage.getItem("userToken")}`,
         },
         body: JSON.stringify({
           lobbyID: lobbyId,
@@ -380,11 +384,11 @@ export default function Board() {
       const id = data[username];
 
       if (id) {
-        console.log(`Your robot ID is: ${id}`);
+        console.log(`Your robot ID is: ${id} `);
         setRobotID(id.toString());
         localStorage.setItem("robotID", id.toString()); // optional persistence
       } else {
-        console.warn(`No robot ID found for username "${username}" in`, data);
+        console.warn(`No robot ID found for username "${username}" in `, data);
       }
     } catch (error) {
       console.error("Error fetching robot ID:", error);
@@ -398,12 +402,12 @@ export default function Board() {
     if (gameState === "waiting") {
       handleStartProgramming();
     }
-  
+
     if (hasSubmitted) {
       alert("You have already submitted for this round");
       return;
     }
-  
+
     const submit = () => {
       sendMessage({
         lobbyID: lobbyId,
@@ -413,7 +417,7 @@ export default function Board() {
         }
       });
     };
-  
+
     if (!firstSubmissionDelayed) {
       setFirstSubmissionDelayed(true);
       setTimeout(submit, 200);
@@ -421,7 +425,7 @@ export default function Board() {
       submit();
     }
   };
-  
+
 
   /**
    * @author William Pii Jæger
@@ -443,7 +447,7 @@ export default function Board() {
     const seconds = Math.ceil(ms / 1000);
     const minutes = Math.floor(seconds / 60);
     const remainingSeconds = seconds % 60;
-    return `${minutes}:${remainingSeconds.toString().padStart(2, '0')}`;
+    return `${minutes}:${remainingSeconds.toString().padStart(2, '0')} `;
   };
 
   /**
