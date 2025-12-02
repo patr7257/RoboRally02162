@@ -1,6 +1,7 @@
 import { useNavigate } from "react-router-dom";
 import Layout from "./Layout";
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
+import { subscribe } from "../utils/ws";
 
 
 /** 
@@ -31,7 +32,7 @@ export default function LoadLobby() {
   * @author Karl Johannes Agerbo
   * @author Benjamin Benyo Endahl Hansen
   */
-  const seeSavedGames = async () => {
+  const seeSavedGames = useCallback(async () => {
     setError("");
     try {
       const response = await fetch(API_BASE_URL + "/api/game/seeSavedGames", {
@@ -52,10 +53,32 @@ export default function LoadLobby() {
       console.error("Login error:", err);
       setError("Network error. Try again.");
     }
-  };
+  }, [API_BASE_URL]);
+
+
+  /**
+   * @author Benjamin Benyo Endahl Hansen
+   */
   useEffect(() => {
     seeSavedGames();
-  }, []);
+
+    const unsubscribe = subscribe((message: string) => {
+      try {
+        const data = JSON.parse(message);
+        if (data.type === "games" && data.action === "updatedGames") {
+          seeSavedGames();
+        }
+      } catch {
+        console.log("Non-JSON WS message:", message);
+      }
+    });
+
+    return () => unsubscribe();
+  }, [seeSavedGames]);
+
+  const getWinnerText = (winner: string | null) => {
+    return winner ? winner : "In progress";
+  };
 
   /** 
   * @author Bjarke Søderhamn Petersen

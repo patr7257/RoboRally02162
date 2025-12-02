@@ -59,8 +59,9 @@ public class GameService {
         return gameDatabase.checkUserInGame(userID, saveID);
     }
 
-    public void deleteSavedGame(String saveID) {
+    public void deleteSavedGame(ServerManager serverManager, String saveID) {
         gameDatabase.deleteSavedGame(saveID);
+        serverManager.notifyClientsOfUpdates("games", "updatedGames");
     }
 
     public Map<String, JsonNode> getAllGames() {

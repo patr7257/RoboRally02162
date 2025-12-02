@@ -113,7 +113,7 @@ public class GameHandler {
 
         try {
             if (gameService.checkUserInGame(userID, saveID)) {
-                gameService.deleteSavedGame(saveID);
+                gameService.deleteSavedGame(this.serverManager, saveID);
                 return ResponseEntity.status(HttpStatus.OK).body("Game Deleted");
             } else {
                 return ResponseEntity.status(HttpStatus.FORBIDDEN).body("User not in game");
