@@ -1,10 +1,11 @@
 import './App.css';
 import LoginComp from "./lobby/LoginComp";
 import RegisterComp from "./lobby/RegisterComp";
+
 import { BrowserRouter as Router, Routes, Route, useNavigate } from "react-router-dom";
 import Board from "./board/Board";
 import Lobby from "./lobby/Lobby";
-import React, { useState } from "react";
+import React, { useState,useEffect } from "react";
 import Layout from "./lobby/Layout";
 import { closeSocket } from "./utils/ws";
 import JoinLobby from './lobby/JoinLobby';
@@ -37,10 +38,19 @@ declare global {
  */
 function Home() {
   const navigate = useNavigate();
-  const [username, setUsername] = useState<string>(localStorage.getItem("username") || "");
+  const [username, setUsername] = useState<string>(sessionStorage.getItem("username") || "");
+  const [error, setError] = useState<string>("");
+
+  useEffect(()=> {
+    const reason : String | null = sessionStorage.getItem("returnReason");
+    if (reason) {
+      setError(""+reason);
+      sessionStorage.removeItem("returnReason");
+    }
+  })
 
   const handleLogout = async () => {
-    const userID = localStorage.getItem("userID");
+    const userID = sessionStorage.getItem("userID");
 
     if (userID) {
       try {
@@ -50,7 +60,7 @@ function Home() {
             method: "POST",
             headers: {
               "Content-Type": "application/json",
-              "Authorization": `Bearer ${localStorage.getItem("userToken")}`
+              "Authorization": `Bearer ${sessionStorage.getItem("userToken")}`
             }
           }
         );
@@ -64,12 +74,12 @@ function Home() {
     }
 
     // Always clear frontend session, even if backend fails
-    localStorage.removeItem("token");
-    localStorage.removeItem("username");
-    localStorage.removeItem("userID");
+    sessionStorage.removeItem("token");
+    sessionStorage.removeItem("username");
+    sessionStorage.removeItem("userID");
 
     setUsername("");
-    closeSocket();
+    closeSocket(1000);
   };
 
   const handleLobby = () => {
@@ -79,10 +89,12 @@ function Home() {
   const handleLoggedIn = (name: string) => {
     setUsername(name);
   };
-
+  const clearError = ():void=> {
+    setError("");
+  };
   return (
     <Layout>
-      <div className="panel-container">
+      <div className="panel-container" onClick={clearError} onKeyDown={clearError}>
         <h1 className="metal-text easteregg">Welcome to RoboRally</h1>
         <h2 className="home-username">Command Access Portal</h2>
 
@@ -106,8 +118,11 @@ function Home() {
           <div className="control-panel auth-panel">
             <LoginComp onLogin={handleLoggedIn} />
             <RegisterComp />
+            
           </div>
+          
         )}
+         {error && <p className="error-text">{error}</p>}
       </div>
       {/* evenly spaced screws along both sides */}
       {Array.from({ length: 10 }).map((_, i) => (
@@ -130,13 +145,7 @@ function Home() {
 }
 
 function App() {
-  if (!window.__appStarted__) {
-    localStorage.removeItem("token");
-    localStorage.removeItem("username");
-    localStorage.removeItem("id");
-    localStorage.removeItem("lobbies");
-    window.__appStarted__ = true;
-  }
+
 
   const easter_egg = document.querySelector(".easteregg");
   const [play] = useSound('./roborawy.mp3');

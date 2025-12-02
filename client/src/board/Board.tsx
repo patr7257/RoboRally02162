@@ -29,8 +29,8 @@ interface ReadinessData {
  */
 export default function Board() {
   const navigate = useNavigate();
-  const [userID] = useState<string>(localStorage.getItem("userID") || "");
-  const [lobbyId] = useState<string>(localStorage.getItem("id") || "");
+  const [userID] = useState<string>(sessionStorage.getItem("userID") || "");
+  const [lobbyId] = useState<string>(sessionStorage.getItem("id") || "");
   const [gameData, setGameData] = useState<GameData | null>(null);
   const [handData, setHandData] = useState<HandData | null>(null);
   const [discardData, setDiscardData] = useState<DiscardData | null>(null);
@@ -73,13 +73,15 @@ export default function Board() {
 
   // Fetch lobby info and full board template for Map Banner and starting area info
   useEffect(() => {
+    console.log("lobby id is:"+lobbyId)
+    console.log("lobby id in storage is:"+sessionStorage.getItem("id"))
     const fetchLobbyInfo = async () => {
       try {
         const response = await fetch(API_BASE_URL + "/api/lobby/lobbyInfo", {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
-            "Authorization": `Bearer ${localStorage.getItem("userToken")}`
+            "Authorization": `Bearer ${sessionStorage.getItem("userToken")}`
 
           },
           body: JSON.stringify({ userID, lobbyID: lobbyId }),
@@ -96,7 +98,7 @@ export default function Board() {
               method: "GET",
               headers: {
                 "Content-Type": "application/json",
-                Authorization: `Bearer ${localStorage.getItem("userToken")}`,
+                Authorization: `Bearer ${sessionStorage.getItem("userToken")}`,
               },
             }
           );
@@ -115,7 +117,7 @@ export default function Board() {
               method: "POST",
               headers: {
                 "Content-Type": "application/json",
-                "Authorization": `Bearer ${localStorage.getItem("userToken")}`
+                "Authorization": `Bearer ${sessionStorage.getItem("userToken")}`
               },
               body: JSON.stringify({ templateName }),
             });
@@ -163,6 +165,7 @@ export default function Board() {
         }
 
         switch (actualData.type) {
+          //check if readiness polling is running
           case "stateSnapshot":
             console.log("Setting game data:", actualData.payload || actualData);
             setGameData(actualData.payload || actualData);
@@ -371,7 +374,7 @@ export default function Board() {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${localStorage.getItem("userToken")}`,
+          Authorization: `Bearer ${sessionStorage.getItem("userToken")}`,
         },
         body: JSON.stringify({
           lobbyID: lobbyId,
@@ -388,9 +391,9 @@ export default function Board() {
       console.log("Robot ID map received:", data);
       setRobotMap(data);
 
-      const username = localStorage.getItem("username");
+      const username = sessionStorage.getItem("username");
       if (!username) {
-        console.warn("No username found in localStorage");
+        console.warn("No username found in sessionStorage");
         return;
       }
 
@@ -399,7 +402,7 @@ export default function Board() {
       if (id) {
         console.log(`Your robot ID is: ${id} `);
         setRobotID(id.toString());
-        localStorage.setItem("robotID", id.toString()); // optional persistence
+        sessionStorage.setItem("robotID", id.toString()); // optional persistence
       } else {
         console.warn(`No robot ID found for username "${username}" in `, data);
       }
@@ -477,7 +480,7 @@ export default function Board() {
    * @author Kajsa Alice Ulrika Berlstedt
    */
   const renderRobotLabels = (): React.ReactNode => {
-    const username = localStorage.getItem("username") || "";
+    const username = sessionStorage.getItem("username") || "";
     const entries = Object.entries(robotMap);
     if (!robotID || entries.length === 0) {
       return <div className="player-info">No players are assigned yet</div>;
@@ -576,7 +579,7 @@ export default function Board() {
               <button
                 className="go-home-btn"
                 onClick={() => {
-                  leaveLobby(lobbyId, localStorage.getItem("userID"), null);
+                  leaveLobby(lobbyId, sessionStorage.getItem("userID"), null);
                   navigate("/");
                 }}
               >

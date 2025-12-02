@@ -1,4 +1,4 @@
-package dk.dtu.model;
+package dk.dtu.dto;
 
 /**
  * @author Niklas Emil Lysdal

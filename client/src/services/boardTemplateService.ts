@@ -16,7 +16,7 @@ export const fetchBoardTemplates = async (): Promise<BoardTemplateInfo[]> => {
             method: 'GET',
              headers: {
           "Content-Type": "application/json",
-          "Authorization": `Bearer ${localStorage.getItem("userToken")}`
+          "Authorization": `Bearer ${sessionStorage.getItem("userToken")}`
         },
         });
 

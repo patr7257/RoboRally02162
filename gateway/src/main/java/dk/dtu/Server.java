@@ -2,6 +2,8 @@ package dk.dtu;
 
 
 import com.fasterxml.jackson.databind.JsonNode;
+import dk.dtu.dto.ClientConnectReason;
+import dk.dtu.dto.ClientDisconnectReason;
 import dk.dtu.model.database.SQLDatabaseInitializer;
 import dk.dtu.model.Client;
 import dk.dtu.model.Lobby;
@@ -60,11 +62,12 @@ public class Server implements WebSocketConfigurer { // TODO: after host connect
      * @author Bjarke Søderhamn Petersen
      */
     private String getTokenFromSession(WebSocketSession session) {
-        String query = session.getUri().getQuery();
-        if (query != null && query.startsWith("token=")) {
-            return query.substring(6);
-        }
-        return "unknown";
+        return (String) session.getAttributes().get("token");
+    }
+
+    private ClientConnectReason getReasonFromSession(WebSocketSession session) {
+        return (ClientConnectReason) session.getAttributes().get("reason");
+
     }
 
 
@@ -102,16 +105,42 @@ public class Server implements WebSocketConfigurer { // TODO: after host connect
              */
             @Override
             public void afterConnectionEstablished(WebSocketSession session) throws Exception {
+                if (session.getAttributes().containsKey("error")) {
+                    String errorType = (String) session.getAttributes().get("error");
 
+                    if (errorType.equals("not logged in")) {
+                        session.close(new CloseStatus(4001,"NOT_LOGGED_IN"));
+                        return;
+                    }
+
+                    if (errorType.equals("invalid token")) {
+                        session.close(new CloseStatus(4001,"INVALID_TOKEN"));
+                        return;
+                    }
+                    if (errorType.equals("unknown user")) {
+                        session.close(new CloseStatus(4001,"UNKNOWN_USER"));
+                        return;
+                    }
+                }
                 String token = getTokenFromSession(session);
                 User user = (User) session.getAttributes().get("user");
+                if (serverManager.existsClient(user.getUserID())) {
+
+                    Client c = serverManager.getClient(user.getUserID());
+                    ClientConnectReason reason = getReasonFromSession(session);
+                    c.handleConnect(session,reason);
+                } else {
+
+                    serverManager.createClient(user,session);
+                }
                 System.out.println("=== WebSocket CONNECTED ===");
                 System.out.println("Session ID: " + session.getId());
                 System.out.println("User: " + user.getName());
                 System.out.println("Session state: " + session.isOpen());
+                System.out.println("Connection reason"+getReasonFromSession(session));
                 System.out.println("========================");
 
-                serverManager.createClient(user,session);
+
             }
 
             /**
@@ -162,7 +191,27 @@ public class Server implements WebSocketConfigurer { // TODO: after host connect
              * @author Niklas Emil Lysdal
              * @author Asger Allin Jensen
              */
+            @Override
             public void afterConnectionClosed(WebSocketSession session, CloseStatus closeStatus) throws Exception {
+                if (closeStatus.getCode()==4001 ||closeStatus.getCode()==4002) {
+                    return; //we closed it and kicked the user
+                }
+                User u = (User) session.getAttributes().get("user");
+               if (u ==null) {
+                   System.err.println("[WEBSOCKET] Missing user");
+                   return;
+               }
+                Client c = serverManager.getClient(u.getUserID());
+               if (c==null){
+                   System.err.println("[WEBSOCKET] Session closed with client not registered.");
+               }
+                if (closeStatus.getCode() ==1000) {
+                    c.handleDisconnect(ClientDisconnectReason.LOGOUT);
+                } else {
+                    c.handleDisconnect(ClientDisconnectReason.CONNECTION_LOSS);
+                }
+
+
                 System.err.println("=== WebSocket CLOSED ===");
                 System.err.println("Session ID: " + session.getId());
                 System.err.println("User: " + getUserFromSession(session));
@@ -170,7 +219,7 @@ public class Server implements WebSocketConfigurer { // TODO: after host connect
                 System.err.println("Close reason: " + closeStatus.getReason());
                 System.err.println("Was clean: " + closeStatus);
                 System.err.println("Close triggered from:");
-                Thread.dumpStack();
+                //Thread.dumpStack();
                 System.err.println("====================");
                 System.out.println("Client disconnected: " + session.getId());
             }

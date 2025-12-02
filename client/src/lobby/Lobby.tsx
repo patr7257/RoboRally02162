@@ -7,8 +7,8 @@ import Layout from "./Layout";
  */
 export default function Lobby() {
   const navigate = useNavigate();
-  const userID: string | null = localStorage.getItem("userID");
-  const [lobbyId, setLobbyId] = useState<string>(localStorage.getItem("id") || "");
+  const userID: string | null = sessionStorage.getItem("userID");
+  const [lobbyId, setLobbyId] = useState<string>(sessionStorage.getItem("id") || "");
   const [error, setError] = useState<string>("");
   const API_BASE_URL = process.env.REACT_APP_API_BASE_URL;
    

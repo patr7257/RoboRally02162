@@ -1,14 +1,15 @@
 package dk.dtu.shared;
 
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import dk.dtu.interfaces.GameDatabase;
+import dk.dtu.dto.ClientUpdateReason;
+import dk.dtu.dto.LobbyUpdateReason;
 import dk.dtu.interfaces.UserDatabase;
 import dk.dtu.model.*;
 import dk.dtu.model.database.DynamicUserDatabase;
+import dk.dtu.observer.ClientObserver;
 import dk.dtu.observer.LobbyObserver;
 import dk.dtu.util.JsonUtil;
 import dk.dtu.util.LobbyFactory;
-import dk.dtu.web.GameHandler;
 import org.springframework.stereotype.Component;
 import org.springframework.web.socket.WebSocketSession;
 
@@ -26,7 +27,7 @@ import java.util.concurrent.ConcurrentHashMap;
  * @author Niklas Emil Lysdal
  */
 @Component
-public class ServerManager implements LobbyObserver {
+public class ServerManager implements LobbyObserver, ClientObserver {
     private final Map<String, Client> clients = new ConcurrentHashMap<>();
     private final Map<String, Lobby> lobbies = new ConcurrentHashMap<>();
     private final Map<String, String> lobbyIDFromSaveID = new ConcurrentHashMap<>();
@@ -36,15 +37,19 @@ public class ServerManager implements LobbyObserver {
     private final LobbyFactory lobbyFactory;
     private final UserDatabase userDatabase;
     private final AuthManager authManager;
+    private final SessionManager sessionManager;
     private final GameService gameService;
     /**
      * @author Niklas Emil Lysdal
      */
-    public ServerManager(Host host, LobbyFactory lobbyFactory, DynamicUserDatabase userDatabase,AuthManager authManager, GameService gameService) {
+    public ServerManager(Host host, LobbyFactory lobbyFactory, DynamicUserDatabase userDatabase,AuthManager authManager,SessionManager sessionManager, GameService gameService) {
+
+
         this.host = host;
         this.lobbyFactory = lobbyFactory;
         this.userDatabase = userDatabase;
         this.authManager = authManager;
+        this.sessionManager = sessionManager;
         this.gameService = gameService;
     }
 
@@ -92,6 +97,20 @@ public class ServerManager implements LobbyObserver {
     }
 
     /**
+     * @author Niklas Emil Lysdal
+     */
+    @Override
+    public void handleClientUpdate(ClientUpdateReason reason, Client client) {
+        System.out.println("Servermanager client update: "+reason);
+        switch (reason) {
+            case DISCONNECTED,LOGOUT:
+                clients.remove(client.getUserID()); client.removeObserver(this); sessionManager.logOutUser(client.getUserID());
+                break;
+
+            default: return;
+        }
+    }
+    /**
      * @author Bjarke Søderhamn Petersen
      * @author Benjamin Benyo Endahl Hansen
      * @author Karl Johannes Agerbo
@@ -108,6 +127,7 @@ public class ServerManager implements LobbyObserver {
     public boolean validateUserID(String userID) {
         return userDatabase.existsID(userID);
     }
+
 
     /**
      * @author Niklas Emil Lysdal
@@ -142,6 +162,7 @@ public class ServerManager implements LobbyObserver {
      */
     public void putClient(Client client) {
         clients.put(client.getUserID(), client);
+        client.addObserver(this);
     }
 
     /**
@@ -149,6 +170,7 @@ public class ServerManager implements LobbyObserver {
      */
     public Client createClient(User user, WebSocketSession session) {
         Client newClient = new Client(user, session);
+        newClient.addObserver(this);
         putClient(newClient);
         return newClient;
     }
@@ -214,9 +236,7 @@ public class ServerManager implements LobbyObserver {
      */
     private void broadcastToClients(ObjectNode msg) {
         for (Client client : clients.values()) {
-            if (client.isSessionOpen()) {
                 client.handleMessage(msg);
-            }
         }
     }
 
@@ -254,6 +274,9 @@ public class ServerManager implements LobbyObserver {
         Client client = clients.get(userID);
         return !(client == null || !client.isSessionOpen());
 
+    }
+    public boolean existsClient(String userID) {
+        return clients.containsKey(userID);
     }
     /*
      * The following functions are for test purposes only

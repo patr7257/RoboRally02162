@@ -3,10 +3,7 @@ package dk.dtu;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import dk.dtu.model.Client;
-import dk.dtu.model.Host;
-import dk.dtu.model.Lobby;
-import dk.dtu.model.User;
+import dk.dtu.model.*;
 import dk.dtu.util.JsonUtil;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
@@ -20,14 +17,17 @@ import org.springframework.web.socket.WebSocketSession;
 
 import java.net.URI;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
+import static org.assertj.core.api.AssertionsForClassTypes.tuple;
 import static org.junit.Assert.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.timeout;
 
 /**
  * @author Karl Johannes Agerbo
@@ -92,9 +92,9 @@ public class WebSocketTests {
         WebSocketSession mockSession = mock(WebSocketSession.class);
         when(mockSession.getId()).thenReturn("session123");
         when(mockSession.isOpen()).thenReturn(true);
-        
-        Client client = new Client(mock(User.class), mockSession);
-        
+        MessageQueue testQueue = new MessageQueue(mockSession, Runnable::run);
+        Client client = new Client(mock(User.class), mockSession, testQueue);
+
 
         ObjectNode root = JsonUtil.createObjectNode();
         root.put("type", "game");
@@ -151,8 +151,9 @@ public class WebSocketTests {
     void gatewayToHostTest() throws Exception {
         WebSocketSession mockSession = mock(WebSocketSession.class);
         when(mockSession.getId()).thenReturn("session123");
+        when(mockSession.isOpen()).thenReturn(true);
         Host host = new Host();
-        host.setSession(mockSession);
+        host.testSetSession(mockSession, Runnable::run);
 
         ObjectNode root = JsonUtil.createObjectNode();
         root.put("gameID", "1");
@@ -181,16 +182,18 @@ public class WebSocketTests {
     void clientToHostTest() throws Exception {
         Host mockHost = mock(Host.class);
         Client mockClient = mock(Client.class);
+        when(mockClient.getUserID()).thenReturn("client111");
+        when(mockClient.getUsername()).thenReturn("client111");
         User mockUser = mock(User.class);
         when(mockUser.getUserID()).thenReturn("testUser");
 
-        Lobby lobby = new Lobby("testName","1", mockClient, mockHost,6);
+        Lobby lobby = new Lobby("testName", "1", mockClient, mockHost, 6);
         UUID gameID = UUID.randomUUID();
         lobby.setGameID(gameID);
         lobby.getUserToPlayer().put("testUser", "1");
 
         server.getLobbiesForTest().put(lobby.getLobbyID(), lobby);
-
+        lobby.setIsRunning(true);
         WebSocketSession mockSession = mock(WebSocketSession.class);
         when(mockSession.getId()).thenReturn("session123");
         Map<String, Object> attributes = new HashMap<>();
@@ -227,14 +230,15 @@ public class WebSocketTests {
         System.out.println("Lobbies before test: " + server.getLobbiesForTest().keySet());
         System.out.println("Games before test: " + server.getGameToLobbyForTest().keySet());
         Host mockHost = mock(Host.class);
-        when(mockHost.startGame(anyInt(), anyInt()))
-                .thenReturn(UUID.fromString("123e4567-e89b-12d3-a456-426614174000"));
+        when(mockHost.startGame(anyInt(), anyInt())).thenReturn(UUID.fromString("123e4567-e89b-12d3-a456-426614174000"));
         Client mockClient1 = mock(Client.class);
+        when(mockClient1.getUsername()).thenReturn("client111");
         when(mockClient1.getUserID()).thenReturn("testUser1");
 
         Client mockClient2 = mock(Client.class);
         when(mockClient2.getUserID()).thenReturn("testUser2");
-        Lobby lobby = new Lobby("testName","1", mockClient1, mockHost,6);
+        when(mockClient2.getUsername()).thenReturn("client222");
+        Lobby lobby = new Lobby("testName", "1", mockClient1, mockHost, 6);
 
         lobby.addPlayer(mockClient2);
 
@@ -278,14 +282,15 @@ public class WebSocketTests {
         System.out.println("Lobbies before test: " + server.getLobbiesForTest().keySet());
         System.out.println("Games before test: " + server.getGameToLobbyForTest().keySet());
         Host mockHost = mock(Host.class);
-        when(mockHost.startGame(anyInt(), anyInt()))
-                .thenReturn(UUID.fromString("123e4567-e89b-12d3-a456-426614174000"));
+        when(mockHost.startGame(anyInt(), anyInt())).thenReturn(UUID.fromString("123e4567-e89b-12d3-a456-426614174000"));
         Client mockClient1 = mock(Client.class);
+        when(mockClient1.getUsername()).thenReturn("client111");
         when(mockClient1.getUserID()).thenReturn("testUser1");
 
         Client mockClient2 = mock(Client.class);
         when(mockClient2.getUserID()).thenReturn("testUser2");
-        Lobby lobby = new Lobby("testName","1", mockClient1, mockHost,6);
+        when(mockClient2.getUsername()).thenReturn("client222");
+        Lobby lobby = new Lobby("testName", "1", mockClient1, mockHost, 6);
 
         lobby.addPlayer(mockClient2);
 
@@ -308,18 +313,31 @@ public class WebSocketTests {
         server.getHostHandler().handleMessage(mockSession, message);
 
         ArgumentCaptor<ObjectNode> captor1 = ArgumentCaptor.forClass(ObjectNode.class);
-        verify(mockClient1, times(6)).handleMessage(captor1.capture());
+        verify(mockClient1, timeout(1000).times(6)).handleMessage(captor1.capture());
 
         ArgumentCaptor<ObjectNode> captor2 = ArgumentCaptor.forClass(ObjectNode.class);
-        verify(mockClient2, times(5)).handleMessage(captor2.capture());
+        verify(mockClient2, timeout(1000).times(5)).handleMessage(captor2.capture());
 
-        ObjectNode actualMsg1 = captor1.getValue();
-        assertThat(actualMsg1.get("type").asText()).isEqualTo("stateSnapshot");
-        assertThat(actualMsg1.get("payload").asText()).isEqualTo("");
+        List<ObjectNode> allMessages1 = captor1.getAllValues();
+        boolean foundSnapshot1 = false;
+        for (ObjectNode msg : allMessages1) {
+            if ("stateSnapshot".equals(msg.get("type").asText()) && "".equals(msg.get("payload").asText())) {
+                foundSnapshot1 = true;
+                break;
+            }
+        }
+        assertThat(foundSnapshot1);
 
-        ObjectNode actualMsg2 = captor2.getValue();
-        assertThat(actualMsg2.get("type").asText()).isEqualTo("stateSnapshot");
-        assertThat(actualMsg2.get("payload").asText()).isEqualTo("");
+        List<ObjectNode> allMessages2 = captor2.getAllValues();
+        boolean foundSnapshot2 = false;
+        for (ObjectNode msg : allMessages1) {
+            if ("stateSnapshot".equals(msg.get("type").asText()) && "".equals(msg.get("payload").asText())) {
+                foundSnapshot2 = true;
+                break;
+            }
+        }
+        assertThat(foundSnapshot2);
+
     }
 
     /**

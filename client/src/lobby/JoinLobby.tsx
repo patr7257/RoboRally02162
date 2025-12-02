@@ -20,7 +20,7 @@ interface Lobby {
  */
 export default function JoinLobby() {
   const navigate = useNavigate();
-  const userID: string | null = localStorage.getItem("userID");
+  const userID: string | null = sessionStorage.getItem("userID");
   //const [lobbyId, setLobbyId] = useState<string>("");
   const [lobbies, setLobbies] = useState<Lobby[]>([]);
   const [error, setError] = useState<string>("");
@@ -38,7 +38,7 @@ export default function JoinLobby() {
         method: "GET",
         headers: {
           "Content-Type": "application/json",
-          "Authorization": `Bearer ${localStorage.getItem("userToken")}`
+          "Authorization": `Bearer ${sessionStorage.getItem("userToken")}`
         },
       });
 
@@ -51,7 +51,8 @@ export default function JoinLobby() {
             capacity: input.capacity,
             playerCount: input.playerCount,
             lobbyName: input.lobbyName,
-            status: input.isRunning
+            isRunning: input.isRunning,
+            joinable: input.canJoin
           },
           ...input
         }))
@@ -103,7 +104,7 @@ export default function JoinLobby() {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          "Authorization": `Bearer ${localStorage.getItem("userToken")}`
+          "Authorization": `Bearer ${sessionStorage.getItem("userToken")}`
         },
         body: JSON.stringify({lobbyID: id }),
       });
@@ -113,7 +114,7 @@ export default function JoinLobby() {
 
       if (response.status === 201) {
         //setLobbyId(data);
-        localStorage.setItem("id", data);
+        sessionStorage.setItem("id", data);
         return true;
       } else if (response.status === 403) { //FORBIDDEN
         setError("Lobby is locked, unable to join.");
@@ -177,20 +178,20 @@ export default function JoinLobby() {
                               return name.includes(term);
                             })
                       .map((lobby, index) => {
-                    const isFull = lobby.lobbyInfo.playerCount===lobby.lobbyInfo.capacity;
-                    const isRunning = lobby.lobbyInfo.status;
-                    const isDisabled = isFull || isRunning;
+                    const isFull = lobby.playerCount===lobby.capacity;
+                    const canJoin : boolean = lobby.canJoin;
+                    const isDisabled = isFull || !canJoin;
                     const rowClassName = isDisabled ? "lobby-item text-red" : "lobby-item";
                     return (
                       <tr key={index} className={rowClassName}>
-                        <td className="lobby-table-name">{lobby.lobbyInfo.lobbyName}</td>
-                        <td className="lobby-table-players"> {lobby.lobbyInfo.playerCount}/{lobby.lobbyInfo.capacity}</td>
-                        <td className="lobby-table-status">{lobby.lobbyInfo.status ? 'Running' : 'Preparing'}</td>
+                        <td className="lobby-table-name">{lobby.lobbyName}</td>
+                        <td className="lobby-table-players"> {lobby.playerCount}/{lobby.capacity}</td>
+                        <td className="lobby-table-status">{lobby.isRunning ? 'Running' : 'Preparing'}</td>
                         <td>
                           <button
                             className="metal-button small"
                             onClick={async () => {
-                              if (await joinLobby(lobby.lobbyInfo.lobbyID)) {
+                              if (await joinLobby(lobby.lobbyID)) {
                                 navigate("/lobbyCreationScene");
                               }
                             }}

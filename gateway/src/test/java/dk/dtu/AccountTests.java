@@ -88,7 +88,7 @@ public class AccountTests {
     @Test
     void loginUser_Successful_returns200AndToken() throws Exception {
 
-        System.out.println("loginUser_Successful_returns200AndToken");
+
         // arrange: create the user through the service so existsName(...) is true
         String hashPass = encoder.encode("password");
         userDatabase.createUser("loginuser", hashPass);

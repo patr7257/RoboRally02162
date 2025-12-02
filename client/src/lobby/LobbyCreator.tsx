@@ -50,7 +50,7 @@ export default function LobbyCreator() { //change this name
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
-                    "Authorization": `Bearer ${localStorage.getItem("userToken")}`
+                    "Authorization": `Bearer ${sessionStorage.getItem("userToken")}`
                 },
                 body: JSON.stringify({ capacity: capacity, lobbyName: lobbyName, boardTemplate: selectedTemplate  }),
             });
@@ -88,11 +88,11 @@ export default function LobbyCreator() { //change this name
             const data = await response.text();
 
             //TODO: use reponse body to navigate to lobby scene.
-            localStorage.setItem("id", data);
+            sessionStorage.setItem("id", data);
 
             //parse data to lobbyInfo
 
-            //localStorage.setItem("lobbyInfo",JSON.stringify(data));
+            //sessionStorage.setItem("lobbyInfo",JSON.stringify(data));
             navigate("/lobbyCreationScene")
             return;
         } catch (err) {

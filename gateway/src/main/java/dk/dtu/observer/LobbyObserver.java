@@ -1,7 +1,7 @@
 package dk.dtu.observer;
 
 import dk.dtu.model.Lobby;
-import dk.dtu.model.LobbyUpdateReason;
+import dk.dtu.dto.LobbyUpdateReason;
 
 /**
  * @author Niklas Emil Lysdal

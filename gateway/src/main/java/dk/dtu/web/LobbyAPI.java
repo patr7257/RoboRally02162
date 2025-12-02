@@ -41,7 +41,7 @@ public class LobbyAPI {
      * @author Karl Johannes Agerbo
      * @author Patrick Røbel
      */
-    public LobbyAPI(ServerManager serverManager, DynamicGameDatabase gameDatabase, AuthManager authManager,BoardTemplateService boardTemplateService) {
+    public LobbyAPI(ServerManager serverManager, DynamicGameDatabase gameDatabase, AuthManager authManager, BoardTemplateService boardTemplateService) {
         this.serverManager = serverManager;
         this.gameDatabase = gameDatabase;
         this.authManager = authManager;
@@ -58,11 +58,11 @@ public class LobbyAPI {
         String userID = APIUtil.getCallerID();
 
         Client creator = serverManager.getClient(userID);
-        if(creator == null){
+        if (creator == null) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).body("MISSING_WEBSOCKET_CONNECTION");
         }
 
-        if (!json.has("lobbyName" )|| json.get("lobbyName").asText().isBlank()) {
+        if (!json.has("lobbyName") || json.get("lobbyName").asText().isBlank()) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("MISSING_LOBBY_NAME");
         }
         String lobbyName = json.get("lobbyName").asText();
@@ -74,19 +74,19 @@ public class LobbyAPI {
         int capacity;
         try {
             capacity = json.get("capacity").asInt();
-             if (capacity<1 || capacity>6 ) {
-                 throw new Exception ("INVALID_CAPACITY");
-             }
+            if (capacity < 1 || capacity > 6) {
+                throw new Exception("INVALID_CAPACITY");
+            }
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("INVALID_CAPACITY");
         }
-        
+
         // Get board template name if provided (default to "Random")
         String boardTemplateName = "Random";
         if (json.has("boardTemplate") && !json.get("boardTemplate").asText().isBlank()) {
             boardTemplateName = json.get("boardTemplate").asText();
         }
-        
+
         Lobby lob;
         try {
             lob = serverManager.createLobby(creator, lobbyName, capacity);
@@ -105,8 +105,8 @@ public class LobbyAPI {
      */
     @PostMapping("/join")
     public ResponseEntity<String> joinLobby(@RequestBody LobbyRequest req) {
-        String lobbyID =req.lobbyID;
-        if(lobbyID.isEmpty()){
+        String lobbyID = req.lobbyID;
+        if (lobbyID.isEmpty()) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).body("LOBBY_ID_IS_EMPTY");
         }
 
@@ -115,13 +115,13 @@ public class LobbyAPI {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body("LOBBY_NOT_FOUND");
         }
 
-        String userID =  APIUtil.getCallerID();
+        String userID = APIUtil.getCallerID();
         Client client = serverManager.getClient(userID);
         if (client == null) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body("USER_NOT_CONNECTED");
         }
 
-        if(lob.isOccupied()){
+        if (lob.isOccupied()) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).body("LOBBY_IS_FULL");
         }
 
@@ -147,7 +147,7 @@ public class LobbyAPI {
         String userID = APIUtil.getCallerID();
 
         Lobby lob = serverManager.getLobbyFromLobbyID(lobbyID);
-        if (lob == null ) {
+        if (lob == null) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body("LOBBY_NOT_FOUND");
         }
         if (!lob.hasParticipant(userID)) {
@@ -162,16 +162,16 @@ public class LobbyAPI {
                 // Use the template name stored in the lobby
                 String templateName = lob.getBoardTemplateName();
                 System.out.println("Template name from lobby: " + templateName);
-                
+
                 // If not "Random", load the template
                 if (templateName != null && !templateName.equals("Random")) {
                     JsonNode boardTemplate = boardTemplateService.getTemplate(templateName);
-                    
+
                     if (boardTemplate == null) {
                         System.out.println("ERROR: Template not found: " + templateName);
                         return ResponseEntity.status(HttpStatus.NOT_FOUND).body("TEMPLATE_NOT_FOUND");
                     }
-                    
+
                     System.out.println("Starting game with template: " + templateName);
                     lob.startGameWithTemplate(boardTemplate);
                 } else {
@@ -198,8 +198,9 @@ public class LobbyAPI {
     public ResponseEntity<String> seeLobbies() { //only re
         List<LobbyPublicJson> result = new ArrayList<>();
         for (Lobby lobby : serverManager.getLobbiesListCopy()) {
-                result.add(lobby.asPublicJson());
+            result.add(lobby.asPublicJson(APIUtil.getCallerID()));
         }
+        result.sort(Comparator.comparing(LobbyPublicJson::joinable, Comparator.reverseOrder()).thenComparing(LobbyPublicJson::isRunning, Comparator.reverseOrder()));
         String response = JsonUtil.toJson(result);
 
         return ResponseEntity.ok(response);

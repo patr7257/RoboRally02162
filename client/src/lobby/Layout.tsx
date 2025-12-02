@@ -5,6 +5,7 @@
  */
 
 import React, { ReactNode } from "react";
+import { WebSocketManager } from "../utils/ws";
 import "./lobby.css";
 
 interface LayoutProps {
@@ -13,17 +14,20 @@ interface LayoutProps {
 
 export default function Layout({ children }: LayoutProps) {
   return (
-    <div className="App">
-      <header className="App-header">
-        <img
-          src="/roborallyLogo.webp"
-          alt="RoboRally Logo"
-          className="logo"
-        />
-        <div className="page-content">
-          {children}
-        </div>
-      </header>
-    </div>
+    <>
+      <WebSocketManager />
+      <div className="App">
+        <header className="App-header">
+          <img
+            src="/roborallyLogo.webp"
+            alt="RoboRally Logo"
+            className="logo"
+          />
+          <div className="page-content">
+            {children}
+          </div>
+        </header>
+      </div>
+    </>
   );
 }

@@ -349,20 +349,23 @@ public class LobbyRESTTests {
         assertThat(element0.get("capacity").asInt()).isEqualTo(6);
         assertThat(element0.get("playerCount").asInt()).isEqualTo(1);
         assertThat(!element0.get("isRunning").asBoolean());
-
+        assertThat(element0.get("canJoin").asBoolean());
+        //order is flipped because user 1 can't join lobby 2
         JsonNode element1 = jsonResult.get(1);
-        assertThat(element1.get("lobbyID").asText()).isEqualTo(lobbyID2);
-        assertThat(element1.get("lobbyName").asText()).isEqualTo("testName2");
+        assertThat(element1.get("lobbyID").asText()).isEqualTo(lobbyID3);
+        assertThat(element1.get("lobbyName").asText()).isEqualTo("testName3");
         assertThat(element1.get("capacity").asInt()).isEqualTo(6);
         assertThat(element1.get("playerCount").asInt()).isEqualTo(1);
-        assertThat(element1.get("isRunning").asBoolean());
+        assertThat(!element1.get("isRunning").asBoolean());
+        assertThat(element1.get("canJoin").asBoolean());
 
         JsonNode element2 = jsonResult.get(2);
-        assertThat(element2.get("lobbyID").asText()).isEqualTo(lobbyID3);
-        assertThat(element2.get("lobbyName").asText()).isEqualTo("testName3");
+        assertThat(element2.get("lobbyID").asText()).isEqualTo(lobbyID2);
+        assertThat(element2.get("lobbyName").asText()).isEqualTo("testName2");
         assertThat(element2.get("capacity").asInt()).isEqualTo(6);
         assertThat(element2.get("playerCount").asInt()).isEqualTo(1);
-        assertThat(!element2.get("isRunning").asBoolean());
+        assertThat(element2.get("isRunning").asBoolean());
+        assertThat(!element2.get("canJoin").asBoolean());
 
         assertThat(jsonResult.path(3).isNull());
         wsSession.close();
@@ -640,7 +643,7 @@ public class LobbyRESTTests {
         }
 
         String token7 = createAndLoginUser(usernamePrefix + "7", mapper, mockMvc);
-        WebSocketSession wsSession7 = connectWebSocket(token7, port);
+        WebSocketSession wsSession7 = connectWebSocket(token7, port,"LOGIN");
 
         Map<String, Object> joinBody7 = new HashMap<>();
         joinBody7.put("lobbyID", lobbyID);
@@ -1022,7 +1025,7 @@ public class LobbyRESTTests {
         String token = createAndLoginUser(userName, mapper, mockMvc);
         //sleep for safety for concurrency.
         Thread.sleep(50);
-        WebSocketSession session = connectWebSocket(token, port);
+        WebSocketSession session = connectWebSocket(token, port,"LOGIN");
         Thread.sleep(50);
         return new TokenWebsocketContainer(session, token);
 
@@ -1035,7 +1038,7 @@ public class LobbyRESTTests {
         String token = createAndLoginUser(userName, mapper, mockMvc);
         //sleep for safety for concurrency.
         Thread.sleep(50);
-        WebSocketSession session = connectWebSocket(token, handler, sessions, port);
+        WebSocketSession session = connectWebSocket(token, handler, sessions, port,"LOGIN");
         Thread.sleep(50);
         return new TokenWebsocketContainer(session, token);
 
@@ -1045,7 +1048,7 @@ public class LobbyRESTTests {
      * @author Niklas Emil Lysdal
      * @author Karl Johannes Agerbo
      */
-    public static WebSocketSession connectWebSocket(String token, int port) throws Exception {
+    public static WebSocketSession connectWebSocket(String token, int port,String reason) throws Exception {
         // Establish WebSocket connection for client
         ArrayBlockingQueue<WebSocketSession> sessions = new ArrayBlockingQueue<>(1);
         var handler = new AbstractWebSocketHandler() {
@@ -1055,7 +1058,7 @@ public class LobbyRESTTests {
             }
         };
 
-        URI uri = URI.create("ws://localhost:" + port + "/client?token=" + token);
+        URI uri = URI.create("ws://localhost:" + port + "/client?token=" + token+"&reason="+reason);
         new StandardWebSocketClient().execute(handler, uri.toString());
         WebSocketSession wsSession = sessions.poll(10, TimeUnit.SECONDS);
 
@@ -1067,8 +1070,8 @@ public class LobbyRESTTests {
      * @author Karl Johannes Agerbo
      */
     private WebSocketSession connectWebSocket(String token, AbstractWebSocketHandler handler,
-                                              ArrayBlockingQueue<WebSocketSession> sessions, int port) throws Exception {
-        URI uri = URI.create("ws://localhost:" + port + "/client?token=" + token);
+                                              ArrayBlockingQueue<WebSocketSession> sessions, int port, String reason) throws Exception {
+        URI uri = URI.create("ws://localhost:" + port + "/client?token=" + token+"&reason="+reason);
         new StandardWebSocketClient().execute(handler, uri.toString());
 
         WebSocketSession wsSession = sessions.poll(10, TimeUnit.SECONDS);

@@ -1,17 +1,16 @@
 package dk.dtu.model;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import dk.dtu.dto.LobbyPublicJson;
-import dk.dtu.dto.LobbyPrivateJson;
+import dk.dtu.dto.*;
+import dk.dtu.observer.ClientObserver;
 import dk.dtu.observer.LobbyObserver;
 import dk.dtu.util.JsonUtil;
-import dk.dtu.dto.OperationResult;
+
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.stream.Collectors;
 
 /**
  * @author Niklas Emil Lysdal
@@ -22,23 +21,25 @@ import java.util.stream.Collectors;
  * @author Kajsa Alice Ulrika Berlstedt
  */
 
-public class Lobby {
+public class Lobby  implements ClientObserver {
     private final String lobbyID;
     private String lobbyName;
-    private final Map<String, Client> players = new HashMap<>();
+    private final Map<String, Client> players = new ConcurrentHashMap<>();
     private final Host host;
-    private final HashSet<LobbyObserver> observers = new HashSet<>();
+    private final Set<LobbyObserver> observers = ConcurrentHashMap.newKeySet();
     private boolean locked;
-    //TODO: might need to store the creator of the lobby. As playerID can no longer be used to determine this.
+    //might need to store the creator of the lobby. As playerID can no longer be used to determine this.
     private boolean isRunning = false;
     private UUID gameID;
     private final UUID saveID;
     private final Map<String, String> userToPlayer;
-    private final Map<String, String> playerToUser = new HashMap<>();
-    private final Map<String, Boolean> playerReadinessMap = new HashMap<>();
-    private final Map<String, Boolean> userNameReadinessMap = new HashMap<>();
+    private final Map<String, String> playerToUser = new ConcurrentHashMap<>();
+    private final Set<String> disconnectedPlayers = ConcurrentHashMap.newKeySet();
+    //always use the changeReadyMapStatus and removeFromReadiness functions instead of direct access.
+    private final Map<String, Boolean> playerReadinessMap = new ConcurrentHashMap<>();
+    private final Map<String, Boolean> userNameReadinessMap = new ConcurrentHashMap<>();
     private int nextPlayerID = 1;
-    private int capacity = 6; //TODO: get this number from either host or client
+    private int capacity = 6;
     public final boolean loadedLobby;
     private String boardTemplateName = "Random"; // Default to Random
 
@@ -87,16 +88,22 @@ public class Lobby {
      */
 
     public synchronized OperationResult addPlayer(Client client) {
-        if (locked) {
-            return new OperationResult("lobby_locked");
-        }
-        if( players.size()>=capacity) {
-            return new OperationResult("lobby_full");
+        if (!disconnectedPlayers.contains(client.getUserID())) {
+            if (locked) {
+                return new OperationResult("lobby_locked");
+            }
+            if( players.size()>=capacity) {
+                return new OperationResult("lobby_full");
+            }
+        } else {
+            disconnectedPlayers.remove(client.getUserID());
         }
         players.put(client.getUserID(), client);
-        playerReadinessMap.put(client.getUserID(), false);
-        userNameReadinessMap.put(client.getUsername(), false);
-        notifyClients();
+        client.addObserver(this);
+        if (!isRunning) { //only update these maps if game is running.
+            changeReadyMapStatus(client,false);
+            notifyClients(); // if it is running then no other users should ever notice that connection was lost.
+        }
         return new OperationResult("success");
     }
 
@@ -105,31 +112,40 @@ public class Lobby {
      * @author Asger Allin Jensen
      */
 
-    public OperationResult removeClientByUID(String uid) {
+    public OperationResult removeClientByUID(String uid)  {
         Client removed = players.remove(uid);
+
         if (removed == null) {
             return new OperationResult("user_not_in_lobby");
         } else {
-            playerReadinessMap.remove(uid);
-            userNameReadinessMap.remove(removed.getUsername());
-
-            if (players.isEmpty()) {
-                if (gameID != null) {
-                    host.endGame(gameID);
-                }
-                notifyObservers(LobbyUpdateReason.DESTROYED);
+            if (isRunning) {
+                disconnectedPlayers.add(removed.getUserID());
+            }
+            removeFromReadiness(removed);
+            removed.removeObserver(this);
+            if (checkEndGame()) {
                 return new OperationResult("lobby_empty");
             }
 
-            String playerID = userToPlayer.get(uid);
-            playerToUser.remove(playerID);
-            if (!loadedLobby) userToPlayer.remove(uid);
             notifyClients();
 
             return new OperationResult("success");
         }
     }
-
+    /**
+     * @author Niklas Emil Lysdal
+     * @return True if game is ended, false if not
+     */
+    private boolean checkEndGame() {
+        if (players.isEmpty()) {
+            if (gameID != null) {
+                host.endGame(gameID);
+            }
+            notifyObservers(LobbyUpdateReason.DESTROYED);
+            return true;
+        }
+        return false;
+    }
     /**
      * @author Niklas Emil Lysdal
      * @author Bjarke Søderhamn Petersen
@@ -139,6 +155,9 @@ public class Lobby {
      */
 
     public void startGame(JsonNode gameInfo) throws Exception {
+        if(isRunning) {
+            return;
+        }
         if (!areAllPlayersReady()) {
             broadcastNotReadyMessage();
             throw new Exception("Game tried to start before all players are ready");
@@ -229,6 +248,10 @@ public class Lobby {
      */
 
     public void handleClientMessage(String userID, JsonNode json) {
+        if (!isRunning) {
+            return; //drop message
+        }
+
         ObjectNode root = JsonUtil.createObjectNode();
         if (userToPlayer.get(userID)==null) {
             return; //drop message
@@ -263,9 +286,12 @@ public class Lobby {
                 String userID = playerToUser.get(playerID);
                 if (userID == null) {
                     return;
-                } // in case player has disconnected
+                }
                 Client client = players.get(userID);
-                client.handleMessage(root);
+                if (client != null) {
+                    client.handleMessage(root);
+                }
+
                 break;
             case "BROADCAST":
                 broadcastToClients(root);
@@ -435,8 +461,9 @@ public class Lobby {
      * @author Niklas Emil Lysdal
      */
 
-    public LobbyPublicJson asPublicJson() {
-       return new LobbyPublicJson(this.lobbyName,this.lobbyID,capacity,players.size(),this.isRunning);
+    public LobbyPublicJson asPublicJson(String userID) {
+        boolean joinable= disconnectedPlayers.contains(userID) || (!isRunning && players.size()<capacity);
+       return new LobbyPublicJson(this.lobbyName,this.lobbyID,capacity,players.size(),this.isRunning,joinable);
     }
 
     /**
@@ -465,8 +492,7 @@ public class Lobby {
         if (client == null) {
             return new OperationResult("user_not_in_lobby");
         }
-        playerReadinessMap.put(uid, true);
-        userNameReadinessMap.put(client.getUsername(), true);
+        changeReadyMapStatus(client,true);
         notifyClients();
         return new OperationResult("success");
     }
@@ -481,8 +507,8 @@ public class Lobby {
         if (client == null) {
             return new OperationResult("user_not_in_lobby");
         }
-        playerReadinessMap.put(uid, false);
-        userNameReadinessMap.put(client.getUsername(), false);
+        changeReadyMapStatus(client,false);
+
         notifyClients();
         return new OperationResult("success");
     }
@@ -502,6 +528,24 @@ public class Lobby {
         broadcastToClients(root);
         return new OperationResult("success");
     }
+
+    /**
+     *
+     * @author Niklas Emil Lysdal
+     */
+    @Override
+    public void handleClientUpdate(ClientUpdateReason reason,Client client) {
+        System.out.println("LOBBY client updated - ClientUpdateReason: " + reason);
+        switch (reason) {
+            case DISCONNECTED,LOGOUT,RESET: {
+                removeClientByUID(client.getUserID());
+
+            }
+            default: {return;}
+        }
+    }
+
+
 
     /**
      * @author Niklas Emil Lysdal
@@ -553,6 +597,16 @@ public class Lobby {
         return userToPlayer.keySet().toString();
     }
 
+
+    private void changeReadyMapStatus(Client c, boolean newStatus) {
+        playerReadinessMap.put(c.getUserID(), newStatus);
+        userNameReadinessMap.put(c.getUsername(), newStatus);
+    }
+    private void removeFromReadiness(Client c) {
+        playerReadinessMap.remove(c.getUserID());
+        userNameReadinessMap.remove(c.getUsername());
+    }
+
     /**
      * @author Kajsa Alice Ulrika Berlstedt
      * @author Niklas Emil Lysdal
@@ -562,9 +616,17 @@ public class Lobby {
         Map<String, String> result = new HashMap<>();
         for (Client c : players.values()) {
             result.put(c.getUsername(),userToPlayer.get(c.getUserID()));
-
         }
         return result;
     }
+
+
+    //Testing functions:
+    //since websocket messages are only forwarded for running games
+    public void setIsRunning(boolean isRunning) {
+        this.isRunning = isRunning;
+    }
+
+
 
 }

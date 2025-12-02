@@ -8,6 +8,8 @@ import dk.dtu.dto.AuthResponse;
 import dk.dtu.dto.LoginRequest;
 import dk.dtu.dto.RegisterRequest;
 import dk.dtu.shared.AuthManager;
+import dk.dtu.shared.SessionManager;
+import dk.dtu.util.APIUtil;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
@@ -28,18 +30,19 @@ public class AccountHandler {
     private final UserDatabase userDatabase;
     private final AuthManager authManager;
     private final BCryptPasswordEncoder encoder = new BCryptPasswordEncoder();
-
+    private final SessionManager sessionManager;
     // Track which users are logged in (by userID)
-    private final java.util.Set<String> loggedInUsers = java.util.concurrent.ConcurrentHashMap.newKeySet();
+
 
     /**
      * @author Lizette Bloch Dahl Nikolajsen
      * @author Niklas Emil Lysdal
      * @author Kajsa Alice Ulrika Berlstedt
      */
-    public AccountHandler(DynamicUserDatabase userDatabase,AuthManager authManager) {
+    public AccountHandler(DynamicUserDatabase userDatabase, AuthManager authManager, SessionManager sessionManager) {
         this.userDatabase = userDatabase;
         this.authManager = authManager;
+        this.sessionManager = sessionManager;
     }
 
     /**
@@ -101,12 +104,12 @@ public class AccountHandler {
         // Prevent login if already logged in
         String userID = user.getUserID();
 
-        if (loggedInUsers.contains(userID)) {
+        if (sessionManager.isLoggedIn(userID)) {
             return ResponseEntity.status(HttpStatus.CONFLICT)
                     .body(new AuthResponse("unsuccessful", "User already logged in", null, userID));
         }
 
-        loggedInUsers.add(userID);
+        sessionManager.logInUser(userID);
 
         String token = authManager.getUserToken(user.getUserID()); // replace with JWT later
         return ResponseEntity.ok(new AuthResponse("successful", "Logged in", token, user.getUserID()));
@@ -114,7 +117,12 @@ public class AccountHandler {
 
     @PostMapping("/users/logout")
     public ResponseEntity<AuthResponse> logout(@RequestParam String userID) {
-        loggedInUsers.remove(userID);
+        sessionManager.logOutUser(userID);
         return ResponseEntity.ok(new AuthResponse("successful", "Logged out", null, userID));
     }
+
+   /* @GetMapping("/users/isLoggedIn")
+    public ResponseEntity<Boolean> isLoggedIn() {
+        return ResponseEntity.ok(isLoggedIn(APIUtil.getCallerID()));
+    } */
 }

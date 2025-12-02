@@ -6,10 +6,7 @@ import org.springframework.web.socket.TextMessage;
 import org.springframework.web.socket.WebSocketSession;
 
 import java.io.IOException;
-import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.Executors;
-import java.util.concurrent.LinkedBlockingQueue;
-import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.*;
 
 /**
  * @author Karl Johannes Agerbo
@@ -17,23 +14,27 @@ import java.util.concurrent.ScheduledExecutorService;
 
 public class MessageQueue {
     private final BlockingQueue<ObjectNode> queue = new LinkedBlockingQueue<>();
-    private final WebSocketSession session;
+    private  WebSocketSession session;
     private final Object lock = new Object();
-
+    private final Executor executor;
     /**
      * @author Karl Johannes Agerbo
      */
 
     public MessageQueue(WebSocketSession session) {
-        this.session = session;
+        this(session,Executors.newSingleThreadExecutor());
     }
-
+    public MessageQueue(WebSocketSession session, Executor executor) {
+        this.session = session;
+        this.executor = executor;
+    }
     /**
      * @author Karl Johannes Agerbo
      */
 
     public void enqueue(ObjectNode msg) {
         queue.add(msg);
+        executor.execute(this::flush);
     }
 
     /**
@@ -43,6 +44,9 @@ public class MessageQueue {
     public void flush() {
         synchronized (lock) {
             while (!queue.isEmpty()) {
+                if (!session.isOpen()) {
+                    return;
+                }
                 ObjectNode msg = queue.peek();
                 try {
                     session.sendMessage(new TextMessage(JsonUtil.toJson(msg)));
@@ -52,5 +56,12 @@ public class MessageQueue {
                 }
             }
         }
+    }
+
+    public synchronized void replaceSession(WebSocketSession session) {
+        synchronized (lock) {
+            this.session = session;
+        }
+        flush();
     }
 }

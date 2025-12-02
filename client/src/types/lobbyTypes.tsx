@@ -7,7 +7,8 @@ export interface lobbyInfo {
     lobbyName: string;
     playerCount: number;
     capacity: number;
-    status: boolean; //is it running or not.
+    isRunning: boolean; //is it running or not.
+    canJoin: boolean
 }
 
 export const DEFAULT_LOBBY_INFO: lobbyInfo = {
@@ -15,7 +16,8 @@ export const DEFAULT_LOBBY_INFO: lobbyInfo = {
     capacity: 0,
     playerCount: 0,
     lobbyName: "",
-    status: false,
+    isRunning: false,
+    canJoin: false,
 };
 
 export interface fullLobbyInfo {
@@ -23,7 +25,7 @@ export interface fullLobbyInfo {
     lobbyName: string;
     playerCount: number;
     capacity: number;
-    status: boolean; //is it running or not.
+    isRunning: boolean; //is it running or not.
     readinessMap: Record<string,boolean>;
 }
 
@@ -32,6 +34,6 @@ export const DEFAULT_FULL_LOBBY_INFO: fullLobbyInfo = {
     capacity: 0,
     playerCount: 0,
     lobbyName: "",
-    status: false,
+    isRunning: false,
     readinessMap: {}
 };

@@ -3,7 +3,14 @@ package dk.dtu.dto;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 //for players outside lobby.
+
 /**
  * @author Niklas Emil Lysdal
  */
-public record LobbyPublicJson(@JsonProperty("lobbyName") String name, @JsonProperty("lobbyID") String id, @JsonProperty("capacity") int capacity, @JsonProperty("playerCount") int playerCount, @JsonProperty("isRunning") boolean  isRunning) {}
+public record LobbyPublicJson(@JsonProperty("lobbyName") String name,
+                              @JsonProperty("lobbyID") String id,
+                              @JsonProperty("capacity") int capacity,
+                              @JsonProperty("playerCount") int playerCount,
+                              @JsonProperty("isRunning") boolean isRunning,
+                              @JsonProperty("canJoin") boolean joinable) {
+}

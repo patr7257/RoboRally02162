@@ -12,6 +12,7 @@ import org.springframework.http.MediaType;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
+import org.springframework.web.socket.CloseStatus;
 import org.springframework.web.socket.TextMessage;
 import org.springframework.web.socket.WebSocketHttpHeaders;
 import org.springframework.web.socket.WebSocketSession;
@@ -151,12 +152,8 @@ public class ConnectionEstablishmentTests {
      */
     @Test
     void connectClientUnsuccessfulNoAuth() throws Exception {
-
-        // TODO: establish connection
-        // TODO: test connection (should fail)
-
         ArrayBlockingQueue<WebSocketSession> sessions = new ArrayBlockingQueue<>(1);
-
+        CompletableFuture<CloseStatus> closeStatusFuture = new CompletableFuture<>();
         var handler = new AbstractWebSocketHandler() {
             @Override
             public void afterConnectionEstablished(WebSocketSession session) {
@@ -164,22 +161,19 @@ public class ConnectionEstablishmentTests {
             }
 
             @Override
-            protected void handleTextMessage(WebSocketSession session, TextMessage message) {
+            public void afterConnectionClosed(WebSocketSession session, CloseStatus closeStatus) {
+                closeStatusFuture.complete(closeStatus);
             }
+
         };
 
         URI uri = URI.create("ws://localhost:" + port + "/client");
+        CompletableFuture<WebSocketSession> connectFuture = hostSocket.execute(handler, null, uri);
+        WebSocketSession session = connectFuture.get(5, TimeUnit.SECONDS);
+        assertThat(session).isNotNull(); //connect
+        CloseStatus status = closeStatusFuture.get(5, TimeUnit.SECONDS); //kick
+        assertThat(status.getCode()).isEqualTo(4001);
 
-        try {
-            CompletableFuture<WebSocketSession> future = hostSocket.execute(handler, null, uri);
-            WebSocketSession clientSession = future.get(5, TimeUnit.SECONDS);
-            WebSocketSession established = sessions.poll(5, TimeUnit.SECONDS);
-            assertThat(established).isNull();
-            assertThat(clientSession.isOpen()).isFalse();
-            assertThat(established.isOpen()).isFalse();
-        } catch (Exception e) {
-            assertThat(e.getCause().getMessage()).contains("401"); // missing authorization
-        }
     }
 
     /**
@@ -189,30 +183,26 @@ public class ConnectionEstablishmentTests {
     void connectClientUnsuccessfulInvalidAuth() throws Exception {
 
         ArrayBlockingQueue<WebSocketSession> sessions = new ArrayBlockingQueue<>(1);
-
+        CompletableFuture<CloseStatus> closeStatusFuture = new CompletableFuture<>();
         var handler = new AbstractWebSocketHandler() {
             @Override
             public void afterConnectionEstablished(WebSocketSession session) {
                 sessions.offer(session);
             }
-
             @Override
-            protected void handleTextMessage(WebSocketSession session, TextMessage message) {
+            public void afterConnectionClosed(WebSocketSession session, CloseStatus closeStatus) {
+                closeStatusFuture.complete(closeStatus);
             }
+
         };
 
         URI uri = URI.create("ws://localhost:" + port + "/client?token=someUserWithoutAccess");
+        CompletableFuture<WebSocketSession> connectFuture = hostSocket.execute(handler, null, uri);
+        WebSocketSession session = connectFuture.get(5, TimeUnit.SECONDS);
+        assertThat(session).isNotNull(); //connect
+        CloseStatus status = closeStatusFuture.get(5, TimeUnit.SECONDS); //kick
+        assertThat(status.getCode()).isEqualTo(4001);
 
-        try {
-            CompletableFuture<WebSocketSession> future = hostSocket.execute(handler, null, uri);
-            WebSocketSession clientSession = future.get(5, TimeUnit.SECONDS);
-            WebSocketSession established = sessions.poll(5, TimeUnit.SECONDS);
-            assertThat(established).isNull();
-            assertThat(clientSession.isOpen()).isFalse();
-            assertThat(established.isOpen()).isFalse();
-        } catch (Exception e) {
-            assertThat(e.getCause().getMessage()).contains("403"); // missing authorization
-        }
     }
 
 }

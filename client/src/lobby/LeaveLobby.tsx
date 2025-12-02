@@ -25,7 +25,7 @@ const leaveLobby = async (
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        "Authorization": `Bearer ${localStorage.getItem("userToken")}`
+        "Authorization": `Bearer ${sessionStorage.getItem("userToken")}`
       },
       body: JSON.stringify({ lobbyID: lobbyId }),
     });

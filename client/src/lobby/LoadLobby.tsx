@@ -21,7 +21,7 @@ interface Lobby {
 */
 export default function LoadLobby() {
   const navigate = useNavigate();
-  const userID: string | null = localStorage.getItem("userID");
+  const userID: string | null = sessionStorage.getItem("userID");
   const [lobbyId, setLobbyId] = useState<string>("");
   const [savedGames, setSavedGames] = useState<Lobby[]>([]);
   const [error, setError] = useState<string>("");
@@ -39,7 +39,7 @@ export default function LoadLobby() {
         method: "GET",
         headers: {
           "Content-Type": "application/json",
-          "Authorization": `Bearer ${localStorage.getItem("userToken")}`
+          "Authorization": `Bearer ${sessionStorage.getItem("userToken")}`
         },
       });
 
@@ -92,7 +92,7 @@ export default function LoadLobby() {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          "Authorization": `Bearer ${localStorage.getItem("userToken")}`
+          "Authorization": `Bearer ${sessionStorage.getItem("userToken")}`
         },
         body: JSON.stringify({ saveID: saveId }),
       });
@@ -101,7 +101,7 @@ export default function LoadLobby() {
       console.log("data received: " + data);
 
       if (response.status === 201) {
-        localStorage.setItem("id", data);
+        sessionStorage.setItem("id", data);
         setLobbyId(data);
         return true;
       } else if (response.status === 403) { //FORBIDDEN
@@ -130,7 +130,7 @@ export default function LoadLobby() {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          "Authorization": `Bearer ${localStorage.getItem("userToken")}`
+          "Authorization": `Bearer ${sessionStorage.getItem("userToken")}`
         },
         body: JSON.stringify({ saveID }),
       });

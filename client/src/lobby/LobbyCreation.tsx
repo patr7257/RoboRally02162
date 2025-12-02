@@ -14,7 +14,7 @@ import { fullLobbyInfo, DEFAULT_FULL_LOBBY_INFO } from '../types/lobbyTypes';
  */
 export default function LobbyCreation() {
   const navigate = useNavigate();
-  const userID: string | null = localStorage.getItem("userID");
+  const userID: string | null = sessionStorage.getItem("userID");
   const [error, setError] = useState<string>("");
 
   const [fullLobbyInfo, setFullLobbyInfo] = useState<fullLobbyInfo>(DEFAULT_FULL_LOBBY_INFO);
@@ -28,22 +28,27 @@ export default function LobbyCreation() {
    */
   const updateLobbyInfo = useCallback(async () => {
     try {
-      console.log("updating lobby info using id:" + localStorage.getItem("id"));
+      console.log("updating lobby info using id:" + sessionStorage.getItem("id"));
       const response = await fetch(API_BASE_URL + "/api/lobby/lobbyInfo", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          "Authorization": `Bearer ${localStorage.getItem("userToken")}`
+          "Authorization": `Bearer ${sessionStorage.getItem("userToken")}`
         },
-        body: JSON.stringify({ lobbyID: localStorage.getItem("id") }),
+        body: JSON.stringify({ lobbyID: sessionStorage.getItem("id") }),
       });
       if (!response.ok) {
         throw new Error("Server returned error when  getting lobby info");
       }
 
       const parsedData = await response.json();
+      console.log("Raw Server Response:", parsedData);
       const lobbyInfo: fullLobbyInfo = parsedData as fullLobbyInfo;
-
+      console.log("lobby status:"+lobbyInfo.isRunning)
+      if (lobbyInfo.isRunning) { //if already running, then navigate.
+        console.log("lobby already running:"+lobbyInfo.isRunning)
+        navigate("/boardScene");
+      }
 
       setFullLobbyInfo(lobbyInfo);
       setPlayersReady(lobbyInfo.readinessMap);
@@ -106,7 +111,7 @@ export default function LobbyCreation() {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          "Authorization": `Bearer ${localStorage.getItem("userToken")}`
+          "Authorization": `Bearer ${sessionStorage.getItem("userToken")}`
         },
         body: JSON.stringify({
           lobbyID: fullLobbyInfo?.lobbyID,
@@ -144,9 +149,9 @@ export default function LobbyCreation() {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          "Authorization": `Bearer ${localStorage.getItem("userToken")}`
+          "Authorization": `Bearer ${sessionStorage.getItem("userToken")}`
         },
-        body: JSON.stringify({ lobbyID: localStorage.getItem("id") }),
+        body: JSON.stringify({ lobbyID: sessionStorage.getItem("id") }),
       });
       console.log("Start game response:", response.status, response.statusText);
       if (!response.ok) {

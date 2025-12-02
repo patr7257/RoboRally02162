@@ -11,6 +11,7 @@ import org.springframework.web.socket.WebSocketSession;
 import java.io.IOException;
 import java.util.Map;
 import java.util.UUID;
+import java.util.concurrent.Executor;
 
 /**
  * @author Benjamin Benyo Endahl Hansen
@@ -27,6 +28,9 @@ public class Host { //TODO: maybe make singleton
     private String hostURL = "http://localhost:2948/";
 
     public Host(){};
+
+    //test constructor:
+
     /**
      * @author Niklas Emil Lysdal
      * @author Benjamin Benyo Endahl Hansen
@@ -36,12 +40,20 @@ public class Host { //TODO: maybe make singleton
         this.session = session;
         this.queue = new MessageQueue(session);
     }
+
+    //test function
+    public void testSetSession(WebSocketSession session, Executor executor) {
+        this.session = session;
+        // Pass the executor down to the queue
+        this.queue = new MessageQueue(session, executor);
+    }
+
     /**
      * @author Karl Johannes Agerbo
      */
     public void handleMessage(ObjectNode msg) {
         queue.enqueue(msg);
-        queue.flush();
+
     }
     /**
      * @author Niklas Emil Lysdal

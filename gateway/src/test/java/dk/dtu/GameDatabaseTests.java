@@ -142,7 +142,7 @@ public class GameDatabaseTests {
         String newToken = createAndLoginUser("Benjamin", mapper, mockMvc);
         Thread.sleep(50);
 
-        WebSocketSession wsSession = connectWebSocket(newToken, port);
+        WebSocketSession wsSession = connectWebSocket(newToken, port,"LOGIN");
         Thread.sleep(50);
         sessions.add(wsSession);
 
@@ -407,7 +407,7 @@ public class GameDatabaseTests {
 
         Thread.sleep(50);
 
-        WebSocketSession wsSession = connectWebSocket(token, port);
+        WebSocketSession wsSession = connectWebSocket(token, port,"LOGIN");
         Thread.sleep(50);
         sessions.add(wsSession);
 
@@ -418,7 +418,7 @@ public class GameDatabaseTests {
             String tokenLoop = createAndLoginUser(usernameLoop, mapper, mockMvc);
             userTokens.add(tokenLoop);
             Thread.sleep(50);
-            WebSocketSession wsSessionLoop = connectWebSocket(tokenLoop, port);
+            WebSocketSession wsSessionLoop = connectWebSocket(tokenLoop, port,"LOGIN");
             Thread.sleep(50);
             sessions.add(wsSessionLoop);
 
