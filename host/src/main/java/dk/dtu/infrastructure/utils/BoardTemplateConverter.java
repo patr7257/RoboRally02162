@@ -124,6 +124,11 @@ public class BoardTemplateConverter {
             case "pits" -> {
                 yield new Pits();
             }
+            case "board_laser" -> {
+                Direction dir = Direction.valueOf(effectNode.get("direction").asText());
+                int power = effectNode.get("power").asInt();
+                yield new BoardLaser(dir, power);
+            }
             default -> {
                 System.err.println("Unknown effect kind: " + kind);
                 yield null;

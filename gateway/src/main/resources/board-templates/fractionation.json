@@ -35,11 +35,24 @@
     "5,10": [{"kind": "walldto", "id": "wall_5_10", "walls": ["N"]}],
     "2,11": [{"kind": "walldto", "id": "wall_2_11", "walls": ["W"]}],
     "7,11": [{"kind": "walldto", "id": "wall_7_11", "walls": ["E"]}],
-    "2,4": [{"kind": "walldto", "id": "wall_2_4", "walls": ["W"]}],
-    "7,4": [{"kind": "walldto", "id": "wall_7_4", "walls": ["E"]}],
 
-    "_comment_laser":" ___________________________ LASERS (Not Yet Implemented) ___________________________",
-    "_comment_laser_3_1":"Laser at 2,4,E",
+    "_comment_lasers": "___________________________ BOARD LASERS (with walls) ___________________________",
+    "2,4": [
+      {"kind": "walldto", "id": "wall_2_4", "walls": ["W"]},
+      {"kind": "board_laser", "id": "laser_2_4", "direction": "E", "power": 2}
+    ],
+    "7,4": [
+      {"kind": "walldto", "id": "wall_7_4", "walls": ["E"]},
+      {"kind": "board_laser", "id": "laser_7_4", "direction": "W", "power": 2}
+    ],
+    "5,9": [
+      {"kind": "walldto", "id": "wall_5_9", "walls": ["S"]},
+      {"kind": "board_laser", "id": "laser_5_9", "direction": "N", "power": 1}
+    ],
+    "4,2": [
+      {"kind": "walldto", "id": "wall_4_2", "walls": ["N"]},
+      {"kind": "board_laser", "id": "laser_4_2", "direction": "S", "power": 1}
+    ],
 
     "_comment_green_conveyors": "___________________________ GREEN CONVEYORS ___________________________",
     "_comment_green_scattered": "Scattered green conveyors",

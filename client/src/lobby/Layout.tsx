@@ -19,7 +19,7 @@ export default function Layout({ children }: LayoutProps) {
       <div className="App">
         <header className="App-header">
           <img
-            src="/roborallyLogo.webp"
+            src="/utils/roborallyLogo.webp"
             alt="RoboRally Logo"
             className="logo"
           />

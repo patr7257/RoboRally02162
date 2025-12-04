@@ -25,7 +25,7 @@ export default function RebootToken({ effect }: { effect: RebootTokenEffect }) {
       title={`Reboot Token (${effect.direction})`}
     >
       <img
-        src={`${process.env.PUBLIC_URL}/rebootToken.png`}
+        src={`${process.env.PUBLIC_URL}/boardelements/others/rebootToken.png`}
         alt="Reboot Token"
         className="reboot-token-image"
         style={{

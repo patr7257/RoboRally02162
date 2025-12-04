@@ -47,9 +47,9 @@ export default function Board() {
   const [menuOpen, setMenuOpen] = useState(false);
   const API_BASE_URL = process.env.REACT_APP_API_BASE_URL;
   const [robotMap, setRobotMap] = useState<{ [username: string]: string }>({});
+  const [mapDisplayName, setMapDisplayName] = useState<string>("");
   const [needsRespawn, setNeedsRespawn] = useState<boolean>(false);
   const [respawnRobotId, setRespawnRobotId] = useState<number | null>(null);
-  const [mapDisplayName, setMapDisplayName] = useState<string>("");
   const [firstSubmissionDelayed, setFirstSubmissionDelayed] = useState(false);
   const [startingAreaInfo, setStartingAreaInfo] = useState<{
     direction: string;
@@ -77,6 +77,7 @@ export default function Board() {
     console.log("lobby id in storage is:"+sessionStorage.getItem("id"))
     const fetchLobbyInfo = async () => {
       try {
+        const userToken = localStorage.getItem("userToken");
         const response = await fetch(API_BASE_URL + "/api/lobby/lobbyInfo", {
           method: "POST",
           headers: {

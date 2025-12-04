@@ -31,7 +31,7 @@ export const calculateBoardSize = (
 ): { tileSize: number; boardWidth: number; boardHeight: number } => {
   const viewportWidth = window.innerWidth;
   const viewportHeight = window.innerHeight;
-  const availableWidth = viewportWidth * 0.35;
+  const availableWidth = viewportWidth * 0.385;
   const availableHeight = 0;
 
   const tileSizeByWidth = availableWidth / boardWidth;

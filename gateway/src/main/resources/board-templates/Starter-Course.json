@@ -33,13 +33,8 @@
     "1,7": [{"kind": "walldto", "id": "wall_1_7", "walls": ["N"]}],
     "2,4": [{"kind": "walldto", "id": "wall_2_4", "walls": ["E"]}],
     "2,5": [{"kind": "walldto", "id": "wall_2_5", "walls": ["E"]}],
-    "6,3": [{"kind": "walldto", "id": "wall_6_3", "walls": ["N"]}],
-    "6,4": [{"kind": "walldto", "id": "wall_6_4", "walls": ["S"]}],
     "6,6": [{"kind": "walldto", "id": "wall_6_6", "walls": ["W"]}],
-    "7,6": [{"kind": "walldto", "id": "wall_7_6", "walls": ["E"]}],
-    "8,3": [{"kind": "walldto", "id": "wall_8_3", "walls": ["W"]}],
     "9,3": [{"kind": "walldto", "id": "wall_9_3", "walls": ["E"]}],
-    "9,5": [{"kind": "walldto", "id": "wall_9_5", "walls": ["N"]}],
     "9,6": [{"kind": "walldto", "id": "wall_9_6", "walls": ["S"]}],
 
     "_comment_green_conveyors": "___________________________ GREEN CONVEYORS ___________________________",
@@ -49,11 +44,27 @@
     "_comment_gears": "___________________________ GEARS ___________________________",
     "6,7": [{"kind": "GEAR", "id": "gear_6_7", "rotation": "LEFT"}],
 
-    "_comment_lasers": "___________________________ LASERS (NOT YET IMPLEMENTED) ___________________________",
-    "_laser_6_4": "6,4 facing N",
-    "_laser_8_3": "8,3 facing E",
-    "_laser_9_5": "9,5 facing S",
-    "_laser_7_6": "7,6 facing W",
+    "_comment_lasers": "___________________________ BOARD LASERS (with walls) ___________________________",
+    "6,3": [
+      {"kind": "walldto", "id": "wall_6_3", "walls": ["N"]},
+      {"kind": "board_laser", "id": "laser_6_3", "direction": "S", "power": 1}
+    ],
+    "8,3": [
+      {"kind": "walldto", "id": "wall_8_3", "walls": ["W"]},
+      {"kind": "board_laser", "id": "laser_8_3", "direction": "E", "power": 1}
+    ],
+    "9,5": [
+      {"kind": "walldto", "id": "wall_9_5", "walls": ["N"]},
+      {"kind": "board_laser", "id": "laser_9_5", "direction": "S", "power": 2}
+    ],
+    "7,6": [
+      {"kind": "walldto", "id": "wall_7_6", "walls": ["E"]},
+      {"kind": "board_laser", "id": "laser_7_6", "direction": "W", "power": 1}
+    ],
+    "6,4": [
+      {"kind": "walldto", "id": "wall_6_4", "walls": ["S"]},
+      {"kind": "board_laser", "id": "laser_6_4", "direction": "N", "power": 1}
+    ],
 
     "_comment_blue_conveyors": "___________________________ BLUE CONVEYORS ___________________________",
     "4,0": [{"kind": "BLUE_CONVEYOR", "id": "blue_conv_4_0", "direction": "S", "rotation": "NONE"}],

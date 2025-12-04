@@ -79,6 +79,9 @@ public final class SnapshotMapper {
                 if (effect instanceof Pits p) {
                     effects.add(new PitsDto());
                 }
+                if (effect instanceof BoardLaser bl) {
+                    effects.add(new BoardLaserDto(bl.direction(), bl.power()));
+                }
             }
         }
 
@@ -138,6 +141,9 @@ public final class SnapshotMapper {
             }
             if (effect instanceof PitsDto()) {
                 tile.addEffect(new Pits());
+            }
+            if (effect instanceof BoardLaserDto(Direction direction, int power)) {
+                tile.addEffect(new BoardLaser(direction, power));
             }
         }
         return tile;

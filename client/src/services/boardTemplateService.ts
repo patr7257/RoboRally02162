@@ -24,7 +24,7 @@ export const fetchBoardTemplates = async (): Promise<BoardTemplateInfo[]> => {
             console.error('Failed to fetch board templates:', response.status);
             return getDefaultTemplates();
         }
-
+        
         const templates: BoardTemplateInfo[] = await response.json();
         
         // Add "Random" as a special option

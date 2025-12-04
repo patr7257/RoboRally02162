@@ -7,10 +7,27 @@ import type { WallEffect } from "../../types/boardTypes";
  */
 
 export default function Wall({ effect }: { effect: WallEffect }) {
-  const dirClasses = effect.walls
-    .map(d => `dir-${d.toLowerCase()}`)
-    .join(' ');
-
-  return <div className={`wall ${dirClasses}`} />;
+  // Rotation degrees for each direction
+  const rotationMap: Record<string, number> = {
+    N: 0,
+    E: 90,
+    S: 180,
+    W: 270,
+  };
+  return (
+    <>
+      {effect.walls.map((direction, index) => (
+        <img
+          key={index}
+          src={`${process.env.PUBLIC_URL}/boardelements/walls/wall-n.png`}
+          alt={`wall ${direction}`}
+          className={`wall wall-${direction.toLowerCase()}`}
+          style={{
+            transform: `rotate(${rotationMap[direction] || 0}deg)`
+          }}
+        />
+      ))}
+    </>
+  );
 }
 registerEffect("walldto", Wall);

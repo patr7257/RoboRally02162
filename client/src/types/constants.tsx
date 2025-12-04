@@ -17,12 +17,12 @@ export const ROBOT_COLORS = [
 ];
 
 export const ROBOT_IMAGES = [
-    "/robots/blueRobot.png",
-    "/robots/whiteRobot.png",
-    "/robots/greenRobot.png",
-    "/robots/yellowRobot.png",
-    "/robots/redRobot.png",
-    "/robots/purpleRobot.png",
+    "/boardelements/robots/blueRobot.png",
+    "/boardelements/robots/whiteRobot.png",
+    "/boardelements/robots/greenRobot.png",
+    "/boardelements/robots/yellowRobot.png",
+    "/boardelements/robots/redRobot.png",
+    "/boardelements/robots/purpleRobot.png",
 ];
 
 export const DIRECTION_ARROWS: Record<Direction, string> = {

@@ -610,4 +610,14 @@ public final class BoardApiImpl implements BoardAPI {
         pendingDestroys.add(new DestroyEvent(robotId, at, cause));
     }
 
+    /**
+     * Reports a robot destruction that will be processed when resolveIntents() is called
+     * @author Weihao Mo
+     */
+    @Override
+    public void reportDestroy(int robotId, Coord at, DestroyCause cause,int damagePower) {
+        pendingDestroys.add(new DestroyEvent(robotId, at, cause,damagePower));
+    }
+
+
 }

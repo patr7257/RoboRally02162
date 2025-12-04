@@ -17,10 +17,10 @@ export interface WallEffect extends BaseEffect { kind: "walldto"; walls: Directi
 export interface GearEffect extends BaseEffect { kind: "geardto"; rotation: Rotation; }
 export interface RebootTokenEffect extends BaseEffect { kind: "reboot_token"; direction: Direction }
 export interface StartingTileEffect extends BaseEffect { kind: "startingtile"; playerId: number; }
-export interface AntennaEffect extends BaseEffect { kind: "antenna"; direction: Direction }
+export interface AntennaEffect extends BaseEffect { kind : "antenna"; direction: Direction}
+export interface BoardLaserEffect extends BaseEffect { kind: "board_laser"; direction: Direction; power: number; }
 export interface PitsEffect extends BaseEffect { kind: "pits"; }
-export type TileEffect = CheckpointEffect | BlueConveyorEffect | GreenConveyorEffect | WallEffect | StartingTileEffect | RebootTokenEffect | AntennaEffect | GearEffect | PitsEffect;
-
+export type TileEffect = CheckpointEffect | BlueConveyorEffect | GreenConveyorEffect  | WallEffect | StartingTileEffect | RebootTokenEffect | AntennaEffect | GearEffect | BoardLaserEffect | PitsEffect;
 
 export type MoveType =
     | "MOVE1"
@@ -56,6 +56,10 @@ export interface Board {
     width: number;
     height: number;
     tiles: Tile[][];
+    startingAreaBoundary?: {
+        direction: 'N' | 'S' | 'E' | 'W';
+        position: number;
+    };
 }
 
 export interface GameDto {

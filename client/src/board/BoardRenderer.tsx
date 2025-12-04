@@ -93,11 +93,14 @@ const getSmoothRotation = (robotId: number, newFacing: string): number => {
               robot={null}
               effects={tile.effects}
               hasRobot={hasRobotAt(xIdx, yIdx)}
+              board={gameData.board}
+              robots={gameData.robots}
               startingAreaInfo={startingAreaInfo ? {
                 ...startingAreaInfo,
                 boardWidth: gameData.board.width,
                 boardHeight: gameData.board.height
               } : null}
+              startingAreaBoundary={gameData.board.startingAreaBoundary}
             />
           ))
         )}

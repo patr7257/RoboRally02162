@@ -34,4 +34,5 @@ public interface BoardAPI {
     void updatePriorityList(List<Integer> priorityOrder);
     List<Robot> getRobotsByPriority();
     void reportDestroy(int robotId, Coord at, DestroyCause cause);
+    void reportDestroy(int robotId,Coord at, DestroyCause cause,int damagePower);
 }

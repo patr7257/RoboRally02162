@@ -19,6 +19,8 @@ interface BoardTileProps {
   robot?: Robot | null;
   effects?: TileEffect[];
   hasRobot?: boolean;
+  board?: { tiles: any[][]; width: number; height: number };
+  robots?: Robot[];
   startingAreaInfo?: {
     direction: string;
     width: number;
@@ -26,6 +28,10 @@ interface BoardTileProps {
     boardWidth?: number;
     boardHeight?: number;
   } | null;
+  startingAreaBoundary?: {
+    direction: 'N' | 'S' | 'E' | 'W';
+    position: number;
+  };
 }
 /**
  * @author William Pii Jæger
@@ -49,7 +55,7 @@ const getRotationDegrees = (facing: string): number => {
 * @author William Pii Jæger
 */
 export const BoardTile: React.FC<BoardTileProps> = ({
-  x, y, tileSize, robot, effects = [], hasRobot = false,startingAreaInfo = null,
+  x, y, tileSize, robot, effects = [], hasRobot = false, board, robots, startingAreaInfo = null,
 }) => {
   const isInStartingArea = (): boolean => {
     if (!startingAreaInfo) return false;
@@ -73,7 +79,7 @@ export const BoardTile: React.FC<BoardTileProps> = ({
       height: tileSize,
       gridColumn: x + 1,
       gridRow: y + 1,
-      backgroundImage: `url(${process.env.PUBLIC_URL}/tileTexture.png)`,
+      backgroundImage: `url(${process.env.PUBLIC_URL}/boardelements/others/tileTexture.png)`,
       backgroundSize: "cover",
       backgroundPosition: "center",
     }}
@@ -96,7 +102,7 @@ export const BoardTile: React.FC<BoardTileProps> = ({
     )}
     {effects.map(e => (
       <div key={e.id} className={`effect-wrapper kind-${e.kind}`}>
-        {renderEffect({ ...e, hasRobot } as any)}
+        {renderEffect({ ...e, hasRobot, x, y, board, robots } as any)}
       </div>
     ))}
   </div>

@@ -9,7 +9,6 @@ import dk.dtu.domain.rules.MoveEvent;
 import dk.dtu.domain.rules.Outcome;
 import dk.dtu.domain.rules.api.BoardAPI;
 import dk.dtu.domain.rules.effects.*;
-import dk.dtu.infrastructure.dto.DamageDecksDto;
 
 import java.util.*;
 
@@ -374,17 +373,21 @@ public class Game {
                 robotsMap.get(e.robotId()).setPosition(e.to().x(), e.to().y());
             }
             for (DestroyEvent d : moved.destroys()) {
-                Robot r = robotsMap.get(d.robotId());
-                if (r.isAlive()) {
-                    applyRebootPenalty(d.robotId(), 2);
+                if(d.cause() == DestroyCause.LASER) {
+                    drawDamageCards(deckMap.get(d.robotId()),d.power());
+                } else {
+                    Robot r = robotsMap.get(d.robotId());
+                    if (r.isAlive()) {
+                        applyRebootPenalty(d.robotId());
+                    }
+                    r.setPosition(d.at().x(), d.at().y());
+                    r.clearRegisters();
+                    r.setDead();
                 }
-                r.setPosition(d.at().x(), d.at().y());
-                r.clearRegisters();
-                r.setDead();
             }
         }
     }
-
+    
     /**
      * Counts the number of checkpoints available on the board by scanning the
      * ACTIVATION phase tiles.
@@ -459,12 +462,14 @@ public class Game {
                 robotsMap.get(e.robotId()).setPosition(e.to().x(), e.to().y());
             }
             for (DestroyEvent d : moved.destroys()) {
-                if (r.isAlive()) {
-                    applyRebootPenalty(d.robotId(), 2);
+                if(d.cause() == DestroyCause.PITS || d.cause() == DestroyCause.FELL_OFF) {
+                    if (r.isAlive()) {
+                        applyRebootPenalty(d.robotId());
+                    }
+                    robotsMap.get(d.robotId()).setPosition(d.at().x(), d.at().y());
+                    robotsMap.get(d.robotId()).clearRegisters();
+                    robotsMap.get(d.robotId()).setDead();
                 }
-                robotsMap.get(d.robotId()).setPosition(d.at().x(), d.at().y());
-                robotsMap.get(d.robotId()).clearRegisters();
-                robotsMap.get(d.robotId()).setDead();
             }
             return true;
         }
@@ -497,35 +502,13 @@ public class Game {
                 deck.removeFromHand(ProgramCard.spam());
                 op = playTopCard(deck);
             } else if (op instanceof ProgramOP.TrojanHorse) {
-                for (int i = 0; i < 2; i++) {
-                    if (damageDecks.getSpamDrawPile() > 0) {
-                        deck.addToDiscard(ProgramCard.spam());
-                        damageDecks.setSpamDrawPile(damageDecks.getSpamDrawPile() - 1);
-                    } else {
-                        List<ProgramCard> availableCards = new ArrayList<>();
-                        if (damageDecks.getTrojanHorseDrawPile() > 0) {
-                            availableCards.add(ProgramCard.trojanHorse());
-                        }
-                        if (damageDecks.getWormDrawPile() > 0) {
-                            availableCards.add(ProgramCard.worm());
-                        }
-                        if (!availableCards.isEmpty()) {
-                            ProgramCard selected = availableCards.get(new Random().nextInt(availableCards.size()));
-                            deck.addToDiscard(selected);
-                            if (selected.equals(ProgramCard.trojanHorse())) {
-                                damageDecks.setTrojanHorseDrawPile(damageDecks.getTrojanHorseDrawPile() - 1);
-                            } else if (selected.equals(ProgramCard.worm())) {
-                                damageDecks.setWormDrawPile(damageDecks.getWormDrawPile() - 1);
-                            }
-                        }
-                    }
-                }
+                drawDamageCards(deck,2);
                 damageDecks.setTrojanHorseDrawPile(damageDecks.getTrojanHorseDrawPile() + 1);
                 deck.removeFromHand(ProgramCard.trojanHorse());
                 op = playTopCard(deck);
             } else if (op instanceof ProgramOP.Worm) {
                 if (robot.isAlive()) {
-                    applyRebootPenalty(robot.getId(), 2);
+                    applyRebootPenalty(robot.getId());
                 }
                 robot.setDead();
                 robot.clearRegisters();
@@ -570,16 +553,28 @@ public class Game {
     }
 
     /**
-     * Add spam cards to discard pile. If there are not enough spam cards, we add Trojan horse or worm instead
+     * Apply damage card system in reboot phase
      *
      * @param robotId the id of the robot to execute
      * @author Weihao Mo
      */
-    private void applyRebootPenalty(int robotId, int count) {
+    private void applyRebootPenalty(int robotId) {
         Deck deck = deckMap.get(robotId);
         if (!robotsMap.get(robotId).isAlive()) {
             return;
         }
+        drawDamageCards(deck, 2);
+    }
+
+
+    /**
+     * Add spam cards to discard pile. If there are not enough spam cards, we add Trojan horse or worm instead
+     *
+     * @param deck the deck where we add damage cards to discard pile
+     * @param count the number of damage cards to add
+     * @author Weihao Mo
+     */
+    private void drawDamageCards(Deck deck,int count) {
         for (int i = 0; i < count; i++) {
             if (damageDecks.getSpamDrawPile() > 0) {
                 deck.addToDiscard(ProgramCard.spam());

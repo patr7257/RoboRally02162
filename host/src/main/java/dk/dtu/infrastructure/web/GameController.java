@@ -259,6 +259,13 @@ public class GameController {
             t.addEffect(new Gear(gearDirs[rnd.nextInt(gearDirs.length)]));
         }
 
+        ArrayList<Tile> laserTiles = randomTiles(0,3,board);
+        for (Tile t: laserTiles) {
+            Direction d = dirs[rnd.nextInt(dirs.length)];
+            int power = rnd.nextInt(3) + 1;
+            t.addEffect(new BoardLaser(d,power));
+        }
+
         ArrayList<Tile> pitsTiles = randomTiles(0,3,board);
         for (Tile t: pitsTiles) {
             t.addEffect(new Pits());

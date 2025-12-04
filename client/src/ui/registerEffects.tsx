@@ -6,4 +6,5 @@ import "./effects/Gear";
 import "./effects/StartingTile";
 import "./effects/RebootToken";
 import "./effects/Antenna";
+import "./effects/BoardLaser";
 import "./effects/Pits"

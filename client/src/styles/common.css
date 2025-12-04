@@ -88,19 +88,9 @@ body {
 .wall {
   position: absolute;
   inset: 0;
-  pointer-events: none;
-  z-index: 3;
-  border-style: solid;
   border-color: var(--wall-color);
   border-width: 0;
 }
-
-
-.wall.dir-n { border-top-width: var(--wall-thickness); }
-.wall.dir-e { border-right-width: var(--wall-thickness); }
-.wall.dir-s { border-bottom-width: var(--wall-thickness); }
-.wall.dir-w { border-left-width: var(--wall-thickness); }
-
 .reboot-token {
   position: absolute;
   inset: 0;

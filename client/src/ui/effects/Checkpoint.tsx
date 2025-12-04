@@ -12,7 +12,7 @@ function Checkpoint({ effect }: { effect: CheckpointEffect }) {
       className="checkpoint-badge" 
       aria-label="checkpoint"
       style={{
-        backgroundImage: `url(${process.env.PUBLIC_URL}/checkpoints/checkpoint${effect.number}.png)`
+        backgroundImage: `url(${process.env.PUBLIC_URL}/boardelements/checkpoints/checkpoint${effect.number}.png)`
       }}
     />
   );

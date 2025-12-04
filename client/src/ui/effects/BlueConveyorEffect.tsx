@@ -6,9 +6,9 @@ import type { BlueConveyorEffect } from "../../types/boardTypes";
  * @author Weihao Mo
  */
 const BLUE_CONVEYOR_IMAGES: Record<string, string> = {
-  NONE: "/conveyors/blue-n-none.png",
-  RIGHT: "/conveyors/blue-n-right.png",
-  LEFT: "/conveyors/blue-n-left.png",
+  NONE: "/boardelements/conveyors/blue-n-none.png",
+  RIGHT: "/boardelements/conveyors/blue-n-right.png",
+  LEFT: "/boardelements/conveyors/blue-n-left.png",
 };
 
 const DIRECTION_ROTATION: Record<string, number> = {

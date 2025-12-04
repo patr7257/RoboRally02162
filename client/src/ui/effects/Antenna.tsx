@@ -5,31 +5,25 @@ import type { AntennaEffect } from "../../types/boardTypes";
 /**
  * @author Weihao Mo
  */
-const ANTENNA_IMAGE = "/antenna-n.jpg";
 
-const ROTATION_ANGLES: Record<string, number> = {
-    N: 0,
-    E: 90,
-    S: 180,
-    W: 270
+const ANTENNA_IMAGES: Record<string, string> = {
+    N: "/boardelements/antennas/antenna-n.png",
+    E: "/boardelements/antennas/antenna-e.png",
+    S: "/boardelements/antennas/antenna-s.png",
+    W: "/boardelements/antennas/antenna-w.png"
 };
 
 function Antenna({ effect }: { effect: AntennaEffect }) {
-    const rotation = ROTATION_ANGLES[effect.direction];
-
+    const imgSrc = ANTENNA_IMAGES[effect.direction] || ANTENNA_IMAGES.N;
     return(
         <div
          className = "antenna"
          aria-label = {`antenna ${effect.direction.toLowerCase()}`}
         >
             <img
-                src={ANTENNA_IMAGE}
+                src={imgSrc}
                 alt={`Antenna facing ${effect.direction}`}
                 className="antenna-image"
-                style={{
-                    transform: `rotate(${rotation}deg)`,
-                    transformOrigin: 'center center'
-                }}
             />
         </div>
     );

@@ -40,30 +40,33 @@
     "8,1": [{"kind": "walldto", "id": "wall_8_1", "walls": ["E"]}],
     "9,2": [{"kind": "walldto", "id": "wall_9_2", "walls": ["S"]}],
     "2,5": [{"kind": "walldto", "id": "wall_2_5", "walls": ["N"]}],
-    "3,5": [{"kind": "walldto", "id": "wall_3_5", "walls": ["W"]}],
-    "7,6": [{"kind": "walldto", "id": "wall_7_6", "walls": ["N"]}],
     "7,5": [{"kind": "walldto", "id": "wall_7_5", "walls": ["E"]}],
     "7,10": [{"kind": "walldto", "id": "wall_7_10", "walls": ["S"]}],
-    "6,10": [{"kind": "walldto", "id": "wall_6_10", "walls": ["E"]}],
-    "2,9": [{"kind": "walldto", "id": "wall_2_9", "walls": ["S"]}],
     "2,10": [{"kind": "walldto", "id": "wall_2_10", "walls": ["W"]}],
 
-    "_comment_pits": "___________________________ PITS (Not Yet Implemented) ___________________________",
-    "_comment_pit_5_4": "Pit at 5,4",
-    "_comment_pit_1_7": "Pit at 1,7",
-    "_comment_pit_4_11": "Pit at 4,11",
-    "_comment_pit_8_8": "Pit at 8,8",
-
+    "_comment_pits": "___________________________ PITS ___________________________",
     "5,4":  [{ "kind": "PITS" }],
     "1,7":  [{ "kind": "PITS" }],
     "4,11": [{ "kind": "PITS" }],
     "8,8":  [{ "kind": "PITS" }],
 
-      "_comment_lasers": "___________________________ LASERS (Not Yet Implemented) ___________________________",
-    "_comment_lasers_5_4": "Laser at 3,5,E",
-    "_comment_lasers_1_7": "Laser at 7,6,S",
-    "_comment_lasers_4_11": "Laser at 6,10,W",
-    "_comment_lasers_8_8": "Laser at 2,9,N",
+    "_comment_lasers": "___________________________ BOARD LASERS (with walls) ___________________________",
+    "3,5": [
+      {"kind": "walldto", "id": "wall_3_5", "walls": ["W"]},
+      {"kind": "board_laser", "id": "laser_3_5", "direction": "E", "power": 1}
+    ],
+    "7,6": [
+      {"kind": "walldto", "id": "wall_7_6", "walls": ["N"]},
+      {"kind": "board_laser", "id": "laser_7_6", "direction": "S", "power": 2}
+    ],
+    "6,10": [
+      {"kind": "walldto", "id": "wall_6_10", "walls": ["E"]},
+      {"kind": "board_laser", "id": "laser_6_10", "direction": "W", "power": 1}
+    ],
+    "2,9": [
+      {"kind": "walldto", "id": "wall_2_9", "walls": ["S"]},
+      {"kind": "board_laser", "id": "laser_2_9", "direction": "N", "power": 2}
+    ],
 
     "_comment_green_conveyors": "___________________________ GREEN CONVEYORS ___________________________",
     "1,3": [{"kind": "GREEN_CONVEYOR", "id": "green_conveyor_1_3", "direction": "E", "rotation": "NONE"}],
@@ -73,7 +76,7 @@
 
     "_comment_gears": "___________________________ GEARS ___________________________",
     "4,7": [{"kind": "GEAR", "id": "gear_4_7", "rotation": "RIGHT"}],
-    
+
     "_comment_blue_conveyors": "___________________________ BLUE CONVEYORS ___________________________",
     "_comment_blue_central": "Central conveyor square with corner turns (clockwise loop)",
     "3,6": [{"kind": "BLUE_CONVEYOR", "id": "blue_conv_3_6", "direction": "S", "rotation": "LEFT"}],

@@ -18,9 +18,9 @@ function Gear({ effect }: { effect: GearEffect }) {
 
   const gearImage =
     effect.rotation === "LEFT"
-      ? "Gear/GearLeft.svg"
+      ? `${process.env.PUBLIC_URL}/boardelements/Gear/GearLeft.svg`
       : effect.rotation === "RIGHT"
-      ? "Gear/GearRight.svg"
+      ? `${process.env.PUBLIC_URL}/boardelements/Gear/GearRight.svg`
       : null;
 
   const dirClass =
