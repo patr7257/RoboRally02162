@@ -167,15 +167,15 @@ public class Deck {
         }
 
         List<ProgramCard> result = new ArrayList<>(picked);
-        if (result.size() < 5) {
-            for (ProgramCard c : hand) {
-                if (result.size() == 5) break;
-                int r = remain.getOrDefault(c, 0);
-                if (r > 0) {
-                    result.add(c);
-                    remain.put(c, r - 1);
+        while(result.size() < 5) {
+            if (drawPile.isEmpty()) {
+                reshuffle();
+                if (drawPile.isEmpty()) {
+                    throw new IllegalStateException("Can't draw cards from discard");
                 }
             }
+            ProgramCard extra = popTop();
+            result.add(extra);
         }
 
         if (result.size() != 5) {
