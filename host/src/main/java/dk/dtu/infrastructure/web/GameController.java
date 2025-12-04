@@ -246,10 +246,16 @@ public class GameController {
 
         ArrayList<Tile> wallTiles = randomTiles(0, 5, board);
         Direction[] dirs = Direction.values();
+        double laserProbability = 0.5;
 
         for (Tile t : wallTiles) {
             Direction d = dirs[rnd.nextInt(dirs.length)];
             t.addEffect(new Walls(EnumSet.of(d)));
+            if (rnd.nextDouble() >= laserProbability) {
+                int power = rnd.nextInt(3) + 1;
+                Direction laserDir = d.opposite();
+                t.addEffect(new BoardLaser(laserDir, power));
+            }
         }
 
         ArrayList<Tile> gearTiles = randomTiles(0, 5, board);
@@ -259,12 +265,6 @@ public class GameController {
             t.addEffect(new Gear(gearDirs[rnd.nextInt(gearDirs.length)]));
         }
 
-        ArrayList<Tile> laserTiles = randomTiles(0,3,board);
-        for (Tile t: laserTiles) {
-            Direction d = dirs[rnd.nextInt(dirs.length)];
-            int power = rnd.nextInt(3) + 1;
-            t.addEffect(new BoardLaser(d,power));
-        }
 
         ArrayList<Tile> pitsTiles = randomTiles(0,3,board);
         for (Tile t: pitsTiles) {
