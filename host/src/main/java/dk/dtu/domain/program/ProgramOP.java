@@ -42,5 +42,6 @@ public sealed interface ProgramOP
     final class Again implements ProgramOP {
     }
 
-    record Reaction(ReactionKind kind) implements ProgramOP {}
+    record Reaction(ReactionKind kind) implements ProgramOP {
+    }
 }

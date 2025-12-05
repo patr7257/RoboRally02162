@@ -70,6 +70,7 @@ export default function Board() {
 
   const readinessIntervalRef = useRef<NodeJS.Timeout | null>(null);
 
+  const [lastMove, setLastMove] = useState<{ robotId: number; move: string } | null>(null);
 
   // Fetch lobby info and full board template for Map Banner and starting area info
   useEffect(() => {
@@ -217,6 +218,7 @@ export default function Board() {
 
           case "update":
             sendMessage({ lobbyID: lobbyId, payload: { type: "getBoard" } });
+            sendMessage({ lobbyID: lobbyId, payload: { type: "getLastMove" } });
             window.dispatchEvent(new Event('roundExecuted'));
             break;
 
@@ -274,6 +276,21 @@ export default function Board() {
             setDamageDecks(actualData.payload);
             break;
 
+          case "lastMove":
+            console.log("Getting Last Move", actualData.payload);
+            if (actualData.payload?.lastMove) {
+              const str = actualData.payload.lastMove;
+
+              const match = str.match(/\{(\d+)=(.+)\}/);
+
+              if (match) {
+                const robotId = parseInt(match[1], 10);
+                const move = match[2];
+                console.log(robotID, move)
+                setLastMove({ robotId, move });
+              }
+            }
+            break;
 
           default:
             console.log("Unknown message type:", data.type, data);
@@ -631,6 +648,25 @@ export default function Board() {
               </div>
             )}
           </div>
+          {lastMove && (
+            <div className="last-move-banner">
+              <h3>Last Move:</h3>
+
+              <p>
+                <span
+                  style={{
+                    color: ROBOT_COLORS[(lastMove.robotId - 1) % ROBOT_COLORS.length],
+                    fontWeight: "bold",
+                  }}
+                >
+                  Robot {lastMove.robotId}
+                </span>
+              </p>
+
+              <p>{lastMove.move}</p>
+            </div>
+          )}
+
         </div>
         <div className="controls">
           <div className="damageDecksViewer">

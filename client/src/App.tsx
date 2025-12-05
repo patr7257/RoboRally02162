@@ -145,8 +145,6 @@ function Home() {
 }
 
 function App() {
-
-
   const easter_egg = document.querySelector(".easteregg");
   const [play] = useSound('./utils/roborawy.mp3');
   easter_egg?.addEventListener("click", (e) => {

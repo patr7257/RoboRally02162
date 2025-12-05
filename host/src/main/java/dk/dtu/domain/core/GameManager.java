@@ -7,6 +7,7 @@ import dk.dtu.domain.model.DamageDecks;
 import dk.dtu.domain.model.Deck;
 import dk.dtu.domain.model.Robot;
 import dk.dtu.domain.program.ProgramCard;
+import dk.dtu.domain.program.ProgramOP;
 import dk.dtu.domain.rules.api.BoardAPI;
 import dk.dtu.infrastructure.SnapshotMapper;
 import dk.dtu.infrastructure.dto.DamageDecksDto;
@@ -235,6 +236,12 @@ public class GameManager implements GameObserver {
      * @param <T>    response type corresponding to the query
      * @return optional result if session exists
      * @author William Pii Jæger
+     * @author Weihao Mo
+     * @author Benjamin Benyo Endahl Hansen
+     * @author Bjarke Søderhamn Petersen
+     * @author Asger Allin Jensen
+     * @author Karl Johannes Agerbo
+     * @author Niklas Emil Lysdal
      */
     public synchronized <T> Optional<T> query(UUID gameId, GameQuery<T> query) {
         GameSession session = activeSessions.get(gameId);
@@ -257,6 +264,13 @@ public class GameManager implements GameObserver {
                     List<ProgramCard> cards = game.getRobotDiscard(discard.robotId());
                     yield Optional.of((T) cards);
                 }
+
+                case GameQuery.GetLastMove lastMove -> {
+                    Game game = session.getGame();
+                    Map<Integer,String> card = game.getLastMove();
+                    yield Optional.ofNullable((T) card);
+                }
+
                 case GameQuery.GetDamageDecks damageDecks -> {
                     Game game = session.getGame();
                     DamageDecks decks = game.getDamageDecks();

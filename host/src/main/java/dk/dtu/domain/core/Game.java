@@ -40,7 +40,7 @@ public class Game {
     private final Map<Integer, Robot> robotsMap;
     private final Map<PlayerID, Robot> robotMap = new HashMap<>();
     private final Map<Integer, Deck> deckMap = new HashMap<>();
-
+    private Map<Integer, String> lastMove;
     private PlayerID winner;
     private final List<GameObserver> observers = new ArrayList<>();
     private DamageDecks damageDecks;
@@ -156,6 +156,17 @@ public class Game {
     public List<ProgramCard> getRobotDiscard(int robotID) {
         return List.copyOf(deckMap.get(robotID).getDiscardPile());
     }
+
+
+    /**
+     * @author Benjamin Benyo Endahl Hansen
+     * @author Bjarke Søderhamn Petersen
+     * @author Asger Allin Jensen
+     */
+    public Map<Integer, String> getLastMove() {
+        return lastMove;
+    }
+
 
     /**
      * Submits and validates a player's selected program (fills remaining slots if
@@ -491,6 +502,7 @@ public class Game {
      */
     public void executeOneRobotTurn(Robot robot) {
         ProgramOP op = robot.pollNextOp();
+        ProgramCard pc = robot.pollNextPc();
         if (op == null) return;
 
         Deck deck = deckMap.get(robot.getId());
@@ -548,7 +560,7 @@ public class Game {
         if (!(op instanceof ProgramOP.Again)) {
             robot.setLastExecutedOp(op);
         }
-
+        lastMove = Map.of(robot.getId(),pc.toString().equals("MOVE-1") ? "MOVEBACK" : pc.toString());
         notifyGameUpdate();
     }
 

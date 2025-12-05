@@ -9,6 +9,7 @@ import dk.dtu.domain.model.DamageDecks;
 import dk.dtu.domain.core.reaction.*;
 import dk.dtu.domain.model.Direction;
 import dk.dtu.domain.program.ProgramCard;
+import dk.dtu.domain.program.ProgramOP;
 import dk.dtu.infrastructure.SnapshotMapper;
 import dk.dtu.infrastructure.dto.*;
 import org.springframework.web.socket.TextMessage;
@@ -117,6 +118,11 @@ public class GatewaysWsHandler extends TextWebSocketHandler implements GameManag
     /**
      * @author William Pii Jæger
      * @author Weihao Mo
+     * @author Benjamin Benyo Endahl Hansen
+     * @author Bjarke Søderhamn Petersen
+     * @author Asger Allin Jensen
+     * @author Karl Johannes Agerbo
+     * @author Niklas Emil Lysdal
      */
     @Override
     protected void handleTextMessage(WebSocketSession session, TextMessage message) throws Exception {
@@ -246,6 +252,23 @@ public class GatewaysWsHandler extends TextWebSocketHandler implements GameManag
                 DiscardPayload payload = new DiscardPayload("discard", cardStrings);
                 send(new OutgoingMessage<>("discard", Delivery.DIRECT,
                         withGame(meta, gameDto), payload));
+            }
+
+            case "getLastMove" -> {
+                Optional<Map<Integer,String>> lastMoveOpt = gameManager.query(
+                        gameId,
+                        new GameQuery.GetLastMove()
+                );
+                Optional<Game> gameOpt = gameManager.findByID(gameId);
+                GameDto gameDto = gameOpt.map(g -> SnapshotMapper.mapGame(gameId, g))
+                        .orElse(new GameDto(gameId, null));
+
+                Map<Integer,String> lastMove = lastMoveOpt.get();
+
+                LastMovePayload payload = new LastMovePayload("lastMove", lastMove.toString());
+                send(new OutgoingMessage<>("lastMove", Delivery.DIRECT,
+                        withGame(meta, gameDto), payload));
+
             }
             case "getDamageDecks" -> {
                 DamageDecks damageDecks = gameManager.query(

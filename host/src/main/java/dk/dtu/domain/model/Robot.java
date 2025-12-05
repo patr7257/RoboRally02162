@@ -30,6 +30,7 @@ public class Robot {
     private ProgramOP lastExecutedOp = null;
 
     private final Deque<ProgramOP> registers = new ArrayDeque<>();
+    private final Deque<ProgramCard> pcRegisters = new ArrayDeque<>();
 
     /**
      * @author William Pii Jæger
@@ -59,11 +60,18 @@ public class Robot {
      */
     public void loadProgram(List<ProgramCard> cards) {
         registers.clear();
-        for (ProgramCard c : cards) registers.addAll(c.toOps());
+        for (ProgramCard c : cards){
+            registers.addAll(c.toOps());
+            pcRegisters.add(c);
+        }
     }
 
     public ProgramOP pollNextOp() {
         return registers.pollFirst();
+    }
+
+    public ProgramCard pollNextPc() {
+        return pcRegisters.pollFirst();
     }
 
     public boolean hasPendingOps() {
