@@ -132,15 +132,15 @@ public class ConnectionEstablishmentTests {
         Thread.sleep(50);
         WebSocketHttpHeaders headers = new WebSocketHttpHeaders();
 
-        URI uri = URI.create("ws://localhost:" + port + "/client?token=" + token);
+        URI uri = URI.create("ws://localhost:" + port + "/client?token=" + token+"&reason=LOGIN");
         CompletableFuture<WebSocketSession> future = hostSocket.execute(handler, null, uri);
         WebSocketSession clientSession = future.get(5, TimeUnit.SECONDS);
         Thread.sleep(50);
         try {
             WebSocketSession established = sessions.poll(5, TimeUnit.SECONDS);
             assertThat(established).isNotNull();
-            //assertThat(clientSession.isOpen()).isTrue();
-            //assertThat(established.isOpen()).isTrue();
+            assertThat(clientSession.isOpen()).isTrue();
+            assertThat(established.isOpen()).isTrue();
         } finally {
             if (clientSession != null && clientSession.isOpen()) {
                 clientSession.close();
