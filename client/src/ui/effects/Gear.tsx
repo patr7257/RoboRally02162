@@ -1,10 +1,12 @@
 import React, { useEffect, useState, useRef } from "react";
 import { registerEffect } from "../effectRegistry";
 import { Rotation } from "../../types/boardTypes";
+import { subscribe } from "../../utils/ws";
 
 type GearEffect = {
   rotation: Rotation;
-  hasRobot?: boolean;
+  x?: number;
+  y?: number;
 };
 
 /**
@@ -31,21 +33,35 @@ function Gear({ effect }: { effect: GearEffect }) {
       : "";
 
   useEffect(() => {
-      const handleRoundExecuted = () => {
-        if (effect.hasRobot) {
-          triggerAnimation();
-        }
-      };
+    const handleMessage = (messageStr: string) => {
+      try {
+        const message = JSON.parse(messageStr);
 
-      window.addEventListener("roundExecuted", handleRoundExecuted);
+        if (
+          message.type === "tileAnimation" &&
+          message.payload &&
+          message.payload.effectKind === "geardto"
+        ) {
+          const { x, y } = message.payload;
+
+          if (effect.x === x && effect.y === y) {
+            triggerAnimation();
+          }
+        }
+      } catch (e) {
+      }
+    };
+
+    const unsubscribe = subscribe(handleMessage);
+
 
       return () => {
-        window.removeEventListener("roundExecuted", handleRoundExecuted);
+        unsubscribe();
         if (animationTimeoutRef.current) {
           clearTimeout(animationTimeoutRef.current);
         }
       };
-    }, [effect.hasRobot]);
+    }, [effect.x, effect.y]);
 
     const triggerAnimation = () => {
       const now = Date.now();

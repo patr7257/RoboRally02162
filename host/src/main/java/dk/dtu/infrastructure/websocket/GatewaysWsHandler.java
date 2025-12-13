@@ -564,6 +564,37 @@ public class GatewaysWsHandler extends TextWebSocketHandler implements GameManag
     }
 
     /**
+     * Notifies clients that they need activate animations for board element
+     *
+     * @param game the game instance
+     * @param gameID the game ID
+     * @param x the x-coordinate of the board element
+     * @param y the y-coordinate of the board element
+     * @param effectKind the type of the board element
+     *
+     * @author Weihao Mo
+     */
+    @Override
+    public void onTileEffectActivated(Game game, UUID gameID, int x, int y, String effectKind) {
+        try {
+            GameDto gameDto = SnapshotMapper.mapGame(gameID, game);
+            EventMetaDTO meta = new EventMetaDTO(gameDto, null);
+
+            TileAnimationEventDto animationEvent = new TileAnimationEventDto(x, y, effectKind);
+
+            OutgoingMessage<?> out = new OutgoingMessage<>(
+                    "tileAnimation",
+                    Delivery.BROADCAST,
+                    meta,
+                    animationEvent
+            );
+            send(out);
+        } catch (Exception e) {
+            System.err.println("Failed to broadcast tile animation: " + e);
+        }
+    }
+
+    /**
      * An incoming message from a client containing game-related information.
      *
      * @param gameId the id of the game

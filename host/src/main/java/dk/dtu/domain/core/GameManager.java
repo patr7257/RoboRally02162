@@ -8,9 +8,9 @@ import dk.dtu.domain.model.Deck;
 import dk.dtu.domain.model.Robot;
 import dk.dtu.domain.program.ProgramCard;
 import dk.dtu.domain.program.ProgramOP;
+import dk.dtu.domain.rules.TileAnimationListener;
 import dk.dtu.domain.rules.api.BoardAPI;
 import dk.dtu.infrastructure.SnapshotMapper;
-import dk.dtu.infrastructure.dto.DamageDecksDto;
 import dk.dtu.infrastructure.dto.ReadinessDto;
 import dk.dtu.infrastructure.dto.SnapshotPayload;
 
@@ -44,7 +44,7 @@ public class GameManager implements GameObserver {
     }
 
     /**
-     * Starts a new game with the given board, API, and robots. Registers this as a {@link GameObserver}.
+     * Starts a new game with the given board, API, and robots. Registers this as a {@link GameObserver}. The game also registers {@link TileAnimationListener}.
      *
      * @param board   the game board
      * @param api     board API for rule application
@@ -57,6 +57,11 @@ public class GameManager implements GameObserver {
         UUID id = UUID.randomUUID();
         Game game = new Game(board, api, players);
         game.addObserver(this);
+        api.addAnimationListener((x, y, effectKind) -> {
+            for (GameManagerObserver obs : observers) {
+                    obs.onTileEffectActivated(game, id, x, y, effectKind);
+            }
+        });
         GameSession session = new GameSession(id, game);
         activeSessions.put(id, session);
         return id;
@@ -72,6 +77,11 @@ public class GameManager implements GameObserver {
         UUID id = UUID.randomUUID();
         Game game = new Game(board, api, players, decks,damageDecks);
         game.addObserver(this);
+        api.addAnimationListener((x, y, effectKind) -> {
+            for (GameManagerObserver obs : observers) {
+                    obs.onTileEffectActivated(game, id, x, y, effectKind);
+            }
+        });
         GameSession session = new GameSession(id, game);
         activeSessions.put(id, session);
         return id;

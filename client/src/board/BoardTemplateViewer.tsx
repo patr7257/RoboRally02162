@@ -20,20 +20,24 @@ export const BoardTemplateViewer: React.FC<BoardTemplateViewerProps> = ({
     onTemplateSelect,
     onClose
 }) => {
-    // Define difficulty order for sorting
-    const difficultyOrder: { [key: string]: number } = {
-        "Beginner": 1,
-        "Intermediate": 2,
-        "Hard": 3,
-        "Expert": 4,
-        "Variable": 5  // Random always last
-    };
-    
-    // Sort templates by difficulty
     const sortedTemplates = [...templates].sort((a, b) => {
-        const orderA = difficultyOrder[a.difficulty] || 999;
-        const orderB = difficultyOrder[b.difficulty] || 999;
-        return orderA - orderB;
+        // 1. Starter-Course always first
+        if (a.name === "Starter-Course") return -1;
+        if (b.name === "Starter-Course") return 1;
+        
+        // 2. Random always last
+        if (a.name === "Random") return 1;
+        if (b.name === "Random") return -1;
+        
+        // 3. Custom maps after predefined templates
+        const aIsCustom = a.imageUrl.endsWith('/CustomMap.png');
+        const bIsCustom = b.imageUrl.endsWith('/CustomMap.png');
+        if (aIsCustom && !bIsCustom) return 1;
+        if (!aIsCustom && bIsCustom) return -1;
+        const aName = (a.displayName || a.name).toLowerCase();
+        const bName = (b.displayName || b.name).toLowerCase();
+        
+        return aName.localeCompare(bName);
     });
 
     const handleConfirm = () => {
@@ -45,7 +49,12 @@ export const BoardTemplateViewer: React.FC<BoardTemplateViewerProps> = ({
             <div className="template-viewer-content" onClick={(e) => e.stopPropagation()}>
                 <div className="template-viewer-header">
                     <h2>Choose Board Template</h2>
-                    <button className="close-button" onClick={handleConfirm}>✕</button>
+                    <div className="header-buttons">
+                        <button className="confirm-button" onClick={handleConfirm}>
+                            Confirm Selection
+                        </button>
+                        <button className="close-button" onClick={handleConfirm}>✕</button>
+                    </div>
                 </div>
                 
                 <div className="templates-grid">
@@ -62,7 +71,7 @@ export const BoardTemplateViewer: React.FC<BoardTemplateViewerProps> = ({
                                     className="template-image"
                                     onError={(e) => {
                                         console.log(`Image failed to load for ${template.name}: ${template.imageUrl}`);
-                                        e.currentTarget.src = '/boardtemplates/random.png';
+                                        e.currentTarget.src = '/boardtemplates/CustomMap.png';
                                     }}
                                 />
                                 {selectedTemplate === template.name && (
@@ -73,19 +82,12 @@ export const BoardTemplateViewer: React.FC<BoardTemplateViewerProps> = ({
                             <div className="template-info">
                                 <h3 className="template-title">{template.displayName || template.name}</h3>
                                 <div className="template-details">
-                                    <span>Max Players: {template.maxPlayers}</span>
                                     <span>Difficulty: {template.difficulty}</span>
                                     <span>Game Length: {template.gameLength}</span>
                                 </div>
                             </div>
                         </div>
                     ))}
-                </div>
-                
-                <div className="template-viewer-footer">
-                    <button className="confirm-button" onClick={handleConfirm}>
-                        Confirm Selection
-                    </button>
                 </div>
             </div>
         </div>

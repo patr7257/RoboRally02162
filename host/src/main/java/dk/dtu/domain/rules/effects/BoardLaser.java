@@ -27,6 +27,8 @@ public record BoardLaser(Direction direction, int power) implements TileEffect {
     @Override
     public void onPhase(Phase phase, Tile tile, BoardAPI api) {
         if (phase != Phase.ACTIVATE_BOARD_LASERS) return;
+
+        boolean hasTarget = false;
         
         // Pre calculate laser sight starting from LaserPosition
         Coord currentPos = new Coord(tile.getX(), tile.getY());
@@ -38,6 +40,7 @@ public record BoardLaser(Direction direction, int power) implements TileEffect {
         if (!robotsOnLaser.isEmpty()) {
             Robot target = robotsOnLaser.get(0);
             api.reportDestroy(target.getId(), currentPos, DestroyCause.LASER, power);
+            api.notifyTileEffectActivated(tile.getX(), tile.getY(), "board_laser");
             return;
         }
         
@@ -74,11 +77,15 @@ public record BoardLaser(Direction direction, int power) implements TileEffect {
                 // TODO: Implement damage dealing
                 api.reportDestroy(target.getId(), currentPos,DestroyCause.LASER,power);
                 //console.log("Board laser hit robot " + robot.getId() + " for " + amount + " damage");
+                hasTarget = true;
                 break;
             }
             
             // Update previous position for next iteration
             previousPos = currentPos;
+        }
+        if (hasTarget) {
+            api.notifyTileEffectActivated(tile.getX(), tile.getY(), "board_laser");
         }
     }
 

@@ -1,0 +1,35 @@
+{
+  "displayName": "Laser-Test",
+  "imageUrl": "/boardtemplates/random.png",
+  "gameLength": "Short",
+  "difficulty": "Beginner",
+  "minPlayers": 2,
+  "maxPlayers": 6,
+  "boardWidth": 10,
+  "boardHeight": 10,
+  "startingBoardWidth": 3,
+  "startingBoardHeight": 10,
+  "startingBoardDirection": "w",
+  "effects": {
+    "_comment_antenna": "___________________________ ANTENNA ___________________________",
+    "0,4": [{"kind": "antenna", "id": "antenna_0_4", "direction": "E"}],
+
+    "_comment_starting": "___________________________ STARTING TILES ___________________________",
+    "0,3": [{"kind": "startingtile", "id": "start_0_3", "playerId": 5}],
+
+    "_comment_checkpoint": "___________________________ CHECKPOINTS ___________________________",
+    "12,3": [{"kind": "checkpoint", "id": "checkpoint_12_3", "number": 1}],
+
+    "_comment_reboot": "___________________________ REBOOT TOKEN ___________________________",
+    "7,3": [{"kind": "reboot_token", "id": "reboot_7_3", "direction": "E"}],
+
+    "_comment_gear": "___________________________ GEAR ___________________________",
+    "1,3": [{"kind": "GEAR", "id": "gear_1_3", "rotation": "RIGHT"}],
+    
+    "_comment_lasers": "___________________________ BOARD LASERS (with walls) ___________________________",
+    "3,3": [
+      {"kind": "walldto", "id": "wall_3_3", "walls": ["N"]},
+      {"kind": "board_laser", "id": "laser_3_3", "direction": "S", "power": 1}
+    ]
+  }
+}

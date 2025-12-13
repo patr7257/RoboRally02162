@@ -27,6 +27,10 @@ export const fetchBoardTemplates = async (): Promise<BoardTemplateInfo[]> => {
         
         const templates: BoardTemplateInfo[] = await response.json();
         
+        templates.forEach(template => {
+            template.imageUrl = getTemplateImageUrl(template.name);
+        });
+        
         // Add "Random" as a special option
         templates.push({
             name: "Random",
@@ -47,15 +51,17 @@ export const fetchBoardTemplates = async (): Promise<BoardTemplateInfo[]> => {
  * Gets the image URL for a template based on its name
  */
 const getTemplateImageUrl = (templateName: string): string => {
+    const normalizedName = templateName.toLowerCase().trim();
+    
     const imageMap: { [key: string]: string } = {
-        "Starter Course: Dizzy Highway": "/boardtemplates/dizzy-highway.png",
-        "Burnout": "/boardtemplates/burnout.png",
-        "Fractionation": "/boardtemplates/fractionation.png",
-        "Death Trap": "/boardtemplates/death-trap.png",
-        "Random": "/boardtemplates/random.png"
+        "starter-course": "/boardtemplates/Starter-Course.png",
+        "burnout": "/boardtemplates/burnout.png",
+        "fractionation": "/boardtemplates/fractionation.png",
+        "death-trap": "/boardtemplates/death-trap.png",
+        "random": "/boardtemplates/random.png"
     };
     
-    return imageMap[templateName] || "/boardtemplates/random.png";
+    return imageMap[normalizedName] || "/boardtemplates/CustomMap.png";
 };
 
 /**
@@ -64,11 +70,11 @@ const getTemplateImageUrl = (templateName: string): string => {
 const getDefaultTemplates = (): BoardTemplateInfo[] => {
     return [
         {
-            name: "Random",
+            name: "Custom Map",
             difficulty: "Variable",
             maxPlayers: 6,
             gameLength: "Medium",
-            imageUrl: "/boardtemplates/random.png"
+            imageUrl: "/boardtemplates/CustomMap.png"
         }
     ];
 };

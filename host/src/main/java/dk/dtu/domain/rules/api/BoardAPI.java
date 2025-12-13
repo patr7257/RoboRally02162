@@ -35,4 +35,7 @@ public interface BoardAPI {
     List<Robot> getRobotsByPriority();
     void reportDestroy(int robotId, Coord at, DestroyCause cause);
     void reportDestroy(int robotId,Coord at, DestroyCause cause,int damagePower);
+    void addAnimationListener(TileAnimationListener listener);
+    void removeAnimationListener(TileAnimationListener listener);
+    void notifyTileEffectActivated(int x, int y, String effectKind);
 }

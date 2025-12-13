@@ -6,6 +6,7 @@ import java.util.UUID;
 
 /**
  * @author William Pii Jæger
+ * @author Weihao Mo
  */
 public interface GameManagerObserver {
     default void handleGameUpdate(Game game, UUID gameID) {
@@ -30,5 +31,6 @@ public interface GameManagerObserver {
     }
 
     default void onReactionNeeded(Game game, UUID gameID, ReactionRequest<?> request) {
-    };
+    }
+    default void onTileEffectActivated(Game game, UUID gameID, int x, int y, String effectKind) { }
 }

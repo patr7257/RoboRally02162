@@ -1,5 +1,5 @@
 import React from "react";
-import { GameData } from "../types/boardTypes";
+import { GameData, Direction, Tile, Robot } from "../types/boardTypes";
 import { calculateBoardSize, getRobotAtPosition, getRobotImage } from "../utils/boardUtils";
 
 import { BoardTile } from "./BoardTile";
@@ -23,7 +23,6 @@ interface BoardRendererProps {
     boardHeight?: number;
   } | null;
 }
-
 
 /**
 * @author Asger Allin Jensen
@@ -67,9 +66,7 @@ const getSmoothRotation = (robotId: number, newFacing: string): number => {
       return nextRotation;
     };
 
-  const hasRobotAt = (x: number, y: number): boolean => {
-    return gameData.robots.some(robot => robot.x === x && robot.y === y);
-  };
+
 
   return (
     <div className="board-wrapper">
@@ -92,7 +89,6 @@ const getSmoothRotation = (robotId: number, newFacing: string): number => {
               tileSize={tileSize}
               robot={null}
               effects={tile.effects}
-              hasRobot={hasRobotAt(xIdx, yIdx)}
               board={gameData.board}
               robots={gameData.robots}
               startingAreaInfo={startingAreaInfo ? {

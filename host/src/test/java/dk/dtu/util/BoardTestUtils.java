@@ -371,35 +371,13 @@ public final class BoardTestUtils {
 
         return new Board(width,height,tiles);
     }
-
+    
     /**
      * @author Patrick Røbel
      */
     public static Board initBoardWithBoardLasers(int width, int height) {
         Tile[][] tiles = initEmptyCells(width, height);
-        
-        // Laser 1: At (2, 1) facing South (towards increasing Y) with power 1 - for basic damage test
-        // This will hit robot at (2, 2)
-        Tile laser1 = tiles[2][1];
-        laser1.setEffects(List.of(new BoardLaser(Direction.S, 1)));
-        
-        // Laser 2: At (3, 1) facing South (towards increasing Y) with power 3 - for high power test
-        // This will hit robot at (3, 2) or (3, 3)
-        Tile laser2 = tiles[3][1];
-        laser2.setEffects(List.of(new BoardLaser(Direction.S, 3)));
-        
-        // Wall at (1, 2) blocking North side - used for wall blocking test
-        Tile wall = tiles[1][2];
-        wall.setEffects(List.of(new Walls(EnumSet.of(Direction.N))));
-        
-        // Laser 3: At (1, 1) facing South with power 2 - will be blocked by wall at (1, 2)
-        Tile laser3blocked = tiles[1][1];
-        laser3blocked.setEffects(List.of(new BoardLaser(Direction.S, 2)));
-        
-        // Laser 4: At (2, 5) facing East with power 2 - for multiple robots test
-        Tile laser4 = tiles[2][5];
-        laser4.setEffects(List.of(new BoardLaser(Direction.E, 2)));
-        
+        // add lasers manually in tests to not confuse logic
         Tile cp = tiles[8][8];
         cp.setEffects(List.of(new Checkpoint(1)));
         

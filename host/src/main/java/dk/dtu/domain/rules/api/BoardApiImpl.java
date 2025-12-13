@@ -22,6 +22,7 @@ public final class BoardApiImpl implements BoardAPI {
     private final List<BeltIntent> intents = new ArrayList<>();
     private List<Integer> priorityOrder = new ArrayList<>();
     private final List<DestroyEvent> pendingDestroys = new ArrayList<>();
+    private final List<TileAnimationListener> animationListeners = new ArrayList<>();
 
     public BoardApiImpl(Board board, List<Robot> robots) {
         this.board = board;
@@ -617,6 +618,46 @@ public final class BoardApiImpl implements BoardAPI {
     @Override
     public void reportDestroy(int robotId, Coord at, DestroyCause cause,int damagePower) {
         pendingDestroys.add(new DestroyEvent(robotId, at, cause,damagePower));
+    }
+
+    /**
+     * Registers an animation listener
+     * @author Weihao Mo
+     */
+    @Override
+    public void addAnimationListener(TileAnimationListener listener) {
+        if (listener != null && !animationListeners.contains(listener)) {
+            animationListeners.add(listener);
+        }
+    }
+
+    /**
+     * Unregisters an animation listener
+     * @author Weihao Mo
+     */
+    @Override
+    public void removeAnimationListener(TileAnimationListener listener) {
+        animationListeners.remove(listener);
+    }
+
+    /**
+     * Notifies all registered listeners that a tile effect has activated.
+     *
+     * @param x the x-coordinate of the tile effect
+     * @param y the y-coordinate of the tile effect
+     * @param effectKind the type of effect
+     * @author Weihao Mo
+     */
+    @Override
+    public void notifyTileEffectActivated(int x, int y, String effectKind) {
+        for(TileAnimationListener listener: animationListeners) {
+            try {
+                listener.onTileEffectActivated(x, y, effectKind);
+            } catch (Exception e) {
+                System.err.println("Animation listener failed :" + e.getMessage());
+            }
+        }
+
     }
 
 

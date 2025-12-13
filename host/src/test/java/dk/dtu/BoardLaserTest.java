@@ -27,7 +27,10 @@ public class BoardLaserTest {
      */
     @Test
     void boardLaserOnRobotDealsDamage() {
-        Board board = initBoardWithBoardLasers(10, 10);
+        Tile[][] tiles = initEmptyCells(10, 10);
+        tiles[2][1].setEffects(List.of(new BoardLaser(Direction.S, 1)));
+        Board board = new Board(10, 10, tiles);
+        
         Robot robot = new Robot(1, 2, 2, Direction.N);
         List<Robot> robots = List.of(robot);
         BoardAPI api = new BoardApiImpl(board, robots);
@@ -51,7 +54,10 @@ public class BoardLaserTest {
      */
     @Test
     void powerEqualsSpamCardCount() {
-        Board board = initBoardWithBoardLasers(10, 10);
+        Tile[][] tiles = initEmptyCells(10, 10);
+        tiles[3][1].setEffects(List.of(new BoardLaser(Direction.S, 3)));
+        Board board = new Board(10, 10, tiles);
+        
         Robot robot = new Robot(1, 3, 3, Direction.E);
         List<Robot> robots = List.of(robot);
         BoardAPI api = new BoardApiImpl(board, robots);
@@ -81,7 +87,11 @@ public class BoardLaserTest {
      */
     @Test
     void laserHitsWallAndStops() {
-        Board board = initBoardWithBoardLasers(10, 10);
+        Tile[][] tiles = initEmptyCells(10, 10);
+        tiles[1][1].setEffects(List.of(new BoardLaser(Direction.S, 2)));
+        tiles[1][2].setEffects(List.of(new Walls(EnumSet.of(Direction.N))));
+        Board board = new Board(10, 10, tiles);
+        
         Robot robot = new Robot(1, 1, 3, Direction.S);
         List<Robot> robots = List.of(robot);
         BoardAPI api = new BoardApiImpl(board, robots);
@@ -103,7 +113,10 @@ public class BoardLaserTest {
      */
     @Test
     void laserHitsMaxOneRobot() {
-        Board board = initBoardWithBoardLasers(10, 10);
+        Tile[][] tiles = initEmptyCells(10, 10);
+        tiles[2][5].setEffects(List.of(new BoardLaser(Direction.E, 2)));
+        Board board = new Board(10, 10, tiles);
+        
         Robot robot1 = new Robot(1, 4, 5, Direction.W);
         Robot robot2 = new Robot(2, 6, 5, Direction.W);
         List<Robot> robots = List.of(robot1, robot2);
@@ -140,8 +153,10 @@ public class BoardLaserTest {
      */
     @Test
     void robotOnLaserTileIsHit() {
-        Board board = initBoardWithBoardLasers(10, 10);
-        // Robot standing directly on laser tile at (2, 1)
+        Tile[][] tiles = initEmptyCells(10, 10);
+        tiles[2][1].setEffects(List.of(new BoardLaser(Direction.S, 1)));
+        Board board = new Board(10, 10, tiles);
+        
         Robot robot = new Robot(1, 2, 1, Direction.N);
         List<Robot> robots = List.of(robot);
         BoardAPI api = new BoardApiImpl(board, robots);
@@ -165,7 +180,9 @@ public class BoardLaserTest {
      */
     @Test
     void robotTakesDamageEachRound() {
-        Board board = initBoardWithBoardLasers(10, 10);
+        Tile[][] tiles = initEmptyCells(10, 10);
+        tiles[2][1].setEffects(List.of(new BoardLaser(Direction.S, 1)));
+        Board board = new Board(10, 10, tiles);
         Robot robot = new Robot(1, 2, 2, Direction.E);
         List<Robot> robots = List.of(robot);
         BoardAPI api = new BoardApiImpl(board, robots);
@@ -174,22 +191,18 @@ public class BoardLaserTest {
         Game game = new Game(board, api, robots);
         game.setDamageDecks(damageDecks);
         
-        // Round 1
         game.applyTileEffects(Phase.ACTIVATE_BOARD_LASERS);
         List<ProgramCard> discardAfterRound1 = game.getRobotDiscard(1);
         assertEquals(1, discardAfterRound1.size());
         
-        // Round 2 - robot still in same position
         game.applyTileEffects(Phase.ACTIVATE_BOARD_LASERS);
         List<ProgramCard> discardAfterRound2 = game.getRobotDiscard(1);
         assertEquals(2, discardAfterRound2.size());
         
-        // Round 3
         game.applyTileEffects(Phase.ACTIVATE_BOARD_LASERS);
         List<ProgramCard> discardAfterRound3 = game.getRobotDiscard(1);
         assertEquals(3, discardAfterRound3.size());
         
-        // All should be SPAM cards
         long spamCount = discardAfterRound3.stream()
                                            .filter(c -> c.action() == ProgramCard.Action.SPAM)
                                            .count();
@@ -204,16 +217,11 @@ public class BoardLaserTest {
     @Test
     void laserBlockedByAntenna() {
         Tile[][] tiles = initEmptyCells(10, 10);
-        
-        // Laser at (5, 5) facing East
         tiles[5][5].setEffects(List.of(new BoardLaser(Direction.E, 2)));
-        
-        // Antenna at (7, 5) - should block laser
         tiles[7][5].setEffects(List.of(new Antenna(Direction.N)));
         
         Board board = new Board(10, 10, tiles);
         
-        // Robot at (8, 5) - should NOT be hit due to antenna blocking
         Robot robot = new Robot(1, 8, 5, Direction.W);
         List<Robot> robots = List.of(robot);
         BoardAPI api = new BoardApiImpl(board, robots);
@@ -223,7 +231,7 @@ public class BoardLaserTest {
         game.applyTileEffects(Phase.ACTIVATE_BOARD_LASERS);
         
         List<ProgramCard> discardAfter = game.getRobotDiscard(1);
-        assertEquals(0, discardAfter.size(), "Robot should not be hit - antenna blocks laser");
+        assertEquals(0, discardAfter.size());
         
         assertPosDir(robot, 8, 5, Direction.W);
     }
@@ -234,11 +242,7 @@ public class BoardLaserTest {
     @Test
     void wallAndRobotSameTileWallBlocksLaserWhenFacingOpposite() {
         Tile[][] tiles = initEmptyCells(10, 10);
-        
-        // Laser at (3, 5) facing East
         tiles[3][5].setEffects(List.of(new BoardLaser(Direction.E, 1)));
-        
-        // Robot at (5, 5) with wall facing West (blocks laser coming from West/East direction)
         tiles[5][5].setEffects(List.of(new Walls(EnumSet.of(Direction.W))));
         
         Board board = new Board(10, 10, tiles);
@@ -251,7 +255,7 @@ public class BoardLaserTest {
         game.applyTileEffects(Phase.ACTIVATE_BOARD_LASERS);
         
         List<ProgramCard> discardAfter = game.getRobotDiscard(1);
-        assertEquals(0, discardAfter.size(), "Robot should NOT be hit - wall blocks laser");
+        assertEquals(0, discardAfter.size());
         
         assertPosDir(robot, 5, 5, Direction.N);
     }
@@ -262,11 +266,7 @@ public class BoardLaserTest {
     @Test
     void wallAndRobotSameTileWallBlocksLaserWhenFacingNonOpposite() {
         Tile[][] tiles = initEmptyCells(10, 10);
-        
-        // Laser at (3, 5) facing East
         tiles[3][5].setEffects(List.of(new BoardLaser(Direction.E, 1)));
-        
-        // Robot at (5, 5) with walls facing North, South, and East (all non-opposite to laser direction)
         tiles[5][5].setEffects(List.of(new Walls(EnumSet.of(Direction.N, Direction.S, Direction.E))));
         
         Board board = new Board(10, 10, tiles);
@@ -275,13 +275,118 @@ public class BoardLaserTest {
         BoardAPI api = new BoardApiImpl(board, robots);
         
         Game game = new Game(board, api, robots);
-        
         game.applyTileEffects(Phase.ACTIVATE_BOARD_LASERS);
         
         List<ProgramCard> discardAfter = game.getRobotDiscard(1);
-        assertEquals(1, discardAfter.size(), "Robot SHOULD be hit - walls do not block laser");
+        assertEquals(1, discardAfter.size());
         assertTrue(discardAfter.stream().anyMatch(c -> c.action() == ProgramCard.Action.SPAM));
         
         assertPosDir(robot, 5, 5, Direction.N);
+    }
+
+    /**
+     * @author Patrick Røbel
+     */
+    @Test
+    void robotOnLaserMovesOutAndBackIsHitOnlyOnce() {
+        Tile[][] tiles = initEmptyCells(10, 10);
+        tiles[2][1].setEffects(List.of(new BoardLaser(Direction.S, 1)));
+        Board board = new Board(10, 10, tiles);
+        
+        Robot robot = new Robot(1, 2, 2, Direction.W);
+        List<Robot> robots = List.of(robot);
+        BoardAPI api = new BoardApiImpl(board, robots);
+        
+        Game game = new Game(board, api, robots);
+        
+        Deque<ProgramCard> drawPile = new ArrayDeque<>();
+        List<ProgramCard> hand = new ArrayList<>();
+        hand.add(ProgramCard.uturn());
+        hand.add(ProgramCard.back1());
+        hand.add(ProgramCard.move1());
+        hand.add(ProgramCard.move1());
+        hand.add(ProgramCard.move1());
+        List<ProgramCard> discard = new ArrayList<>();
+        
+        Deck deck = new Deck(drawPile, discard, hand, new DamageDecks(38, 15, 15));
+        game.setDeck(deck, 1);
+        
+        game.submitProgram(new PlayerID(1), List.of(
+            ProgramCard.uturn(),
+            ProgramCard.back1(),
+            ProgramCard.move1(),
+            ProgramCard.move1(),
+            ProgramCard.move1()
+        ));
+        
+        game.executeRegister(1);
+        assertPosDir(robot, 2, 2, Direction.E);
+        
+        List<ProgramCard> discardAfterRegister1 = game.getRobotDiscard(1);
+        assertEquals(1, discardAfterRegister1.size());
+        
+        game.executeRegister(2);
+        assertPosDir(robot, 1, 2, Direction.E);
+        
+        List<ProgramCard> discardAfterRegister2 = game.getRobotDiscard(1);
+        assertEquals(1, discardAfterRegister2.size());
+
+        game.executeRegister(3);
+        assertPosDir(robot, 2, 2, Direction.E);
+        
+        List<ProgramCard> discardAfterRegister3 = game.getRobotDiscard(1);
+        assertEquals(2, discardAfterRegister3.size());
+        
+        long spamCount = discardAfterRegister3.stream()
+                                              .filter(c -> c.action() == ProgramCard.Action.SPAM)
+                                              .count();
+        assertEquals(2, spamCount);
+    }
+
+    /**
+     * @author Patrick Røbel
+     */
+    @Test
+    void dontDealDamageWhenRobotMovesAwayFromLaserField() {
+        Tile[][] tiles = initEmptyCells(10, 10);
+        tiles[2][1].setEffects(List.of(new BoardLaser(Direction.S, 1)));
+        Board board = new Board(10, 10, tiles);
+        
+        Robot robot = new Robot(1, 2, 2, Direction.W);
+        List<Robot> robots = List.of(robot);
+        BoardAPI api = new BoardApiImpl(board, robots);
+        
+        Game game = new Game(board, api, robots);
+        
+        Deque<ProgramCard> drawPile = new ArrayDeque<>();
+        List<ProgramCard> hand = new ArrayList<>();
+        hand.add(ProgramCard.move1());
+        hand.add(ProgramCard.move1());
+        hand.add(ProgramCard.move1());
+        hand.add(ProgramCard.move1());
+        hand.add(ProgramCard.move1());
+        List<ProgramCard> discard = new ArrayList<>();
+        
+        Deck deck = new Deck(drawPile, discard, hand, new DamageDecks(38, 15, 15));
+        game.setDeck(deck, 1);
+        
+        game.submitProgram(new PlayerID(1), List.of(
+            ProgramCard.move1(),
+            ProgramCard.move1(),
+            ProgramCard.move1(),
+            ProgramCard.move1(),
+            ProgramCard.move1()
+        ));
+        
+        game.executeRegister(1);
+        assertPosDir(robot, 1, 2, Direction.W);
+        
+        List<ProgramCard> discardAfterRegister1 = game.getRobotDiscard(1);
+        assertEquals(0, discardAfterRegister1.size());
+
+        long spamCount = discardAfterRegister1.stream()
+                                              .filter(c -> c.action() == ProgramCard.Action.SPAM)
+                                              .count();
+        assertEquals(0, spamCount);
     }
 }
