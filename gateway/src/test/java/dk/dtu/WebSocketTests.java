@@ -187,7 +187,7 @@ public class WebSocketTests {
         User mockUser = mock(User.class);
         when(mockUser.getUserID()).thenReturn("testUser");
 
-        Lobby lobby = new Lobby("testName", "1", mockClient, mockHost, 6);
+        Lobby lobby = new Lobby("testName", "1", mockClient, mockHost,6, false);
         UUID gameID = UUID.randomUUID();
         lobby.setGameID(gameID);
         lobby.getUserToPlayer().put("testUser", "1");
@@ -238,7 +238,7 @@ public class WebSocketTests {
         Client mockClient2 = mock(Client.class);
         when(mockClient2.getUserID()).thenReturn("testUser2");
         when(mockClient2.getUsername()).thenReturn("client222");
-        Lobby lobby = new Lobby("testName", "1", mockClient1, mockHost, 6);
+        Lobby lobby = new Lobby("testName","1", mockClient1, mockHost,6, false);
 
         lobby.addPlayer(mockClient2);
 
@@ -290,7 +290,7 @@ public class WebSocketTests {
         Client mockClient2 = mock(Client.class);
         when(mockClient2.getUserID()).thenReturn("testUser2");
         when(mockClient2.getUsername()).thenReturn("client222");
-        Lobby lobby = new Lobby("testName", "1", mockClient1, mockHost, 6);
+        Lobby lobby = new Lobby("testName", "1", mockClient1, mockHost,6, false);
 
         lobby.addPlayer(mockClient2);
 

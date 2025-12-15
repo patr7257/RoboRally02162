@@ -19,7 +19,10 @@ interface GameControlsProps {
   onSelectMove: (moves: (MoveType | null)[]) => void;
   hand: MoveType[];
   discard: MoveType[];
+  isDemoMode: boolean;
+  onForceStartRound: () => void;
 }
+
 /**
  *  @author Asger Allin Jensen
  *  @author Bjarke Søderhamn Petersen
@@ -30,6 +33,8 @@ export const GameControls: React.FC<GameControlsProps> = ({
   onSelectMove,
   hand,
   discard,
+  isDemoMode,
+  onForceStartRound,
 }) => (
   <div className="controls">
 
@@ -42,12 +47,24 @@ export const GameControls: React.FC<GameControlsProps> = ({
       </ul>
     </details>
 
-    <MoveSelector
-      moves={hand}
-      selectedMoves={selectedMoves}
-      onChange={onSelectMove}
-      onSubmitMove={onSubmitMove}
-      hasEmptySlots={selectedMoves.some((m) => m === null)}
-    />
+    <div className="move-controls-row">
+      <MoveSelector
+        moves={hand}
+        selectedMoves={selectedMoves}
+        onChange={onSelectMove}
+        onSubmitMove={onSubmitMove}
+        hasEmptySlots={selectedMoves.some((m) => m === null)}
+      />
+
+      {isDemoMode && (
+        <button
+          type="button"
+          className="force-start-round-btn"
+          onClick={onForceStartRound}
+        >
+          Force Start Round
+        </button>
+      )}
+    </div>
   </div>
 );

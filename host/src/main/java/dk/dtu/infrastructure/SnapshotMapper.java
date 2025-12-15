@@ -112,7 +112,7 @@ public final class SnapshotMapper {
      @author Karl Johannes Agerbo
      */
     //TODO: Should be updated after each new tile effect is implemented.
-    private static Tile fromTileDto(TileDto dto, int x, int y) {
+    public static Tile fromTileDto(TileDto dto, int x, int y) {
         Tile tile = new Tile(x, y);
         for (EffectDto effect : dto.effects()) {
             if (effect instanceof CheckpointDto(int number)) {

@@ -157,12 +157,10 @@ public class GameManager implements GameObserver {
                 if (session.hasSubmitted(submit.player())) yield CommandResult.fail("Already submitted for this round");
 
                 try {
-                    // potential session lock could be here?
                     synchronized (session) {
                         Game game = session.getGame();
-                        game.submitProgram(submit.player(), submit.cards());
+                        game.submitProgram(submit.player(), submit.cards(), session.isDemoMode());
                     }
-                    // if lock, we should notify pacer outside the lock
                     pacer.onPlayerSubmitted(session, submit.player());
                     yield CommandResult.ok("Program submitted");
                 } catch (Exception e) {
@@ -234,6 +232,46 @@ public class GameManager implements GameObserver {
                     yield CommandResult.fail("Failed to submit reaction: " + e.getMessage());
                 }
             }
+            case GameCommand.ToggleDemo toggleDemo -> {
+                GameSession session = activeSessions.get(toggleDemo.gameId());
+                if (session == null) yield CommandResult.fail("Game not found");
+
+                boolean newDemoMode = !session.isDemoMode();
+                session.setDemoMode(newDemoMode);
+
+                String status = newDemoMode ? "enabled" : "disabled";
+                yield CommandResult.ok("Demo mode " + status);
+            }
+
+            case GameCommand.SetDemoTimings setTimings -> {
+                GameSession session = activeSessions.get(setTimings.gameId());
+                if (session == null) yield CommandResult.fail("Game not found");
+
+                session.setDemoTimingConfig(setTimings.timings());
+                yield CommandResult.ok("Demo timings updated");
+            }
+            case GameCommand.ForceStartRound forceStart -> {
+                GameSession session = activeSessions.get(forceStart.gameId());
+                if (session == null) yield CommandResult.fail("Game not found");
+
+                if (!session.isDemoMode()) {
+                    yield CommandResult.fail("Cannot force start - game is not in demo mode");
+                }
+
+                try {
+                    if (pacer instanceof GameScheduler scheduler) {
+                        session.cancelAutoExecuteTask();
+
+                        scheduler.forceExecuteRound(session);
+                    } else {
+                        yield CommandResult.fail("Pacer does not support force execution");
+                    }
+                    yield CommandResult.ok("Round force started");
+                } catch (Exception e) {
+                    yield CommandResult.fail("Failed to force start round: " + e.getMessage());
+                }
+            }
+
         };
     }
 

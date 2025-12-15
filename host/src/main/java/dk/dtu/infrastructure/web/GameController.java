@@ -1,9 +1,6 @@
 package dk.dtu.infrastructure.web;
 
-import dk.dtu.domain.core.GameManager;
-import dk.dtu.domain.core.GameQuery;
-import dk.dtu.domain.core.GameSession;
-import dk.dtu.domain.core.GameState;
+import dk.dtu.domain.core.*;
 import dk.dtu.domain.model.*;
 import dk.dtu.domain.program.ProgramCard;
 import dk.dtu.domain.model.*;
@@ -62,6 +59,34 @@ public class GameController {
     public record DeckDto(List<ProgramCard> drawPile, List<ProgramCard> discardPile, List<ProgramCard> hand){}
     public record GameInfo(SnapshotLoadedPayload snapshotPayload, Map<Integer, DeckDto> decks, DamageDecksDto damageDecks){}
     public record StartLoadedGameRequest(int amountPlayers, int boardSize, String gameID, GameInfo gameInfo) {}
+
+    public record ToggleDemoRequest(String gameID) {}
+    public record ToggleDemoResponse(boolean demoMode, String message) {}
+
+
+    public record Coordinate(int x, int y) {}
+    public record TileWithCoord(Coordinate coord, TileDto tile) {}
+    public record RobotPosition(int id, int x, int y, String facing) {}
+    public record DemoMapData(int width, int height, List<TileWithCoord> tiles, List<RobotPosition> robots, Map<Integer, DeckDto> decks) {}
+    public record StartDemoGameRequest(
+            int amountPlayers,
+            DemoMapData board
+    ) {}
+
+    public record StartDemoGameResponse(UUID gameID, String message) {}
+
+
+    public record SetDemoTimingsRequest(
+            String gameID,
+            long registerDelayMs,
+            long preRoundDelayMs,
+            long effectDelayMs,
+            long robotTurnDelayMs,
+            long respawnTimeoutMs,
+            long reactionTimeoutMs
+    ) {}
+    public record SetDemoTimingsResponse(boolean success, String message) {}
+
 
     /**
      * Selects random empty tiles from the board within a specified range.
@@ -355,6 +380,122 @@ public class GameController {
         }
 
         return new StartGameResponse(gameID);
+    }
+
+    /**
+     * Starts a demo game with a custom board template and pre-configured decks.
+     * Only tiles with effects need to be specified in the map data.
+     * Robots can be positioned directly.
+     * Decks can be preloaded with specific cards for demonstration purposes.
+     *
+     * @param req the request containing player count and board/deck configuration
+     * @return response with the generated game ID
+     * @author William Pii Jæger
+     */
+    @PostMapping("/startDemoGame")
+    public synchronized StartDemoGameResponse startDemoGame(@RequestBody StartDemoGameRequest req) {
+        try {
+            DemoMapData mapData = req.board();
+
+            Tile[][] tiles = new Tile[mapData.width()][mapData.height()];
+            for (int x = 0; x < mapData.width(); x++) {
+                for (int y = 0; y < mapData.height(); y++) {
+                    tiles[x][y] = new Tile(x, y);
+                }
+            }
+
+            Board board = new Board(mapData.width(), mapData.height(), tiles);
+
+            for (TileWithCoord tileData : mapData.tiles()) {
+                int x = tileData.coord().x();
+                int y = tileData.coord().y();
+
+                if (!board.isInBounds(x, y)) {
+                    continue;
+                }
+
+                Tile tileWithEffects = SnapshotMapper.fromTileDto(tileData.tile(), x, y);
+
+                board.getTiles()[x][y] = tileWithEffects;
+            }
+
+            List<Robot> robots = new ArrayList<>();
+            if (mapData.robots() != null && !mapData.robots().isEmpty()) {
+                for (RobotPosition robotPos : mapData.robots()) {
+                    Direction dir = Direction.valueOf(robotPos.facing().toUpperCase());
+                    robots.add(new Robot(robotPos.id(), robotPos.x(), robotPos.y(), dir));
+                }
+            } else {
+                robots = BoardTemplateConverter.createRobotsFromTemplate(board, req.amountPlayers());
+            }
+
+            DamageDecks damageDecks = new DamageDecks(38, 15, 15);
+
+            Map<Integer, Deck> deckMap = (mapData.decks() != null && !mapData.decks().isEmpty())
+                    ? SnapshotMapper.fromMapDeckDto(mapData.decks(), damageDecks)
+                    : new HashMap<>();
+
+            BoardAPI boardApi = new BoardApiImpl(board, robots);
+
+            UUID gameID = gameManager.startGame(board, boardApi, robots, deckMap, damageDecks);
+
+            return new StartDemoGameResponse(gameID, "Demo game started successfully");
+
+        } catch (Exception e) {
+            return new StartDemoGameResponse(null, "Failed to start demo game: " + e.getMessage());
+        }
+    }
+
+    /**
+     * Toggles demo mode for a game session.
+     * Demo mode bypasses card validation and allows any cards to be submitted.
+     * This endpoint is only accessible via the Gateway (not exposed to clients).
+     *
+     * @param req the request containing the game ID
+     * @return response indicating new demo mode state
+     * @author William Pii Jæger
+     */
+    @PostMapping("/toggleDemo")
+    public synchronized ToggleDemoResponse toggleDemo(@RequestBody ToggleDemoRequest req) {
+        UUID gameId = UUID.fromString(req.gameID());
+        GameCommand cmd = new GameCommand.ToggleDemo(UUID.randomUUID(), gameId);
+        CommandResult result = gameManager.execute(cmd);
+
+        if (result.ok()) {
+            Optional<GameSession> sessionOpt = gameManager.findSessionByID(gameId);
+            boolean demoMode = sessionOpt.map(GameSession::isDemoMode).orElse(false);
+            return new ToggleDemoResponse(demoMode, result.reason());
+        } else {
+            return new ToggleDemoResponse(false, result.reason());
+        }
+    }
+
+    /**
+     * Sets custom timing configuration for demo mode.
+     * Allows fine-grained control over execution delays for demonstrations.
+     * This endpoint is only accessible via the Gateway (not exposed to clients).
+     *
+     * @param req the request containing game ID and timing parameters
+     * @return response indicating success or failure
+     * @author William Pii Jæger
+     */
+    @PostMapping("/setDemoTimings")
+    public synchronized SetDemoTimingsResponse setDemoTimings(@RequestBody SetDemoTimingsRequest req) {
+        UUID gameId = UUID.fromString(req.gameID());
+
+        DemoTimingConfig config = new DemoTimingConfig(
+                req.registerDelayMs(),
+                req.preRoundDelayMs(),
+                req.effectDelayMs(),
+                req.robotTurnDelayMs(),
+                req.respawnTimeoutMs(),
+                req.reactionTimeoutMs()
+        );
+
+        GameCommand cmd = new GameCommand.SetDemoTimings(UUID.randomUUID(), gameId, config);
+        CommandResult result = gameManager.execute(cmd);
+
+        return new SetDemoTimingsResponse(result.ok(), result.reason());
     }
 
     /**

@@ -174,16 +174,24 @@ public class Game {
      *
      * @param player the player ID
      * @param picked the list of picked program cards for this round/registers
+     * @param demoMode if true, bypasses validation of cards, used for demonstrations
      * @throws IllegalArgumentException if no robot is associated with the player
      * @author William Pii Jæger
      * @author Weihao Mo
      */
-    public void submitProgram(PlayerID player, List<ProgramCard> picked) {
+    public void submitProgram(PlayerID player, List<ProgramCard> picked, boolean demoMode) {
         Robot robot = robotMap.get(player);
         if (robot == null)
             throw new IllegalArgumentException("No robot for player " + player.value());
         Deck deck = deckMap.get(robot.getId());
-        List<ProgramCard> program = deck.validateAndCompleteOrThrow(picked);
+
+        List<ProgramCard> program;
+        if (demoMode) {
+            program = deck.acceptCardsAsIs(picked);
+        } else {
+            program = deck.validateAndCompleteOrThrow(picked);
+        }
+
         robot.loadProgram(program);
     }
 

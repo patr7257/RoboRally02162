@@ -42,6 +42,7 @@ public class Lobby  implements ClientObserver {
     private int capacity = 6;
     public final boolean loadedLobby;
     private String boardTemplateName = "Random"; // Default to Random
+    private final boolean demoMode;
 
     ExecutorService broadcastPool = Executors.newCachedThreadPool();
 
@@ -51,15 +52,16 @@ public class Lobby  implements ClientObserver {
      * @author Benjamin Benyo Endahl Hansen
      */
 
-    public Lobby(String lobbyName, String lobbyID, Client creator, Host host,int capacity) {
+    public Lobby(String lobbyName, String lobbyID, Client creator, Host host, int capacity, boolean demoMode) {
         Objects.requireNonNull(creator, "creator must not be null");
         Objects.requireNonNull(host, "host must not be null");
         this.lobbyID = lobbyID;
         this.lobbyName = lobbyName;
         this.host = host;
-        this.capacity=capacity;
+        this.capacity = capacity;
         this.userToPlayer = new HashMap<>();
         this.saveID = UUID.randomUUID();
+        this.demoMode = demoMode;
         loadedLobby = false;
         addPlayer(creator);
     }
@@ -78,6 +80,7 @@ public class Lobby  implements ClientObserver {
         loadedLobby = true;
         this.capacity = userToPlayer.size();
         this.lobbyName = lobbyName;
+        this.demoMode = false;
         addPlayer(c);
     }
 
@@ -158,9 +161,11 @@ public class Lobby  implements ClientObserver {
         if(isRunning) {
             return;
         }
-        if (!areAllPlayersReady()) {
-            broadcastNotReadyMessage();
-            throw new Exception("Game tried to start before all players are ready");
+        if (!demoMode) {
+            if (!areAllPlayersReady()) {
+                broadcastNotReadyMessage();
+                throw new Exception("Game tried to start before all players are ready");
+            }
         }
 
         if (loadedLobby) {
@@ -173,9 +178,14 @@ public class Lobby  implements ClientObserver {
         try {
             if (loadedLobby) {
                 this.gameID = host.startLoadedGame(players.size(), 10, gameInfo);
+            } else if (demoMode) {
+                this.gameID = host.startDemoGame(gameInfo);
+                host.toggleDemo(gameID);
+                host.setDemoTimings(gameID);
             } else {
                 this.gameID = host.startGame(players.size(), 10); // TODO: Change the boardsize to be decided by the client
             }
+
             this.isRunning = true;
             notifyObservers(LobbyUpdateReason.GAME_STARTED);
 
@@ -320,7 +330,7 @@ public class Lobby  implements ClientObserver {
      * @author Karl Johannes Agerbo
      */
     private void initPlayerUserMapsLoadedLobby() throws Exception {
-        if (allPlayersHaveJoined()) {
+        if (allPlayersHaveJoined() || demoMode) {
             for (Client client : players.values()) {
                 playerToUser.put(userToPlayer.get(client.getUserID()), client.getUserID());
             }
@@ -616,6 +626,7 @@ public class Lobby  implements ClientObserver {
         Map<String, String> result = new HashMap<>();
         for (Client c : players.values()) {
             result.put(c.getUsername(),userToPlayer.get(c.getUserID()));
+
         }
         return result;
     }
@@ -628,5 +639,9 @@ public class Lobby  implements ClientObserver {
     }
 
 
+
+    public boolean isDemoMode() {
+        return demoMode;
+    }
 
 }

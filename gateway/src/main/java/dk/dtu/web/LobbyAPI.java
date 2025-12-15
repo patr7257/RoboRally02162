@@ -8,6 +8,7 @@ import dk.dtu.interfaces.GameDatabase;
 import dk.dtu.model.Client;
 import dk.dtu.model.Lobby;
 import dk.dtu.model.database.DynamicGameDatabase;
+import dk.dtu.service.DemoService;
 import dk.dtu.shared.AuthManager;
 import dk.dtu.shared.ServerManager;
 import dk.dtu.util.APIUtil;
@@ -18,6 +19,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.io.IOException;
 import java.util.*;
 
 /**
@@ -35,17 +37,19 @@ public class LobbyAPI {
     private final GameDatabase gameDatabase;
     private final AuthManager authManager;
     private final BoardTemplateService boardTemplateService;
+    private final DemoService demoService;
 
     /**
      * @author Niklas Emil Lysdal
      * @author Karl Johannes Agerbo
      * @author Patrick Røbel
      */
-    public LobbyAPI(ServerManager serverManager, DynamicGameDatabase gameDatabase, AuthManager authManager, BoardTemplateService boardTemplateService) {
+    public LobbyAPI(ServerManager serverManager, DynamicGameDatabase gameDatabase, AuthManager authManager,BoardTemplateService boardTemplateService, DemoService demoService) {
         this.serverManager = serverManager;
         this.gameDatabase = gameDatabase;
         this.authManager = authManager;
         this.boardTemplateService = boardTemplateService;
+        this.demoService = demoService;
     }
 
     /**
@@ -58,6 +62,7 @@ public class LobbyAPI {
         String userID = APIUtil.getCallerID();
 
         Client creator = serverManager.getClient(userID);
+        System.out.println("CLIENT with id " + userID + " IS: " + creator);
         if (creator == null) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).body("MISSING_WEBSOCKET_CONNECTION");
         }
@@ -325,6 +330,42 @@ public class LobbyAPI {
         Map<String, String> result = lob.getUsernamePlayerIDMaps();
         String json = JsonUtil.toJson(result);
         return ResponseEntity.ok(json);
+    }
+
+    /**
+     * @author Karl Johannes Agerbo
+     */
+    @PostMapping("/createAndStartDemo")
+    public ResponseEntity<String> createAndStartDemo(@RequestBody JsonNode demoTemplateName) {
+        String userID = APIUtil.getCallerID();
+
+        Client creator = serverManager.getClient(userID);
+        System.out.println("CLIENT with id " + userID + " IS: " + creator);
+        if (creator == null) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body("MISSING_WEBSOCKET_CONNECTION");
+        }
+
+        String demoName = demoTemplateName.get("demoTemplate").asText();
+        if (demoName == null) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body("MISSING_DEMO_TEMPLATE");
+        }
+
+        Lobby lob = serverManager.createDemoLobby(creator);
+
+        JsonNode demoTemplate = null;
+        try {
+            demoTemplate = demoService.loadDemoTemplate(demoName);
+        } catch (IOException e) {
+            ResponseEntity.status(HttpStatus.FORBIDDEN).body("LOAD_DEMO_FAILED");
+        }
+
+        try {
+            lob.startGame(demoTemplate);
+        } catch (Exception e) {
+            ResponseEntity.status(HttpStatus.FORBIDDEN).body("START_GAME_FAILED");
+        }
+
+        return ResponseEntity.status(HttpStatus.CREATED).body(lob.getLobbyID());
     }
 
 }

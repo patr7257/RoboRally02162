@@ -21,7 +21,7 @@ import java.util.UUID;
 public record Gear(Rotation rotation) implements TileEffect {
 
     /**
-     * @author Weihao Mo
+     * @author William Pii Jæger
      */
     @Override
     public void onPhase(Phase phase, Tile tile, BoardAPI api) {

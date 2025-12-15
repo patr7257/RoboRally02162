@@ -70,6 +70,8 @@ export default function Board() {
 
   const readinessIntervalRef = useRef<NodeJS.Timeout | null>(null);
 
+  const isDemoMode = sessionStorage.getItem("mode") == "demo";
+
   const [lastMove, setLastMove] = useState<{ robotId: number; move: string } | null>(null);
 
   // Fetch lobby info and full board template for Map Banner and starting area info
@@ -78,7 +80,7 @@ export default function Board() {
     console.log("lobby id in storage is:"+sessionStorage.getItem("id"))
     const fetchLobbyInfo = async () => {
       try {
-        const userToken = localStorage.getItem("userToken");
+        const userToken = sessionStorage.getItem("userToken");
         const response = await fetch(API_BASE_URL + "/api/lobby/lobbyInfo", {
           method: "POST",
           headers: {
@@ -379,6 +381,21 @@ export default function Board() {
     setNeedsRespawn(false);
     setRespawnRobotId(null);
   };
+
+  /**
+   * @author William Pii Jæger
+   */
+  const handleForceStartRound = () => {
+    if (!isDemoMode) return; // only allow in demo mode
+
+    sendMessage({
+      lobbyID: lobbyId,
+      payload: {
+        type: "forceStartRound",
+      },
+    });
+  };
+
 
   /**
    * @author Kajsa Alice Ulrika Berlstedt
@@ -685,7 +702,10 @@ export default function Board() {
             onSubmitMove={handleSubmitMove}
             onSelectMove={setSelectedMoves}
             discard={discardData?.discard || []}
-            hand={handData?.hand || []} />
+            hand={handData?.hand || []}
+            isDemoMode={!!isDemoMode}
+            onForceStartRound={handleForceStartRound}
+          />
         </div>
       </div>
     </div>

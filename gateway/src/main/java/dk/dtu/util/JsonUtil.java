@@ -77,6 +77,14 @@ public class JsonUtil {
         }
     }
 
+    public static List<String> toList(String json) {
+        try {
+            return mapper.readValue(json, new TypeReference<List<String>>() {});
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
 
 
 

@@ -153,6 +153,7 @@ export default function LobbyCreation() {
         },
         body: JSON.stringify({ lobbyID: sessionStorage.getItem("id") }),
       });
+      sessionStorage.setItem("mode", "normal");
       console.log("Start game response:", response.status, response.statusText);
       if (!response.ok) {
         setError(`Failed to start game: ${response.status}`);

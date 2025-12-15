@@ -22,7 +22,7 @@ import java.util.UUID;
  * @author Weihao Mo
  * @author William Pii Jæger
  */
-public sealed interface GameCommand permits GameCommand.EndGame, GameCommand.SetRespawnDirection, GameCommand.StartProgramming, GameCommand.SubmitPrograms, GameCommand.SubmitReaction {
+public sealed interface GameCommand permits GameCommand.EndGame, GameCommand.ForceStartRound, GameCommand.SetDemoTimings, GameCommand.SetRespawnDirection, GameCommand.StartProgramming, GameCommand.SubmitPrograms, GameCommand.SubmitReaction, GameCommand.ToggleDemo {
 
     record StartProgramming(UUID commandId, UUID gameId, long windowMs) implements GameCommand {
     }
@@ -38,4 +38,37 @@ public sealed interface GameCommand permits GameCommand.EndGame, GameCommand.Set
     }
 
     record SubmitReaction(UUID commandId, UUID gameId, PlayerID player, ReactionId reactionId, ReactionChoice choice) implements GameCommand {}
+
+    /**
+     * Toggles demo mode for a game session.
+     * Demo mode bypasses card validation and allows custom timing.
+     *
+     * @param commandId unique command identifier
+     * @param gameId the game to toggle demo mode for
+     * @author William Pii Jæger
+     */
+    record ToggleDemo(UUID commandId, UUID gameId) implements GameCommand {
+    }
+
+    /**
+     * Sets custom timing configuration for demo mode.
+     *
+     * @param commandId unique command identifier
+     * @param gameId the game to set timings for
+     * @param timings the timing configuration to apply
+     * @author William Pii Jæger
+     */
+    record SetDemoTimings(UUID commandId, UUID gameId, DemoTimingConfig timings) implements GameCommand {
+    }
+
+    /**
+     * Forces the round to start immediately, bypassing programming phase.
+     * Only allowed in demo mode, used to demonstrate game mechanics
+     *
+     * @param commandId unique command identifier
+     * @param gameId the game to force start
+     * @author William Pii Jæger
+     */
+    record ForceStartRound(UUID commandId, UUID gameId) implements GameCommand {
+    }
 }

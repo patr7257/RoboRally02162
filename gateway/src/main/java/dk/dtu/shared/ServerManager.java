@@ -32,6 +32,7 @@ public class ServerManager implements LobbyObserver, ClientObserver {
     private final Map<String, Lobby> lobbies = new ConcurrentHashMap<>();
     private final Map<String, String> lobbyIDFromSaveID = new ConcurrentHashMap<>();
     private final Map<String, Lobby> loadedLobbies = new ConcurrentHashMap<>();
+    private final Map<String, Lobby> demoLobbies = new ConcurrentHashMap<>();
     private final Map<String, String> gameToLobby = new ConcurrentHashMap<>();
     private Host host;
     private final LobbyFactory lobbyFactory;
@@ -71,6 +72,7 @@ public class ServerManager implements LobbyObserver, ClientObserver {
 
                     lobbies.remove(lobID);
                     loadedLobbies.remove(lobID);
+                    demoLobbies.remove(lobID);
                     lobbyIDFromSaveID.remove(lobby.getSaveID().toString());
                     notifyClientsOfUpdates("lobbies", "updatedLobbies");
                 }
@@ -88,7 +90,9 @@ public class ServerManager implements LobbyObserver, ClientObserver {
                 notifyClientsOfUpdates("lobbies", "updatedLobbies");
                 break;
             case GAME_UPDATE:
-                gameService.saveGame(this, lobby);
+                if (!lobby.isDemoMode()) {
+                    gameService.saveGame(this, lobby);
+                }
                 break;
             default:
 
@@ -117,7 +121,12 @@ public class ServerManager implements LobbyObserver, ClientObserver {
      */
     public Lobby getLobbyFromLobbyID(String lobID) {
         Lobby lob = loadedLobbies.get(lobID);
-        return lob == null ? lobbies.get(lobID) : lob;
+        if (lob != null) return lob;
+
+        lob = demoLobbies.get(lobID);
+        if (lob != null) return lob;
+
+        return lobbies.get(lobID);
     }
 
     /**
@@ -254,6 +263,16 @@ public class ServerManager implements LobbyObserver, ClientObserver {
     }
 
     /**
+     * @author Karl Johannes Agerbo
+     */
+    public Lobby createDemoLobby(Client c) {
+        Lobby lob = lobbyFactory.createDemoLobby(c, this.host);
+        demoLobbies.put(lob.getLobbyID(), lob);
+        lob.addObserver(this);
+        return lob;
+    }
+
+    /**
      * @author Benjamin Benyo Endahl Hansen
      */
     public String getUsernameFromUUID(String UUID){
@@ -288,6 +307,14 @@ public class ServerManager implements LobbyObserver, ClientObserver {
 
     public Map<String, Lobby> getLobbiesForTest() {
         return lobbies;
+    }
+
+    public Map<String, Lobby> getLoadedLobbiesForTest() {
+        return loadedLobbies;
+    }
+
+    public Map<String, Lobby> getDemoLobbiesForTest() {
+        return demoLobbies;
     }
 
     public Map<String, String> getGameToLobbyForTest() {

@@ -317,7 +317,7 @@ public class BoardLaserTest {
             ProgramCard.move1(),
             ProgramCard.move1(),
             ProgramCard.move1()
-        ));
+        ), false);
         
         game.executeRegister(1);
         assertPosDir(robot, 2, 2, Direction.E);
@@ -376,7 +376,7 @@ public class BoardLaserTest {
             ProgramCard.move1(),
             ProgramCard.move1(),
             ProgramCard.move1()
-        ));
+        ), false);
         
         game.executeRegister(1);
         assertPosDir(robot, 1, 2, Direction.W);

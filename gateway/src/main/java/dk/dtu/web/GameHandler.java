@@ -8,6 +8,7 @@ import dk.dtu.model.Client;
 import dk.dtu.model.Lobby;
 import dk.dtu.model.database.DynamicGameDatabase;
 
+import dk.dtu.service.DemoService;
 import dk.dtu.shared.AuthManager;
 import dk.dtu.shared.GameService;
 import dk.dtu.shared.ServerManager;
@@ -17,6 +18,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.io.IOException;
 import java.util.*;
 
 /**
@@ -177,4 +179,43 @@ public class GameHandler {
                 .toList();
         return ResponseEntity.ok(cleaned);
     }
+//    /**
+//     * @author Karl Johannes Agerbo
+//     */
+//    @PostMapping("/game/loadDemos")
+//    public ResponseEntity<String> loadDemos() {
+//        String userID = APIUtil.getCallerID();
+//        try {
+//            demoService.loadDemoTemplates(userID);
+//            return ResponseEntity.status(HttpStatus.OK).body("Demos Loaded");
+//        } catch (IOException e) {
+//            return ResponseEntity.status(HttpStatus.FORBIDDEN).body("Error in loading demos");
+//        }
+//    }
+//
+//    /**
+//     * @author Karl Johannes Agerbo
+//     */
+//    @PostMapping("/game/toggleDemoMode")
+//    public ResponseEntity<Map<String, Boolean>> toggleDemoMode() {
+//        try {
+//            String userID = APIUtil.getCallerID();
+//            Client client = serverManager.getClient(userID);
+//
+//            client.toggleDemoMode();
+//
+//            Map<String, Boolean> response = new HashMap<>();
+//            response.put("demoMode", client.isDemoMode());
+//
+//            System.out.println("Client toggled demo mode: " + client.isDemoMode());
+//
+//            return ResponseEntity.ok(response);
+//        } catch (Exception e) {
+//            Map<String, Boolean> response = new HashMap<>();
+//            response.put("demoMode", false);
+//            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(response);
+//        }
+//    }
+
+
 }

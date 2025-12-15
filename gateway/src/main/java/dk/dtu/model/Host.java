@@ -156,4 +156,60 @@ public class Host { //TODO: maybe make singleton
 
         return JsonUtil.parser(response);
     }
+
+    public UUID startDemoGame(JsonNode gameInfo) {
+        RestTemplate restTemplate = new RestTemplate();
+
+        String response = restTemplate.postForObject(
+                hostURL + "startDemoGame",
+                gameInfo,
+                String.class
+        );
+
+        String gameID = JsonUtil.parser(response).get("gameID").asText();
+
+        return UUID.fromString(gameID);
+    }
+
+    /**
+     * @author Karl Johannes Agerbo
+     */
+    public void toggleDemo(UUID gameID) {
+        RestTemplate restTemplate = new RestTemplate();
+        Map<String, String> body = Map.of(
+                "gameID", gameID.toString()
+        );
+
+        String response = restTemplate.postForObject(
+                hostURL + "toggleDemo",
+                body,
+                String.class
+        );
+
+        //System.out.println("toggle demo in host: " + response);
+    }
+
+    /**
+     * @author Karl Johannes Agerbo
+     */
+    public void setDemoTimings(UUID gameID) {
+        RestTemplate restTemplate = new RestTemplate();
+        Map<String, Object> body = Map.of(
+                "gameID", gameID.toString(),
+                "registerDelayMs", 800,
+                "preRoundDelayMs", 300,
+                "effectDelayMs", 500,
+                "robotTurnDelayMs", 400,
+                "respawnTimeoutMs", 10000,
+                "reactionTimeoutMs", 20000
+        );
+
+        String response = restTemplate.postForObject(
+                hostURL + "setDemoTimings",
+                body,
+                String.class
+        );
+
+        //System.out.println("setDemoTimings in host: " + response);
+    }
 }

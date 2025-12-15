@@ -62,9 +62,6 @@ public class Client {
     }
     /**
      * @author Niklas Emil Lysdal
-     */
-
-    /**
      * @author Asger Allin Jensen
      */
     public boolean isSessionOpen() {

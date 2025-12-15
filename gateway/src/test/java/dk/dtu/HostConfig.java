@@ -8,6 +8,7 @@ import dk.dtu.util.JsonUtil;
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Primary;
+import org.springframework.web.client.RestTemplate;
 import org.springframework.web.socket.WebSocketSession;
 
 import java.util.Arrays;
@@ -65,6 +66,23 @@ public class HostConfig {
 
             @Override
             public void handleMessage(ObjectNode msg) {
+            }
+
+            @Override
+            public UUID startDemoGame(JsonNode gameInfo) {
+                return UUID.fromString("123e4567-e89b-12d3-a456-426614174000");
+            }
+
+            /**
+             * @author Karl Johannes Agerbo
+             */
+            public void toggleDemo(UUID gameID) {
+            }
+
+            /**
+             * @author Karl Johannes Agerbo
+             */
+            public void setDemoTimings(UUID gameID) {
             }
         };
     }

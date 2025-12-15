@@ -20,13 +20,7 @@ import java.util.concurrent.CopyOnWriteArrayList;
  * @author Weihao Mo
  */
 public class GameScheduler implements RoundPacer {
-    private static final long REGISTER_DELAY_MS = 800;
-    private static final long PRE_ROUND_DELAY_MS = 300;
     private static final long NEXT_WINDOW_MS = 60_000L;
-    private static final long EFFECT_DELAY_MS = 500;
-    private static final long ROBOT_TURN_DELAY_MS = 400;
-    private static final long RESPAWN_TIMEOUT_MS = 10_000L;
-    private static final long REACTION_TIMEOUT_MS = 20_000L;
 
     private final ScheduledExecutorService scheduler;
     private final List<RoundPacerListener> listeners = new CopyOnWriteArrayList<>();
@@ -159,7 +153,7 @@ public class GameScheduler implements RoundPacer {
 
         ScheduledFuture<?> pre = scheduler.schedule(
                 () -> runRegister(session, 1),
-                PRE_ROUND_DELAY_MS,
+                getPreRoundDelay(session),
                 TimeUnit.MILLISECONDS
         );
         session.setStepTask(pre);
@@ -194,7 +188,7 @@ public class GameScheduler implements RoundPacer {
                 session.cancelStepTask();
                 scheduleProgrammingPhase(session, NEXT_WINDOW_MS);
             }
-        }, REGISTER_DELAY_MS, TimeUnit.MILLISECONDS);
+        }, getRegisterDelay(session), TimeUnit.MILLISECONDS);
 
         session.setStepTask(task);
     }
@@ -228,7 +222,7 @@ public class GameScheduler implements RoundPacer {
 
         ScheduledFuture<?> nextTask = scheduler.schedule(
                 () -> executeRobotsSequentially(session, reg, robots, robotIndex + 1),
-                ROBOT_TURN_DELAY_MS,
+                getRobotTurnDelay(session),
                 TimeUnit.MILLISECONDS
         );
 
@@ -250,7 +244,7 @@ public class GameScheduler implements RoundPacer {
 
         ReactionSpec<?> spec = createReactionSpec(reaction.kind());
         ReactionId reactionId = ReactionId.random();
-        Instant deadline = Instant.now().plusMillis(REACTION_TIMEOUT_MS);
+        Instant deadline = Instant.now().plusMillis(getReactionTimeout(session));
 
         ReactionRequest<?> request = new ReactionRequest<>(
                 reactionId,
@@ -273,7 +267,7 @@ public class GameScheduler implements RoundPacer {
                     continueAfterReaction(session);
                 }
             }
-        }, REACTION_TIMEOUT_MS, TimeUnit.MILLISECONDS);
+        }, getReactionTimeout(session), TimeUnit.MILLISECONDS);
 
         session.setReactionTimeoutTask(timeoutTask);
     }
@@ -306,7 +300,7 @@ public class GameScheduler implements RoundPacer {
 
             scheduler.schedule(() -> {
                 continueAfterReaction(session);
-            }, ROBOT_TURN_DELAY_MS, TimeUnit.MILLISECONDS);
+            }, getRobotTurnDelay(session), TimeUnit.MILLISECONDS);
         }
     }
 
@@ -458,7 +452,7 @@ public class GameScheduler implements RoundPacer {
                 session.cancelStepTask();
                 scheduleProgrammingPhase(session, NEXT_WINDOW_MS);
             }
-        }, EFFECT_DELAY_MS, TimeUnit.MILLISECONDS);
+        }, getEffectDelay(session), TimeUnit.MILLISECONDS);
 
         session.setStepTask(effectsTask);
     }
@@ -484,7 +478,7 @@ public class GameScheduler implements RoundPacer {
             }
 
             continueAfterRespawn(session, reg);
-        }, RESPAWN_TIMEOUT_MS, TimeUnit.MILLISECONDS);
+        }, getRespawnTimeout(session), TimeUnit.MILLISECONDS);
 
         session.setRespawnTimeoutTask(respawnTimeout);
     }
@@ -523,6 +517,97 @@ public class GameScheduler implements RoundPacer {
     public void continueAfterAllRespawns(GameSession session) {
         session.cancelRespawnTimeoutTask();
         continueAfterRespawn(session, currentRegister);
+    }
+
+    /**
+     * Forces immediate execution of a round in demo mode.
+     * Bypasses programming phase and starts execution with whatever
+     * programs are currently loaded on robots (can be empty).
+     *
+     * @param session the game session to force execute
+     * @throws IllegalStateException if session is not in demo mode
+     * @author William Pii Jæger
+     */
+    public void forceExecuteRound(GameSession session) {
+        if (!session.isDemoMode()) {
+            throw new IllegalStateException("Cannot force execute - not in demo mode");
+        }
+
+        currentRegister = 0;
+
+        session.setState(GameState.EXECUTING);
+        listeners.forEach(l -> l.onRoundExecuting(session));
+
+        Game game = session.getGame();
+        game.applyTileEffects(Phase.ACTIVATE_ANTENNA);
+
+        ScheduledFuture<?> pre = scheduler.schedule(
+                () -> runRegister(session, 1),
+                getPreRoundDelay(session),
+                TimeUnit.MILLISECONDS
+        );
+        session.setStepTask(pre);
+    }
+
+
+    /**
+     * @author William Pii Jæger
+     */
+    private long getRegisterDelay(GameSession session) {
+        if (session.isDemoMode() && session.getDemoTimingConfig() != null) {
+            return session.getDemoTimingConfig().registerDelayMs();
+        }
+        return 800L;
+    }
+
+    /**
+     * @author William Pii Jæger
+     */
+    private long getPreRoundDelay(GameSession session) {
+        if (session.isDemoMode() && session.getDemoTimingConfig() != null) {
+            return session.getDemoTimingConfig().preRoundDelayMs();
+        }
+        return 300L;
+    }
+
+    /**
+     * @author William Pii Jæger
+     */
+    private long getEffectDelay(GameSession session) {
+        if (session.isDemoMode() && session.getDemoTimingConfig() != null) {
+            return session.getDemoTimingConfig().effectDelayMs();
+        }
+        return 500L;
+    }
+
+    /**
+     * @author William Pii Jæger
+     */
+    private long getRobotTurnDelay(GameSession session) {
+        if (session.isDemoMode() && session.getDemoTimingConfig() != null) {
+            return session.getDemoTimingConfig().robotTurnDelayMs();
+        }
+        return 400L;
+    }
+
+    /**
+     * @author William Pii Jæger
+     */
+    private long getRespawnTimeout(GameSession session) {
+        if (session.isDemoMode() && session.getDemoTimingConfig() != null) {
+            return session.getDemoTimingConfig().respawnTimeoutMs();
+        }
+        return 10000L;
+    }
+
+    /**
+     * @author William Pii Jæger
+     */
+    private long getReactionTimeout(GameSession session) {
+        if (session.isDemoMode() && session.getDemoTimingConfig() != null) {
+            return session.getDemoTimingConfig().reactionTimeoutMs();
+        }
+        return 20000L;
     }
 
     /**

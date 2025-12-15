@@ -33,6 +33,9 @@ public class GameSession {
     private int deadRobotsAwaitingRespawn = 0;
     private final Set<Integer> robotsWithRespawnDirection = new HashSet<>();
 
+    private boolean demoMode = false;
+    private DemoTimingConfig demoTimingConfig = null;
+
     private ReactionRequest<?> pendingReaction;
     private ReactionResolution<?> reactionResolution;
     private ScheduledFuture<?> reactionTimeoutTask;
@@ -73,6 +76,7 @@ public class GameSession {
         this.state = GameState.WAITING_TO_START;
         this.submittedPlayers = new HashSet<>();
         this.totalPlayers = game.getRobots().size();
+        this.demoTimingConfig = DemoTimingConfig.defaultConfig();
     }
 
     /**
@@ -315,5 +319,47 @@ public class GameSession {
      */
     public synchronized ReactionExecutionContext getReactionContext() {
         return reactionContext;
+    }
+
+    /**
+     * Checks if this session is in demo mode.
+     * Demo mode bypasses card validation and allows custom timing.
+     *
+     * @return true if demo mode is enabled
+     * @author William Pii Jæger
+     */
+    public boolean isDemoMode() {
+        return demoMode;
+    }
+
+    /**
+     * Enables or disables demo mode for this session.
+     * Demo mode should only be toggled when not actively executing.
+     *
+     * @param demoMode true to enable demo mode, false to disable
+     * @author William Pii Jæger
+     */
+    public void setDemoMode(boolean demoMode) {
+        this.demoMode = demoMode;
+    }
+
+    /**
+     * Gets the custom timing configuration for demo mode.
+     *
+     * @return the demo timing config, or null if using defaults
+     * @author William Pii Jæger
+     */
+    public DemoTimingConfig getDemoTimingConfig() {
+        return demoTimingConfig;
+    }
+
+    /**
+     * Sets custom timing configuration for demo mode.
+     *
+     * @param config the timing configuration to use
+     * @author William Pii Jæger
+     */
+    public void setDemoTimingConfig(DemoTimingConfig config) {
+        this.demoTimingConfig = config;
     }
 }

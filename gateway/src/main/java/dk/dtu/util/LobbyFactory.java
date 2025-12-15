@@ -20,6 +20,7 @@ import java.util.UUID;
 public  class LobbyFactory {
     private static int nextLobbyID = 0;
     private static int nextRecreatedLobbyID = 0;
+    private static int nextDemoLobbyID = 0;
 
     public LobbyFactory(){}
 
@@ -27,8 +28,8 @@ public  class LobbyFactory {
      * @author Niklas Emil Lysdal
      * @return New Lobby Object using  ID incrementer.
      */
-    public Lobby createLobby(Client creator, Host host, String lobbyName,int capacity) {
-        return new Lobby(lobbyName, nextLobbyID++ + "", creator, host, capacity);
+    public Lobby createLobby(Client creator, Host host, String lobbyName, int capacity) {
+        return new Lobby(lobbyName, nextLobbyID++ + "", creator, host, capacity, false);
     }
 
     /**
@@ -36,9 +37,15 @@ public  class LobbyFactory {
      * @author Benjamin Benyo Endahl Hansen
      * @author Karl Johannes Agerbo
      */
-
     public Lobby recreateLobby(Client c, String lobbyName, Host host, Map<String, String> userToPlayer, UUID saveID) {
         return new Lobby("R" + nextRecreatedLobbyID++, lobbyName, c, host, userToPlayer, saveID);
+    }
+
+    /**
+     * @author Karl Johannes Agerbo
+     */
+    public Lobby createDemoLobby(Client c, Host host) {
+        return new Lobby("", "D" + nextDemoLobbyID++, c, host, 1, true);
     }
 
 }

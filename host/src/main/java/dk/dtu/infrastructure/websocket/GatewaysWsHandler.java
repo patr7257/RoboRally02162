@@ -393,6 +393,32 @@ public class GatewaysWsHandler extends TextWebSocketHandler implements GameManag
                             meta, gameId);
                 }
             }
+            case "forceStartRound" -> {
+                Optional<GameSession> sessionOpt = gameManager.findSessionByID(gameId);
+                if (sessionOpt.isEmpty()) {
+                    sendError("not_found", "Game not found", meta, gameId);
+                    return;
+                }
+
+                if (!sessionOpt.get().isDemoMode()) {
+                    sendError("forbidden",
+                            "Cannot force start round - game is not in demo mode. " +
+                                    "Demo mode must be enabled via server configuration.",
+                            meta, gameId);
+                    return;
+                }
+
+                GameCommand cmd = new GameCommand.ForceStartRound(UUID.randomUUID(), gameId);
+                CommandResult result = gameManager.execute(cmd);
+
+                if (result.ok()) {
+                    send(new OutgoingMessage<>("ack", Delivery.DIRECT, meta,
+                            Map.of("message", "Round force started")));
+                } else {
+                    sendError("command_failed", result.reason(), meta, gameId);
+                }
+            }
+
 
             default -> {
                 sendError("bad_request", "Unknown payload.type: " + type, meta, gameId);

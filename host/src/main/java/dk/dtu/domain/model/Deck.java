@@ -184,7 +184,6 @@ public class Deck {
         return List.copyOf(result);
     }
 
-
     /**
      * @author Lizette Bloch Dahl Nikolajsen
      * @author Kajsa Alice Ulrika Berlstedt
@@ -258,5 +257,27 @@ public class Deck {
      */
     public void removeFromHand(ProgramCard card) {
         hand.remove(card);
+    }
+
+
+    /**
+     * Accepts cards as-is for demo mode without validation.
+     * Does not check if cards are in hand or validate counts.
+     * If fewer than 5 cards provided, returns them without padding.
+     * If more than 5 cards provided, takes only the first 5.
+     *
+     * @param cards the cards to accept
+     * @return the cards list, trimmed to at most 5 cards
+     * @throws IllegalArgumentException if cards is null
+     * @author William Pii Jæger
+     */
+    public List<ProgramCard> acceptCardsAsIs(List<ProgramCard> cards) {
+        if (cards == null) throw new IllegalArgumentException("cards null");
+
+        if (cards.size() > 5) {
+            return List.copyOf(cards.subList(0, 5));
+        }
+
+        return List.copyOf(cards);
     }
 }
