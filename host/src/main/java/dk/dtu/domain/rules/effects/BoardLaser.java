@@ -17,7 +17,7 @@ import dk.dtu.domain.rules.api.BoardAPI;
  * @author Patrick Røbel
  */
 public record BoardLaser(Direction direction, int power) implements TileEffect {
-
+    
     /**
      * When the board laser phase activates, this laser shoots from its tile
      * in its fixed direction, hitting the first robot in line of sight.
@@ -74,7 +74,7 @@ public record BoardLaser(Direction direction, int power) implements TileEffect {
             if (!robotsHere.isEmpty()) {
                 // Hit the first robot and stop
                 Robot target = robotsHere.get(0);
-                // TODO: Implement damage dealing
+                // Deal damage to the robot
                 api.reportDestroy(target.getId(), currentPos,DestroyCause.LASER,power);
                 //console.log("Board laser hit robot " + robot.getId() + " for " + amount + " damage");
                 hasTarget = true;

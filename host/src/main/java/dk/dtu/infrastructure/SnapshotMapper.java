@@ -82,6 +82,9 @@ public final class SnapshotMapper {
                 if (effect instanceof BoardLaser bl) {
                     effects.add(new BoardLaserDto(bl.direction(), bl.power()));
                 }
+                if (effect instanceof RobotLaser rl) {
+                    effects.add(new RobotLaserDto(rl.robot().getDirection(), rl.robot().getId()));
+                }
             }
         }
 
@@ -145,6 +148,11 @@ public final class SnapshotMapper {
             if (effect instanceof BoardLaserDto(Direction direction, int power)) {
                 tile.addEffect(new BoardLaser(direction, power));
             }
+            /*
+            if (effect instanceof RobotLaserDto(Direction direction, int robotId)) {
+                // Robot reference is not available here; it will be set when mapping robots
+                tile.addEffect(new RobotLaser(null));
+            } */
         }
         return tile;
     }

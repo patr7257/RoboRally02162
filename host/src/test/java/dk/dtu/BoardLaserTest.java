@@ -290,7 +290,12 @@ public class BoardLaserTest {
     @Test
     void robotOnLaserMovesOutAndBackIsHitOnlyOnce() {
         Tile[][] tiles = initEmptyCells(10, 10);
-        tiles[2][1].setEffects(List.of(new BoardLaser(Direction.S, 1)));
+        for (int x = 0; x < 10; x++) {
+            for (int y = 0; y < 10; y++) {
+                tiles[x][y].setEffects(new java.util.ArrayList<>(tiles[x][y].getEffects()));
+            }
+        }
+        tiles[2][1].setEffects(new java.util.ArrayList<>(List.of(new BoardLaser(Direction.S, 1))));
         Board board = new Board(10, 10, tiles);
         
         Robot robot = new Robot(1, 2, 2, Direction.W);
@@ -349,7 +354,12 @@ public class BoardLaserTest {
     @Test
     void dontDealDamageWhenRobotMovesAwayFromLaserField() {
         Tile[][] tiles = initEmptyCells(10, 10);
-        tiles[2][1].setEffects(List.of(new BoardLaser(Direction.S, 1)));
+        for (int x = 0; x < 10; x++) {
+            for (int y = 0; y < 10; y++) {
+                tiles[x][y].setEffects(new java.util.ArrayList<>(tiles[x][y].getEffects()));
+            }
+        }
+        tiles[2][1].setEffects(new java.util.ArrayList<>(List.of(new BoardLaser(Direction.S, 1))));
         Board board = new Board(10, 10, tiles);
         
         Robot robot = new Robot(1, 2, 2, Direction.W);

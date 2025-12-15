@@ -2,6 +2,7 @@ import React, { useEffect, useState, useRef } from "react";
 import { registerEffect } from "../effectRegistry";
 import { Direction } from "../../types/boardTypes";
 import { subscribe } from "../../utils/ws";
+import { calculateLaserBeamLength } from "../../utils/boardUtils";
 
 type BoardLaserEffect = {
   direction: Direction;
@@ -21,29 +22,7 @@ function BoardLaser({ effect }: { effect: BoardLaserEffect }) {
   const { direction, power, x, y, board } = effect;
   const laserImage = `${process.env.PUBLIC_URL}/boardelements/lasers/laser-${direction.toLowerCase()}.png`;
 
-  const getBeamLength = (): number => {
-    if (x === undefined || y === undefined || !board) {
-      return 10;
-    }
-    let tilesToEdge = 0;
-    switch (direction) {
-      case 'N':
-        tilesToEdge = y;
-        break;
-      case 'S':
-        tilesToEdge = board.height - y - 1;
-        break;
-      case 'E':
-        tilesToEdge = board.width - x - 1;
-        break;
-      case 'W':
-        tilesToEdge = x;
-        break;
-    }
-    return tilesToEdge + 0.65;
-  };
-
-  const beamLength = getBeamLength();
+  const beamLength = calculateLaserBeamLength(x, y, direction, board, 'board');
 
   // Position lasers against the wall (opposite of firing direction)
   const getPositionStyle = () => {

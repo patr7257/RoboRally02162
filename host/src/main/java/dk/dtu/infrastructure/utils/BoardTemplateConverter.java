@@ -136,10 +136,22 @@ public class BoardTemplateConverter {
         };
     }
     
+    // Overloaded method for backward compatibility with tests
+    public static List<Robot> createRobotsFromTemplate(Board board, int playerCount) {
+        return createRobotsFromTemplate(board, playerCount, "W");
+    }
+    
     // Extracts starting positions from a board template and creates robots.
     // Randomizes both the starting tile positions and robot IDs to ensure varied gameplay.
-    public static List<Robot> createRobotsFromTemplate(Board board, int playerCount) {
+    public static List<Robot> createRobotsFromTemplate(Board board, int playerCount, String startingAreaDirection) {
         List<Robot> robots = new ArrayList<>();
+        Direction robotFacing = switch (startingAreaDirection.toUpperCase()) {
+            case "N" -> Direction.S;
+            case "S" -> Direction.N;
+            case "E" -> Direction.W;
+            case "W" -> Direction.E;
+            default -> Direction.S;
+        };
         
         // Find all starting tiles with their positions
         List<TilePosition> startingPositions = new ArrayList<>();
@@ -165,11 +177,11 @@ public class BoardTemplateConverter {
         }
         Collections.shuffle(robotIds);
         
-        // Create robots at shuffled positions with shuffled IDs
+        // Create robots at shuffled positions with shuffled IDs, facing toward center
         for (int i = 0; i < Math.min(playerCount, startingPositions.size()); i++) {
             TilePosition pos = startingPositions.get(i);
             int robotId = robotIds.get(i);
-            robots.add(new Robot(robotId, pos.x, pos.y, Direction.S));
+            robots.add(new Robot(robotId, pos.x, pos.y, robotFacing));
         }
         
         return robots;

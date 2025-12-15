@@ -22,10 +22,11 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo;
                 @JsonSubTypes.Type(value = StartingTileDto.class, name = "startingtile"),
                 @JsonSubTypes.Type(value = GearDto.class, name = "geardto"),
                 @JsonSubTypes.Type(value = BoardLaserDto.class, name = "board_laser"),
+                @JsonSubTypes.Type(value = RobotLaserDto.class, name = "robot_laser"),
                 @JsonSubTypes.Type(value = PitsDto.class, name = "PITS")
         })
 // ConveyorDto, LasterDto ect
 // Keeping here for future use
-public sealed interface EffectDto permits CheckpointDto, GearDto, WallDto, RebootTokenDto, StartingTileDto, AntennaDto, BlueConveyorDto, GreenConveyorDto, BoardLaserDto,PitsDto {
+public sealed interface EffectDto permits CheckpointDto, GearDto, WallDto, RebootTokenDto, StartingTileDto, AntennaDto, BlueConveyorDto, GreenConveyorDto, BoardLaserDto, RobotLaserDto, PitsDto {
     String kind();
 }

@@ -330,9 +330,13 @@ public class GameController {
     public synchronized StartGameResponse startWithTemplate(@RequestBody StartGameWithTemplateRequest req) {
         // Convert JSON template to Board using helper class
         Board board = BoardTemplateConverter.convertTemplateToBoard(req.boardTemplate());
+        
+        String startingDirection = req.boardTemplate().has("startingBoardDirection") 
+            ? req.boardTemplate().get("startingBoardDirection").asText() 
+            : "W";
 
         // Create robots from the template's starting tiles
-        List<Robot> robots = BoardTemplateConverter.createRobotsFromTemplate(board, req.amountPlayers());
+        List<Robot> robots = BoardTemplateConverter.createRobotsFromTemplate(board, req.amountPlayers(), startingDirection);
 
         // Create the board API and start the game (same as existing logic)
         BoardAPI boardApi = new BoardApiImpl(board, robots);

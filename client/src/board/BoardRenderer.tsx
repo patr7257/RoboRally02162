@@ -1,6 +1,7 @@
 import React from "react";
 import { GameData, Direction, Tile, Robot } from "../types/boardTypes";
 import { calculateBoardSize, getRobotAtPosition, getRobotImage } from "../utils/boardUtils";
+import RobotLaser from "../ui/effects/RobotLaser";
 
 import { BoardTile } from "./BoardTile";
 import "./board.css";
@@ -102,27 +103,53 @@ const getSmoothRotation = (robotId: number, newFacing: string): number => {
         )}
         
         {gameData.robots.map((robot) => (
-          <div
-            key={robot.id}
-            className="robot-absolute"
-            style={{
-              position: 'absolute',
-              left: `${robot.x * tileSize + tileSize/7}px`,
-              top: `${robot.y * tileSize + tileSize/7}px`,
-              width: `${tileSize}px`,
-              height: `${tileSize}px`,
-              marginTop: '${-tileSize}px',
-              backgroundImage: `url(${getRobotImage(robot.id)})`,
-              backgroundSize: "cover",
-              backgroundPosition: "center",
-              transform: `rotate(${getSmoothRotation(robot.id, robot.facing)}deg)`,
-              transition: "left 0.3s ease, top 0.3s ease, transform 0.3s ease",
-              transformOrigin: "center center",
-              pointerEvents: 'none',
-              zIndex: 1000,
-              boxSizing: 'border-box',
-            }}
-          />
+          <React.Fragment key={robot.id}>
+            <div
+              className="robot-absolute"
+              style={{
+                position: 'absolute',
+                left: `${robot.x * tileSize}px`,
+                top: `${robot.y * tileSize}px`,
+                width: `${tileSize}px`,
+                height: `${tileSize}px`,
+                backgroundImage: `url(${getRobotImage(robot.id)})`,
+                backgroundSize: "cover",
+                backgroundPosition: "center",
+                transform: `rotate(${getSmoothRotation(robot.id, robot.facing)}deg)`,
+                transition: "left 0.3s ease, top 0.3s ease, transform 0.3s ease",
+                transformOrigin: "center center",
+                pointerEvents: 'none',
+                zIndex: 1000,
+                boxSizing: 'border-box',
+              }}
+            />
+            {/* Robot laser effect - rendered for each robot */}
+            <div
+              className="robot-laser-container"
+              style={{
+                position: 'absolute',
+                left: `${robot.x * tileSize}px`,
+                top: `${robot.y * tileSize}px`,
+                width: `${tileSize}px`,
+                height: `${tileSize}px`,
+                pointerEvents: 'none',
+                zIndex: 999,
+              }}
+            >
+              <RobotLaser
+                effect={{
+                  kind: "robot_laser",
+                  direction: robot.facing,
+                  robotId: robot.id,
+                  id: `robot-laser-${robot.id}`,
+                  x: robot.x,
+                  y: robot.y,
+                  board: gameData.board,
+                  robots: gameData.robots,
+                }}
+              />
+            </div>
+          </React.Fragment>
         ))}
       </div>
     </div>

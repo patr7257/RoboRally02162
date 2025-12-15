@@ -44,3 +44,35 @@ export const calculateBoardSize = (
     boardHeight: boardHeight * Math.floor(tileSize),
   };
 };
+
+/**
+ * @author Patrick Røbel
+ */
+export const calculateLaserBeamLength = (
+  x: number | undefined,
+  y: number | undefined,
+  direction: Direction,
+  board: { width: number; height: number } | undefined,
+  laserType: 'board' | 'robot'
+): number => {
+  if (x === undefined || y === undefined || !board) {
+    return 10;
+  }
+  let tilesToEdge = 0;
+  switch (direction) {
+    case 'N':
+      tilesToEdge = y;
+      break;
+    case 'S':
+      tilesToEdge = board.height - y - 1;
+      break;
+    case 'E':
+      tilesToEdge = board.width - x - 1;
+      break;
+    case 'W':
+      tilesToEdge = x;
+      break;
+  }
+  const extraTiles = laserType === 'board' ? 0.65 : 0.5;
+  return tilesToEdge + extraTiles;
+};

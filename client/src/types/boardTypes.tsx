@@ -19,8 +19,9 @@ export interface RebootTokenEffect extends BaseEffect { kind: "reboot_token"; di
 export interface StartingTileEffect extends BaseEffect { kind: "startingtile"; playerId: number; }
 export interface AntennaEffect extends BaseEffect { kind : "antenna"; direction: Direction}
 export interface BoardLaserEffect extends BaseEffect { kind: "board_laser"; direction: Direction; power: number; }
+export interface RobotLaserEffect extends BaseEffect { kind: "robot_laser"; direction: Direction; robotId: number; }
 export interface PitsEffect extends BaseEffect { kind: "pits"; }
-export type TileEffect = CheckpointEffect | BlueConveyorEffect | GreenConveyorEffect  | WallEffect | StartingTileEffect | RebootTokenEffect | AntennaEffect | GearEffect | BoardLaserEffect | PitsEffect;
+export type TileEffect = CheckpointEffect | BlueConveyorEffect | GreenConveyorEffect  | WallEffect | StartingTileEffect | RebootTokenEffect | AntennaEffect | GearEffect | BoardLaserEffect | RobotLaserEffect | PitsEffect;
 
 export type MoveType =
     | "MOVE1"

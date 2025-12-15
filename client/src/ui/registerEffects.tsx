@@ -7,4 +7,5 @@ import "./effects/StartingTile";
 import "./effects/RebootToken";
 import "./effects/Antenna";
 import "./effects/BoardLaser";
+import "./effects/RobotLaser";
 import "./effects/Pits"

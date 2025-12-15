@@ -56,6 +56,7 @@ public class Game {
         this.winner = null;
         this.robotsMap = new HashMap<>();
         this.damageDecks = new DamageDecks(38, 15, 15);
+        ensureMutableTileEffects(board);  // for dynamic robot lasers to not crash all tests
         initGame(robots, null);
         this.phaseIndex = buildPhaseIndex(board.getCells());
         dealNewHands();
@@ -74,11 +75,31 @@ public class Game {
         this.winner = null;
         this.robotsMap = new HashMap<>();
         this.damageDecks = damageDecks;
+        ensureMutableTileEffects(board); // for dynamic robot lasers to not crash all tests
         initGame(robots, decks);
         this.phaseIndex = buildPhaseIndex(board.getCells());
     }
 
     /**
+     * @author Patrick Røbel
+     */
+    private void ensureMutableTileEffects(Board board) {
+        Tile[][] tiles = board.getCells();
+        if (tiles == null) return;
+        
+        for (int x = 0; x < board.getWidth(); x++) {
+            for (int y = 0; y < board.getHeight(); y++) {
+                Tile tile = tiles[x][y];
+                if (tile != null && tile.getEffects() != null) {
+                    // Always replace with mutable ArrayList to ensure dynamic effects work
+                    tile.setEffects(new ArrayList<>(tile.getEffects()));
+                }
+            }
+        }
+    }
+
+    /**
+     * 
      * @author William Pii Jæger
      * @author Weihao Mo
      */
@@ -364,7 +385,13 @@ public class Game {
      * via {@link TileEffect#onPhase(Phase, Tile, BoardAPI)}, and then resolves the
      * resulting
      * movement and destruction intents through the BoardAPI. Robots are updated
-     * accordingly:
+     * accordingly.
+     * 
+     * Robot lasers ({@link Phase#ACTIVATE_ROBOT_LASERS})
+     * are handled specially as they are dynamic effects based on robot positions 
+     * rather than static tile effects, but are processed here to maintain correct 
+     * game rule sequence order without interrupting {@link #runPhase(Phase, Runnable)}.
+     * 
      * moved robots have their positions updated, and destroyed robots are marked as
      * dead and
      * have their registers cleared.
@@ -373,15 +400,19 @@ public class Game {
      * @param phase the phase for which to apply tile effects
      * @author Weihao Mo
      * @author William Pii Jæger
+     * @author Patrick Røbel
      * @see TileEffect#onPhase(Phase, Tile, BoardAPI)
      * @see BoardAPI#resolveIntents()
      */
     public void applyTileEffects(Phase phase) {
         List<Tile> tiles = phaseIndex.getOrDefault(phase, List.of());
-
-        for (Tile tile : tiles) {
-            for (TileEffect effect : tile.getEffectsForPhase(phase)) {
-                effect.onPhase(phase, tile, api);
+        if (phase == Phase.ACTIVATE_ROBOT_LASERS) {
+            RobotLaser.applyRobotLaserEffects(phase, robots, board, api);
+        } else {
+            for (Tile tile : tiles) {
+                for (TileEffect effect : tile.getEffectsForPhase(phase)) {
+                    effect.onPhase(phase, tile, api);
+                }
             }
         }
 

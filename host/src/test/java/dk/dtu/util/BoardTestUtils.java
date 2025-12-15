@@ -5,8 +5,6 @@ import dk.dtu.domain.model.Direction;
 import dk.dtu.domain.model.Rotation;
 import dk.dtu.domain.model.Tile;
 import dk.dtu.domain.rules.effects.*;
-import dk.dtu.domain.rules.effects.Checkpoint;
-import dk.dtu.domain.rules.effects.RebootToken;
 
 import java.util.Collections;
 import java.util.EnumSet;
@@ -380,6 +378,26 @@ public final class BoardTestUtils {
         // add lasers manually in tests to not confuse logic
         Tile cp = tiles[8][8];
         cp.setEffects(List.of(new Checkpoint(1)));
+        
+        return new Board(width, height, tiles);
+    }
+    
+    /**
+     * @author Patrick Røbel
+     */
+    public static Board initBoardWithRobotLasers(int width, int height) {
+        Tile[][] tiles = initEmptyCells(width, height);
+        
+        // Ensure all tiles have mutable effect lists for dynamic robot laser addition
+        for (int x = 0; x < width; x++) {
+            for (int y = 0; y < height; y++) {
+                tiles[x][y].setEffects(new java.util.ArrayList<>());
+            }
+        }
+                
+        Tile cp = tiles[8][8];
+        cp.setEffects(List.of(new Checkpoint(1)));
+        //cp.setEffects(new java.util.ArrayList<>(List.of(new Checkpoint(1))));
         
         return new Board(width, height, tiles);
     }

@@ -392,6 +392,19 @@ button,
 
 
 /* Board Laser Styles */
+:root {
+  /* Board laser color (red) */
+  --board-laser-color: 255, 0, 0;
+  
+  /* Robot laser colors - matching robot colors */
+  --robot-laser-color-1: 59, 130, 246;    /* blue (#3b82f6) */
+  --robot-laser-color-2: 255, 255, 255;   /* white (#ffffff) */
+  --robot-laser-color-3: 34, 197, 94;     /* green (#22c55e) */
+  --robot-laser-color-4: 250, 204, 21;    /* yellow (#facc15) */
+  --robot-laser-color-5: 239, 68, 68;     /* red (#ef4444) */
+  --robot-laser-color-6: 168, 85, 247;    /* purple (#a855f7) */
+}
+
 .board-laser {
   position: absolute;
   inset: 0;
@@ -407,32 +420,65 @@ button,
   width: calc(var(--tile-size) * 0.25);
   height: calc(var(--tile-size) * 0.25);
   object-fit: contain;
-  filter: drop-shadow(0 0 4px rgba(255, 0, 0, 0.8));
   z-index: 2;
   pointer-events: none;
 }
 
-.laser-beam {
+/* Board laser emitter styling - uses board laser color */
+.board-laser .laser-emitter {
+  filter: drop-shadow(0 0 4px rgba(var(--board-laser-color), 0.8));
+}
+
+.board-laser.laser-firing .laser-emitter {
+  filter: drop-shadow(0 0 8px rgba(var(--board-laser-color), 1)) 
+          drop-shadow(0 0 12px rgba(var(--board-laser-color), 0.8));
+}
+
+/* Robot laser container - centered on robot's tile */
+.robot-laser {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Base laser beam styles */
+.laser-beam,
+.robot-laser-beam {
   position: absolute;
   pointer-events: none;
   z-index: 12;
   opacity: 0;
-  box-shadow: 
-    0 0 10px rgba(255, 0, 0, 0.8),
-    0 0 20px rgba(255, 0, 0, 0.6),
-    inset 0 0 10px rgba(255, 255, 255, 0.3);
   animation: laser-fire 0.8s ease-out;
 }
 
+/* Board laser beam styling */
 .board-laser.laser-firing .laser-beam {
   animation: laser-fire 0.8s ease-out;
 }
 
-.board-laser.laser-firing .laser-emitter {
-  filter: drop-shadow(0 0 8px rgba(255, 0, 0, 1)) 
-          drop-shadow(0 0 12px rgba(255, 50, 50, 0.8));
+.laser-beam {
+  box-shadow: 
+    0 0 10px rgba(var(--board-laser-color), 0.8),
+    0 0 20px rgba(var(--board-laser-color), 0.6),
+    inset 0 0 10px rgba(255, 255, 255, 0.3);
 }
 
+/* Robot laser beam styling - color set dynamically */
+.robot-laser.laser-firing .robot-laser-beam {
+  animation: laser-fire 0.8s ease-out;
+}
+
+.robot-laser-beam {
+  box-shadow: 
+    0 0 10px rgba(var(--current-robot-laser-color), 0.8),
+    0 0 20px rgba(var(--current-robot-laser-color), 0.6),
+    inset 0 0 10px rgba(255, 255, 255, 0.3);
+}
+
+/* Directional positioning and gradients - Board Laser (Red) */
 .laser-beam[data-direction="N"] {
   width: calc(var(--tile-size) * 0.12);
   bottom: 25%;
@@ -440,9 +486,9 @@ button,
   transform: translateX(-50%);
   transform-origin: bottom center;
   background: linear-gradient(180deg, 
-    rgba(255, 0, 0, 0.9) 0%, 
-    rgba(255, 100, 100, 0.7) 50%,
-    rgba(255, 0, 0, 0.9) 100%
+    rgba(var(--board-laser-color), 0.9) 0%, 
+    rgba(var(--board-laser-color), 0.7) 50%,
+    rgba(var(--board-laser-color), 0.9) 100%
   );
 }
 
@@ -453,9 +499,9 @@ button,
   transform: translateX(-50%);
   transform-origin: top center;
   background: linear-gradient(180deg, 
-    rgba(255, 0, 0, 0.9) 0%, 
-    rgba(255, 100, 100, 0.7) 50%,
-    rgba(255, 0, 0, 0.9) 100%
+    rgba(var(--board-laser-color), 0.9) 0%, 
+    rgba(var(--board-laser-color), 0.7) 50%,
+    rgba(var(--board-laser-color), 0.9) 100%
   );
 }
 
@@ -466,9 +512,9 @@ button,
   transform: translateY(-50%);
   transform-origin: left center;
   background: linear-gradient(90deg, 
-    rgba(255, 0, 0, 0.9) 0%, 
-    rgba(255, 100, 100, 0.7) 50%,
-    rgba(255, 0, 0, 0.9) 100%
+    rgba(var(--board-laser-color), 0.9) 0%, 
+    rgba(var(--board-laser-color), 0.7) 50%,
+    rgba(var(--board-laser-color), 0.9) 100%
   );
 }
 
@@ -479,9 +525,65 @@ button,
   transform: translateY(-50%);
   transform-origin: right center;
   background: linear-gradient(90deg, 
-    rgba(255, 0, 0, 0.9) 0%, 
-    rgba(255, 100, 100, 0.7) 50%,
-    rgba(255, 0, 0, 0.9) 100%
+    rgba(var(--board-laser-color), 0.9) 0%, 
+    rgba(var(--board-laser-color), 0.7) 50%,
+    rgba(var(--board-laser-color), 0.9) 100%
+  );
+}
+
+/* Robot laser beam - shoots from center, color set via --current-robot-laser-color */
+.robot-laser-beam[data-direction="N"],
+.robot-laser-beam[data-direction="S"] {
+  width: calc(var(--tile-size) * 0.12);
+  height: 1000%;
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+.robot-laser-beam[data-direction="N"] {
+  bottom: 50%;
+  transform-origin: bottom center;
+}
+
+.robot-laser-beam[data-direction="S"] {
+  top: 50%;
+  transform-origin: top center;
+}
+
+.robot-laser-beam[data-direction="E"],
+.robot-laser-beam[data-direction="W"] {
+  height: calc(var(--tile-size) * 0.12);
+  width: 1000%;
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+.robot-laser-beam[data-direction="E"] {
+  left: 50%;
+  transform-origin: left center;
+}
+
+.robot-laser-beam[data-direction="W"] {
+  right: 50%;
+  transform-origin: right center;
+}
+
+/* Gradient backgrounds for all robot laser beams */
+.robot-laser-beam[data-direction="N"],
+.robot-laser-beam[data-direction="S"] {
+  background: linear-gradient(180deg, 
+    rgba(var(--current-robot-laser-color), 0.9) 0%, 
+    rgba(var(--current-robot-laser-color), 0.7) 50%,
+    rgba(var(--current-robot-laser-color), 0.9) 100%
+  );
+}
+
+.robot-laser-beam[data-direction="E"],
+.robot-laser-beam[data-direction="W"] {
+  background: linear-gradient(90deg, 
+    rgba(var(--current-robot-laser-color), 0.9) 0%, 
+    rgba(var(--current-robot-laser-color), 0.7) 50%,
+    rgba(var(--current-robot-laser-color), 0.9) 100%
   );
 }
 
