@@ -214,60 +214,60 @@ export default function LoadLobby() {
         <h1 className="metal-text">Load Game</h1>
       </div>
       <div className="control-panel">
-          {savedGames.length > 0 ? (
-            <div className="lobbies-terminal">
-              <h2 className="terminal-title">Saved Games</h2>
-              <ul className="terminal-list">
-                {savedGames.map((game, index) => (
-                  <li key={index} className="terminal-item">
-                    <span className="terminal-id">{game.lobbyName}</span>
-                    <button
-                      className="metal-button icon"
-                      onClick={() => {
-                        setConfirmAction({
-                          type: 'load',
-                          saveID: game.saveID,
-                          lobbyName: game.lobbyName
-                        });
-                      }}
-                    >
-                      <div className="continue-icon"></div>
-                    </button>
+        {savedGames.length > 0 ? (
+          <div className="lobbies-terminal">
+            <h2 className="terminal-title">Saved Games</h2>
+            <ul className="terminal-list">
+              {savedGames.map((game, index) => (
+                <li key={index} className="terminal-item">
+                  <span className="terminal-id">{game.lobbyName}</span>
+                  <button
+                    className="metal-button icon"
+                    onClick={() => {
+                      setConfirmAction({
+                        type: 'load',
+                        saveID: game.saveID,
+                        lobbyName: game.lobbyName
+                      });
+                    }}
+                  >
+                    <div className="continue-icon"></div>
+                  </button>
 
-                    <button
-                      className="metal-button icon"
-                      onClick={() => {
-                        setConfirmAction({
-                          type: 'delete',
-                          saveID: game.saveID,
-                          lobbyName: game.lobbyName
-                        });
-                      }}
-                    >
-                      <div className="delete-icon"></div>
-                    </button>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          ) : (
-            <div className="empty-state">
-              <p className="empty-state-text">No games to load</p>
-            </div>
-          )}
-
-          {error && <p className="error-text">{error}</p>}
-
-          <div className="button-row">
-            <button className="metal-button icon" onClick={seeSavedGames}>
-              <div className="reload-icon"></div>
-            </button>
-
-            <button className="metal-button icon" onClick={() => navigate("/lobbyScene")}>
-              <div className="exit-icon"></div>
-            </button>
+                  <button
+                    className="metal-button icon"
+                    onClick={() => {
+                      setConfirmAction({
+                        type: 'delete',
+                        saveID: game.saveID,
+                        lobbyName: game.lobbyName
+                      });
+                    }}
+                  >
+                    <div className="delete-icon"></div>
+                  </button>
+                </li>
+              ))}
+            </ul>
           </div>
+        ) : (
+          <div className="empty-state">
+            <p className="empty-state-text">No games to load</p>
+          </div>
+        )}
+
+        {error && <p className="error-text">{error}</p>}
+
+        <div className="button-row">
+          <button className="metal-button icon" onClick={seeSavedGames}>
+            <div className="reload-icon"></div>
+          </button>
+
+          <button className="metal-button icon" onClick={() => navigate("/lobbyScene")}>
+            <div className="exit-icon"></div>
+          </button>
         </div>
+      </div>
     </Layout>
   );
 }

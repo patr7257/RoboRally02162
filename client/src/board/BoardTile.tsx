@@ -71,39 +71,39 @@ export const BoardTile: React.FC<BoardTileProps> = ({
   };
 
   return (
-  <div
-    className={`tile ${isInStartingArea() ? 'starting-area-tile' : ''}`}
-    style={{
-      width: tileSize,
-      height: tileSize,
-      gridColumn: x + 1,
-      gridRow: y + 1,
-      backgroundImage: `url(${process.env.PUBLIC_URL}/boardelements/others/tileTexture.png)`,
-      backgroundSize: "cover",
-      backgroundPosition: "center",
-    }}
-  >
-    <span className="tile-coords">{x},{y}</span>
-    {robot && (
-      <div
-        className="robot"
-        style={{
-          backgroundImage: `url(${getRobotImage(robot.id)})`,
-          backgroundSize: "cover",
-          backgroundPosition: "center",
-          width: "100%",
-          height: "100%",
-          transform: `rotate(${getRotationDegrees(robot.facing)}deg)`,
-          transition: "transform 0.3s ease",
-          transformOrigin: "center center",
-        }}
-      />
-    )}
-    {effects.map(e => (
-      <div key={e.id} className={`effect-wrapper kind-${e.kind}`}>
-        {renderEffect({ ...e, x, y, board, robots } as any)}
-      </div>
-    ))}
-  </div>
+    <div
+      className={`tile ${isInStartingArea() ? 'starting-area-tile' : ''}`}
+      style={{
+        width: tileSize,
+        height: tileSize,
+        gridColumn: x + 1,
+        gridRow: y + 1,
+        backgroundImage: `url(${process.env.PUBLIC_URL}/boardelements/others/tileTexture.png)`,
+        backgroundSize: "cover",
+        backgroundPosition: "center",
+      }}
+    >
+      <span className="tile-coords">{x},{y}</span>
+      {robot && (
+        <div
+          className="robot"
+          style={{
+            backgroundImage: `url(${getRobotImage(robot.id)})`,
+            backgroundSize: "cover",
+            backgroundPosition: "center",
+            width: "100%",
+            height: "100%",
+            transform: `rotate(${getRotationDegrees(robot.facing)}deg)`,
+            transition: "transform 0.3s ease",
+            transformOrigin: "center center",
+          }}
+        />
+      )}
+      {effects.map(e => (
+        <div key={e.id} className={`effect-wrapper kind-${e.kind}`}>
+          {renderEffect({ ...e, x, y, board, robots } as any)}
+        </div>
+      ))}
+    </div>
   );
 };

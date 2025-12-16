@@ -138,84 +138,84 @@ export default function JoinLobby() {
         <h1 className="metal-text">Join Lobby</h1>
       </div>
       <div className="lobbies-panel">
-          {lobbies.length > 0 ? (
-            <div className="lobbies-terminal">
-              <h2 className="terminal-title">Available Lobbies</h2>
-              <div className="terminal-search">
-                <input
-                  type="text"
-                  className="terminal-input"
-                  placeholder="Search by lobby name"
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                />
-              </div>
-              <table className="terminal-table">
-
-                <thead>
-                  <tr>
-                    <th className="terminal-table-header">Name</th>
-                    <th className="terminal-table-header">Players</th>
-                    <th className="terminal-table-header"> Status</th>
-                    <th className="terminal-table-button-header"></th> {/* for the join button*/}
-
-                  </tr>
-                </thead>
-
-                <tbody>
-                  {lobbies
-                    .filter((lobby) => {
-                      const term = searchTerm.trim().toLowerCase();
-                      if (!term) return true; // no search term, include all
-                      const name = lobby.lobbyInfo.lobbyName?.toLowerCase() || "";
-                      return name.includes(term);
-                    })
-                    .map((lobby, index) => {
-                      const isFull = lobby.playerCount === lobby.capacity;
-                      const canJoin: boolean = lobby.canJoin;
-                      const isDisabled = isFull || !canJoin;
-                      const rowClassName = isDisabled ? "lobby-item text-red" : "lobby-item";
-                      return (
-                        <tr key={index} className={rowClassName}>
-                          <td className="lobby-table-name">{lobby.lobbyName}</td>
-                          <td className="lobby-table-players"> {lobby.playerCount}/{lobby.capacity}</td>
-                          <td className="lobby-table-status">{lobby.isRunning ? 'Running' : 'Preparing'}</td>
-                          <td>
-                            <button
-                              className="metal-button icon"
-                              onClick={async () => {
-                                if (await joinLobby(lobby.lobbyID)) {
-                                  navigate("/lobbyCreationScene");
-                                }
-                              }}
-                            >
-                              Join
-                            </button>
-                          </td>
-                        </tr>
-                      )
-                    })}
-                </tbody>
-              </table>
+        {lobbies.length > 0 ? (
+          <div className="lobbies-terminal">
+            <h2 className="terminal-title">Available Lobbies</h2>
+            <div className="terminal-search">
+              <input
+                type="text"
+                className="terminal-input"
+                placeholder="Search by lobby name"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+              />
             </div>
-          ) : (
-            <div className="empty-state">
-              <p className="empty-state-text">No lobbies to join</p>
-            </div>
-          )}
+            <table className="terminal-table">
 
-          {error && <p className="error-text">{error}</p>}
+              <thead>
+                <tr>
+                  <th className="terminal-table-header">Name</th>
+                  <th className="terminal-table-header">Players</th>
+                  <th className="terminal-table-header"> Status</th>
+                  <th className="terminal-table-button-header"></th> {/* for the join button*/}
 
-          <div className="button-row">
-            <button className="metal-button icon" onClick={updateLobbyList}>
-              <div className="reload-icon"></div>
-            </button>
+                </tr>
+              </thead>
 
-            <button className="metal-button icon" onClick={() => navigate("/lobbyScene")}>
-              <div className="exit-icon"></div>
-            </button>
+              <tbody>
+                {lobbies
+                  .filter((lobby) => {
+                    const term = searchTerm.trim().toLowerCase();
+                    if (!term) return true; // no search term, include all
+                    const name = lobby.lobbyInfo.lobbyName?.toLowerCase() || "";
+                    return name.includes(term);
+                  })
+                  .map((lobby, index) => {
+                    const isFull = lobby.playerCount === lobby.capacity;
+                    const canJoin: boolean = lobby.canJoin;
+                    const isDisabled = isFull || !canJoin;
+                    const rowClassName = isDisabled ? "lobby-item text-red" : "lobby-item";
+                    return (
+                      <tr key={index} className={rowClassName}>
+                        <td className="lobby-table-name">{lobby.lobbyName}</td>
+                        <td className="lobby-table-players"> {lobby.playerCount}/{lobby.capacity}</td>
+                        <td className="lobby-table-status">{lobby.isRunning ? 'Running' : 'Preparing'}</td>
+                        <td>
+                          <button
+                            className="metal-button icon"
+                            onClick={async () => {
+                              if (await joinLobby(lobby.lobbyID)) {
+                                navigate("/lobbyCreationScene");
+                              }
+                            }}
+                          >
+                            Join
+                          </button>
+                        </td>
+                      </tr>
+                    )
+                  })}
+              </tbody>
+            </table>
           </div>
+        ) : (
+          <div className="empty-state">
+            <p className="empty-state-text">No lobbies to join</p>
+          </div>
+        )}
+
+        {error && <p className="error-text">{error}</p>}
+
+        <div className="button-row">
+          <button className="metal-button icon" onClick={updateLobbyList}>
+            <div className="reload-icon"></div>
+          </button>
+
+          <button className="metal-button icon" onClick={() => navigate("/lobbyScene")}>
+            <div className="exit-icon"></div>
+          </button>
         </div>
+      </div>
     </Layout>
   );
 }

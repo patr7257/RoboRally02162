@@ -81,65 +81,65 @@ export default function SeeAllGames() {
         <h1 className="metal-text">GAME ADMINSTRATION</h1>
       </div>
       <div className="lobbies-panel">
-          {savedGames.length > 0 ? (
-            <div className="lobbies-terminal">
-              <h2 className="terminal-title">All Games</h2>
+        {savedGames.length > 0 ? (
+          <div className="lobbies-terminal">
+            <h2 className="terminal-title">All Games</h2>
 
-              <div className="terminal-search">
-                <input
-                  type="text"
-                  id="searchGameId"
-                  name="searchGameId"
-                  className="terminal-input"
-                  placeholder="Search by GameID"
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                />
-              </div>
-
-              <table className="terminal-table">
-                <thead>
-                  <tr>
-                    <th className="terminal-table-header">Lobby Name</th>
-                    <th className="terminal-table-header">Players</th>
-                    <th className="terminal-table-header">Winner</th>
-                  </tr>
-                </thead>
-
-                <tbody>
-                  {savedGames
-                    .filter(g =>
-                      !searchTerm ||
-                      g.lobbyName.toLowerCase().includes(searchTerm.toLowerCase())
-                    )
-                    .map((game, idx) => (
-                      <tr key={idx} className="lobby-item">
-                        <td className="lobby-table-id">{game.lobbyName}</td>
-                        <td className="lobby-table-players">{game.playerCount}</td>
-                        <td className="lobby-table-winner">{getWinnerText(game.winner)}</td>
-                      </tr>
-                    ))}
-                </tbody>
-              </table>
+            <div className="terminal-search">
+              <input
+                type="text"
+                id="searchGameId"
+                name="searchGameId"
+                className="terminal-input"
+                placeholder="Search by GameID"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+              />
             </div>
-          ) : (
-            <div className="empty-state">
-              <p className="empty-state-text">No games found</p>
-            </div>
-          )}
 
-          {error && <p className="error-text">{error}</p>}
+            <table className="terminal-table">
+              <thead>
+                <tr>
+                  <th className="terminal-table-header">Lobby Name</th>
+                  <th className="terminal-table-header">Players</th>
+                  <th className="terminal-table-header">Winner</th>
+                </tr>
+              </thead>
 
-          <div className="button-row">
-            <button className="metal-button icon" onClick={seeAllGames}>
-              <div className="reload-icon"></div>
-            </button>
-
-            <button className="metal-button icon" onClick={() => navigate("/lobbyScene")}>
-              <div className="exit-icon"></div>
-            </button>
+              <tbody>
+                {savedGames
+                  .filter(g =>
+                    !searchTerm ||
+                    g.lobbyName.toLowerCase().includes(searchTerm.toLowerCase())
+                  )
+                  .map((game, idx) => (
+                    <tr key={idx} className="lobby-item">
+                      <td className="lobby-table-id">{game.lobbyName}</td>
+                      <td className="lobby-table-players">{game.playerCount}</td>
+                      <td className="lobby-table-winner">{getWinnerText(game.winner)}</td>
+                    </tr>
+                  ))}
+              </tbody>
+            </table>
           </div>
+        ) : (
+          <div className="empty-state">
+            <p className="empty-state-text">No games found</p>
+          </div>
+        )}
+
+        {error && <p className="error-text">{error}</p>}
+
+        <div className="button-row">
+          <button className="metal-button icon" onClick={seeAllGames}>
+            <div className="reload-icon"></div>
+          </button>
+
+          <button className="metal-button icon" onClick={() => navigate("/lobbyScene")}>
+            <div className="exit-icon"></div>
+          </button>
         </div>
+      </div>
     </Layout>
   );
 }

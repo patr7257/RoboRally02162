@@ -8,8 +8,8 @@ import type { CheckpointEffect } from "../../types/boardTypes";
  */
 function Checkpoint({ effect }: { effect: CheckpointEffect }) {
   return (
-    <div 
-      className="checkpoint-badge" 
+    <div
+      className="checkpoint-badge"
       aria-label="checkpoint"
       style={{
         backgroundImage: `url(${process.env.PUBLIC_URL}/boardelements/checkpoints/checkpoint${effect.number}.png)`
@@ -19,4 +19,4 @@ function Checkpoint({ effect }: { effect: CheckpointEffect }) {
 }
 
 registerEffect("checkpoint", Checkpoint);
-export {};
+export { };

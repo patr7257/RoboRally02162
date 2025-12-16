@@ -238,8 +238,8 @@ export default function Board() {
 
           case "gameFinished":
             if (actualData.payload?.winner != null) {
-            setWinner(actualData.payload.winner);
-          }
+              setWinner(actualData.payload.winner);
+            }
             setGameState('finished');
             stopReadinessPolling();
             sendMessage({ lobbyID: lobbyId, payload: { type: "getBoard" } });

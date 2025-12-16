@@ -10,7 +10,7 @@ import Layout from "./lobby/Layout";
 import { closeSocket } from "./utils/ws";
 import JoinLobby from './lobby/JoinLobby';
 import LobbyCreator from './lobby/LobbyCreator';
-import LobbyCreation from './lobby/LobbyCreation';
+import LobbyCreation from './lobby/LobbyMenu';
 import "./ui/registerEffects";
 import LoadLobby from './lobby/LoadLobby';
 import useSound from 'use-sound';
@@ -59,7 +59,7 @@ function Home() {
     setUsername(name);
   };
 
-  const clearError = ():void=> {
+  const clearError = (): void => {
     setError("");
   };
 

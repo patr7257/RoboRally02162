@@ -50,4 +50,4 @@ function BlueConveyor({ effect }: { effect: BlueConveyorEffect }) {
 }
 
 registerEffect("BLUE_CONVEYOR", BlueConveyor);
-export {};
+export { };

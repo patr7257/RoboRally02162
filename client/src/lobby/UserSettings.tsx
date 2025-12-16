@@ -119,7 +119,7 @@ export default function UserSettings() {
           <button className="metal-button small" onClick={() => setShowUsernamePopup(true)}>
             Change Username
           </button>
-          <button className="metal-button small" onClick={() => setShowDeleteConfirmation(true)}> 
+          <button className="metal-button small" onClick={() => setShowDeleteConfirmation(true)}>
             Delete My User
           </button>
           <button className="metal-button icon" onClick={() => navigate("/lobbyScene")}>

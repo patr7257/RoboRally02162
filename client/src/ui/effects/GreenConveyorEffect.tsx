@@ -56,4 +56,4 @@ function GreenConveyor({ effect }: { effect: GreenConveyorEffect }) {
 }
 
 registerEffect("GREEN_CONVEYOR", GreenConveyor);
-export {};
+export { };

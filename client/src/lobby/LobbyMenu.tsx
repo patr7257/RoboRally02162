@@ -180,66 +180,66 @@ export default function LobbyCreation() {
         <h1 className="metal-text">Mission Setup</h1>
       </div>
       <div className="lobby-panels-row">
-          <div className="readiness-panel">
-            <h2>Players: {fullLobbyInfo?.playerCount}/{fullLobbyInfo?.capacity}</h2> {/*unsure if this can be misinterpreted as players ready.*/}
+        <div className="readiness-panel">
+          <h2>Players: {fullLobbyInfo?.playerCount}/{fullLobbyInfo?.capacity}</h2> {/*unsure if this can be misinterpreted as players ready.*/}
 
-            <div className="players-list-scroller">
+          <div className="players-list-scroller">
 
-              <ul>
-                {Object.entries(playersReady).map(([name, ready]) => (
-                  <li key={name} className={`player-slot ${ready ? "ready" : "not-ready"}`}>
-                    {name}: {ready ? "Ready" : "Not Ready"}
-                  </li>
-                ))}
-                {[...Array(fullLobbyInfo.capacity - Object.keys(playersReady).length)].map((_, index) => (
-                  <li key={`empty-${index}`} className="player-slot empty-slot">
-                    ---------
-                  </li>
+            <ul>
+              {Object.entries(playersReady).map(([name, ready]) => (
+                <li key={name} className={`player-slot ${ready ? "ready" : "not-ready"}`}>
+                  {name}: {ready ? "Ready" : "Not Ready"}
+                </li>
+              ))}
+              {[...Array(fullLobbyInfo.capacity - Object.keys(playersReady).length)].map((_, index) => (
+                <li key={`empty-${index}`} className="player-slot empty-slot">
+                  ---------
+                </li>
 
-                ))}
+              ))}
 
-              </ul>
-            </div>
-          </div>
-
-
-
-          <div className="control-panel">
-            <div className="lobby-id-display">
-              <span className="lobby-name-label">LOBBY</span>
-              <span
-                className={
-                  "lobby-name-value" + (everyoneReady ? " all-ready" : "")
-                }
-              >
-                {fullLobbyInfo.lobbyName
-                  ? fullLobbyInfo.lobbyName
-                  : (fullLobbyInfo.lobbyID ? fullLobbyInfo.lobbyID : "Error")}
-              </span>
-            </div>
-
-
-            <button className="metal-button ready-button" onClick={handleToggleReadiness}>
-              {isReady ? "Not Ready" : "Ready"}
-            </button>
-            <div className="start-exit-row">
-              <button className="metal-button icon" onClick={() => startGame()}>
-                <div className="continue-icon"></div>
-              </button>
-
-
-              <button
-                className="metal-button icon"
-                onClick={async () => {
-                  await leaveLobby(fullLobbyInfo?.lobbyID, userID, setError);
-                  navigate("/lobbyScene");
-                }}
-              >
-                <div className="exit-icon"></div>
-              </button>
-            </div>
+            </ul>
           </div>
         </div>
+
+
+
+        <div className="control-panel">
+          <div className="lobby-id-display">
+            <span className="lobby-name-label">LOBBY</span>
+            <span
+              className={
+                "lobby-name-value" + (everyoneReady ? " all-ready" : "")
+              }
+            >
+              {fullLobbyInfo.lobbyName
+                ? fullLobbyInfo.lobbyName
+                : (fullLobbyInfo.lobbyID ? fullLobbyInfo.lobbyID : "Error")}
+            </span>
+          </div>
+
+
+          <button className="metal-button ready-button" onClick={handleToggleReadiness}>
+            {isReady ? "Not Ready" : "Ready"}
+          </button>
+          <div className="start-exit-row">
+            <button className="metal-button icon" onClick={() => startGame()}>
+              <div className="continue-icon"></div>
+            </button>
+
+
+            <button
+              className="metal-button icon"
+              onClick={async () => {
+                await leaveLobby(fullLobbyInfo?.lobbyID, userID, setError);
+                navigate("/lobbyScene");
+              }}
+            >
+              <div className="exit-icon"></div>
+            </button>
+          </div>
+        </div>
+      </div>
     </Layout>
   );
 

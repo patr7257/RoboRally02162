@@ -15,7 +15,7 @@ import "../styles/boardelements.css";
 * @author Kajsa Alice Ulrika Berlstedt
 */
 
-interface BoardRendererProps { 
+interface BoardRendererProps {
   gameData: GameData | null;
   startingAreaInfo?: {
     direction: string;
@@ -35,7 +35,7 @@ interface BoardRendererProps {
 * @author Kajsa Alice Ulrika Berlstedt
 */
 export const BoardRenderer: React.FC<BoardRendererProps> = ({ gameData, startingAreaInfo }) => {
-    const rotationHistoryRef = React.useRef<Record<number, number>>({});
+  const rotationHistoryRef = React.useRef<Record<number, number>>({});
 
   if (!gameData) {
     return <div className="board-empty"><p>Waiting for game data...</p></div>;
@@ -44,16 +44,16 @@ export const BoardRenderer: React.FC<BoardRendererProps> = ({ gameData, starting
   const { tileSize } = calculateBoardSize(gameData.board.width, gameData.board.height);
 
   const getRotationDegrees = (facing: string): number => {
-  switch (facing) {
-    case "N": return 0;
-    case "E": return 90;
-    case "S": return 180;
-    case "W": return 270;
-    default: return 0;
-  }
-};
+    switch (facing) {
+      case "N": return 0;
+      case "E": return 90;
+      case "S": return 180;
+      case "W": return 270;
+      default: return 0;
+    }
+  };
 
-const getSmoothRotation = (robotId: number, newFacing: string): number => {
+  const getSmoothRotation = (robotId: number, newFacing: string): number => {
     const targetRotation = getRotationDegrees(newFacing);
     const currentRotation = rotationHistoryRef.current[robotId];
 
@@ -63,10 +63,10 @@ const getSmoothRotation = (robotId: number, newFacing: string): number => {
     }
 
     const delta = ((targetRotation - currentRotation + 540) % 360) - 180;
-      const nextRotation = currentRotation + delta;
-      rotationHistoryRef.current[robotId] = nextRotation;
-      return nextRotation;
-    };
+    const nextRotation = currentRotation + delta;
+    rotationHistoryRef.current[robotId] = nextRotation;
+    return nextRotation;
+  };
 
 
 
@@ -102,7 +102,7 @@ const getSmoothRotation = (robotId: number, newFacing: string): number => {
             />
           ))
         )}
-        
+
         {gameData.robots.map((robot) => (
           <React.Fragment key={robot.id}>
             <div

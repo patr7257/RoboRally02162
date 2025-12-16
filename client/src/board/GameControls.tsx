@@ -18,7 +18,7 @@ interface GameControlsProps {
 /**
  *  @author Asger Allin Jensen
  *  @author Bjarke Søderhamn Petersen
- */ 
+ */
 export const GameControls: React.FC<GameControlsProps> = () => (
   <div className="controls">
     {/* Game controls placeholder - discard pile and force start button moved to other components */}

@@ -49,7 +49,7 @@ export default function LoginComp({ onLogin }: LoginCompProps) {
         console.log("pass: " + usernameInput);
         await getSocket("LOGIN");
         subscribe((message: string) => {
-            // I remove the print statement, it was annoying
+          // I remove the print statement, it was annoying
         });
 
         onLogin?.(data.username ?? usernameInput);

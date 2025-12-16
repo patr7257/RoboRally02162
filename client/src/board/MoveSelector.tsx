@@ -92,52 +92,52 @@ const CardVisual = ({ move }: { move: MoveType }) => (
         </svg>
       )}
       {move === "AGAIN" && (
-  <svg viewBox="0 0 100 100">
-    {(() => {
-      const cx = 50;
-      const cy = 50;
-      const radius = 35;
+        <svg viewBox="0 0 100 100">
+          {(() => {
+            const cx = 50;
+            const cy = 50;
+            const radius = 35;
 
-      const arrowWidth = 20;
-      const arrowTipY = cy - radius - 10;
-      const arrowBaseY = cy - radius;
-      const leftX = cx - arrowWidth / 2;
-      const rightX = cx + arrowWidth / 2;
+            const arrowWidth = 20;
+            const arrowTipY = cy - radius - 10;
+            const arrowBaseY = cy - radius;
+            const leftX = cx - arrowWidth / 2;
+            const rightX = cx + arrowWidth / 2;
 
-      const circleLength = 2 * Math.PI * radius;
+            const circleLength = 2 * Math.PI * radius;
 
-      return (
-        <>
-          <circle
-            cx={cx}
-            cy={cy}
-            r={radius}
-            fill="none"
-            stroke="white"
-            strokeWidth="6"
-            strokeDasharray={`${circleLength - 30} 30`}
-            strokeDashoffset={circleLength * 0.10}
-          />
+            return (
+              <>
+                <circle
+                  cx={cx}
+                  cy={cy}
+                  r={radius}
+                  fill="none"
+                  stroke="white"
+                  strokeWidth="6"
+                  strokeDasharray={`${circleLength - 30} 30`}
+                  strokeDashoffset={circleLength * 0.10}
+                />
 
-          <g transform={`rotate(90 ${cx} ${arrowBaseY})`}>
-            <path
-              d={`M${cx} ${arrowTipY} L${leftX} ${arrowBaseY}`}
-              stroke="white"
-              strokeWidth="6"
-              fill="none"
-            />
-            <path
-              d={`M${cx} ${arrowTipY} L${rightX} ${arrowBaseY}`}
-              stroke="white"
-              strokeWidth="6"
-              fill="none"
-            />
-          </g>
-        </>
-      );
-    })()}
-  </svg>
-)}
+                <g transform={`rotate(90 ${cx} ${arrowBaseY})`}>
+                  <path
+                    d={`M${cx} ${arrowTipY} L${leftX} ${arrowBaseY}`}
+                    stroke="white"
+                    strokeWidth="6"
+                    fill="none"
+                  />
+                  <path
+                    d={`M${cx} ${arrowTipY} L${rightX} ${arrowBaseY}`}
+                    stroke="white"
+                    strokeWidth="6"
+                    fill="none"
+                  />
+                </g>
+              </>
+            );
+          })()}
+        </svg>
+      )}
       {move === "SPEED" && (
         <div className="specialCardText">
           MOVE 3
@@ -214,11 +214,10 @@ const MoveCard = ({
   <motion.div
     draggable
     onDragStart={onDragStart}
-    className={`moveCard ${
-      isDamageCard(move) ? "moveCard-damage" :
-      isSpecialCard(move) ? "moveCard-special" :
-      "moveCard-normal"
-    } card-index-${index + 1}`}
+    className={`moveCard ${isDamageCard(move) ? "moveCard-damage" :
+        isSpecialCard(move) ? "moveCard-special" :
+          "moveCard-normal"
+      } card-index-${index + 1}`}
     whileTap={{ scale: 0.95 }}
     initial={{ opacity: 0, y: 20 }}
     animate={{ opacity: 1, y: 0 }}
@@ -259,11 +258,10 @@ const DropSlot = ({
   >
     {move ? (
       <div
-        className={`moveCard ${
-          isDamageCard(move) ? "moveCard-damage" :
-          isSpecialCard(move) ? "moveCard-special" :
-          "moveCard-normal"
-        }`}
+        className={`moveCard ${isDamageCard(move) ? "moveCard-damage" :
+            isSpecialCard(move) ? "moveCard-special" :
+              "moveCard-normal"
+          }`}
         draggable
         onDragStart={onDragStart}
         onDragEnd={onDragEnd}

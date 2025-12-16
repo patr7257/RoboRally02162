@@ -23,7 +23,7 @@ function BoardLaser({ effect }: { effect: BoardLaserEffect }) {
   const laserImage = `${process.env.PUBLIC_URL}/boardelements/lasers/laser-${direction.toLowerCase()}.png`;
 
   const beamLength = calculateLaserBeamLength(x, y, direction, board, 'board');
-  
+
   // Position lasers against the wall (opposite of firing direction)
   const getPositionStyle = () => {
     switch (direction) {
@@ -106,7 +106,7 @@ function BoardLaser({ effect }: { effect: BoardLaserEffect }) {
   };
 
   const firingClass = isAnimating ? "laser-firing" : "";
-  
+
   return (
     <div className={`board-laser ${firingClass}`}>
       {/* Laser emitter icons */}
@@ -134,7 +134,7 @@ function BoardLaser({ effect }: { effect: BoardLaserEffect }) {
             data-direction={direction}
             style={{
               [positionStyle.spreadAxis]: `${pos}%`,
-              ...(direction === 'N' || direction === 'S' 
+              ...(direction === 'N' || direction === 'S'
                 ? { height: `${beamLength * 100}%` }
                 : { width: `${beamLength * 100}%` }
               ),

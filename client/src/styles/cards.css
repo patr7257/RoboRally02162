@@ -1,4 +1,3 @@
-
 .moveSelectorContainer {
   width: 100%;
   height: 100%;
@@ -130,8 +129,7 @@
   background: radial-gradient(circle at center,
       #d4af37 0%,
       #b8960c 55%,
-      #8b7508 100%
-    );
+      #8b7508 100%);
   box-shadow:
     0 4px 8px rgba(0, 0, 0, 0.8),
     inset 0 0 6px rgba(255, 255, 255, 0.1);
@@ -211,8 +209,7 @@
   background: radial-gradient(circle at center,
       #d4af37 0%,
       #b8960c 55%,
-      #8b7508 100%
-    ) !important;
+      #8b7508 100%) !important;
   border: 3px solid #000000 !important;
 }
 
@@ -220,13 +217,15 @@
   background: linear-gradient(180deg, #9d7a0d, #6b5509) !important;
   border-bottom: 2px solid #000000 !important;
 }
+
 /* Grey (special programming cards) */
 .specialCardText {
   width: 100%;
   text-align: center;
   font-family: "Orbitron", sans-serif;
   font-weight: 900;
-  font-size: 0.5rem;        /* smaller for better fit */
+  font-size: 0.5rem;
+  /* smaller for better fit */
   letter-spacing: 0.5px;
 
   color: #ffffff;
@@ -238,15 +237,16 @@
     0 0 6px rgba(0, 0, 0, 0.8),
     0 0 10px rgba(0, 0, 0, 0.6);
 }
+
 .moveCard-special {
   background: radial-gradient(circle at center,
       #5a5a5a 0%,
       #3a3a3a 55%,
-      #222 100%
-  ) !important;
+      #222 100%) !important;
   border: 3px solid #000000 !important;
   color: white !important;
 }
+
 .moveCard-special .moveCardHeader {
   background: linear-gradient(180deg, #7a7a7a, #3d3d3d) !important;
   color: #fff !important;
@@ -278,13 +278,11 @@
   right: 0;
   bottom: 0;
   background:
-    repeating-linear-gradient(
-      0deg,
+    repeating-linear-gradient(0deg,
       transparent,
       transparent 2px,
       rgba(0, 0, 0, 0.1) 2px,
-      rgba(0, 0, 0, 0.1) 4px
-    );
+      rgba(0, 0, 0, 0.1) 4px);
   pointer-events: none;
   opacity: 0.3;
 }

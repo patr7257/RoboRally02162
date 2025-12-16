@@ -15,10 +15,10 @@ const ANTENNA_IMAGES: Record<string, string> = {
 
 function Antenna({ effect }: { effect: AntennaEffect }) {
     const imgSrc = ANTENNA_IMAGES[effect.direction] || ANTENNA_IMAGES.N;
-    return(
+    return (
         <div
-         className = "antenna"
-         aria-label = {`antenna ${effect.direction.toLowerCase()}`}
+            className="antenna"
+            aria-label={`antenna ${effect.direction.toLowerCase()}`}
         >
             <img
                 src={imgSrc}

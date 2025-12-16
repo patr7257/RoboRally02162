@@ -1,4 +1,3 @@
-
 .respawn-modal-overlay {
   position: fixed;
   top: 0;
@@ -17,6 +16,7 @@
   from {
     opacity: 0;
   }
+
   to {
     opacity: 1;
   }
@@ -38,6 +38,7 @@
     transform: translateY(20px);
     opacity: 0;
   }
+
   to {
     transform: translateY(0);
     opacity: 1;

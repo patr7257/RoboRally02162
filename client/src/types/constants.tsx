@@ -5,15 +5,15 @@
 * @author Lizette Bloch Dahl Nikolajsen
 */
 
-import { Direction, MoveType} from "./boardTypes";
+import { Direction, MoveType } from "./boardTypes";
 
 export const ROBOT_COLORS = [
-  "#3b82f6", // blue
-  "#ffffff", // white
-  "#22c55e", // green
-  "#facc15", // yellow
-  "#ef4444", // red
-  "#a855f7", // purple
+    "#3b82f6", // blue
+    "#ffffff", // white
+    "#22c55e", // green
+    "#facc15", // yellow
+    "#ef4444", // red
+    "#a855f7", // purple
 ];
 
 export const ROBOT_IMAGES = [

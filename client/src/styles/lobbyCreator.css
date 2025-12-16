@@ -205,7 +205,7 @@ Author(s): Niklas
   padding: 30px 50px;
   border-radius: 12px;
   border: 3px solid #4ade80;
-  box-shadow: 
+  box-shadow:
     0 8px 32px rgba(74, 222, 128, 0.4),
     inset 0 0 20px rgba(74, 222, 128, 0.1);
   animation: slideIn 0.3s ease-out;
@@ -226,6 +226,7 @@ Author(s): Niklas
     opacity: 0;
     transform: translateY(-20px);
   }
+
   to {
     opacity: 1;
     transform: translateY(0);

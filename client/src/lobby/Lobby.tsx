@@ -13,7 +13,7 @@ export default function Lobby() {
   const [lobbyId, setLobbyId] = useState<string>(sessionStorage.getItem("id") || "");
   const [error, setError] = useState<string>("");
   const API_BASE_URL = process.env.REACT_APP_API_BASE_URL;
-  
+
   /**
  * @author Lizette Bloch Dahl Nikolajsen
  */
@@ -49,7 +49,7 @@ export default function Lobby() {
     closeSocket(1000);
     navigate("/");
   };
-   
+
   return (
     <Layout>
       <div className="page-title">
@@ -83,19 +83,19 @@ export default function Lobby() {
             Demo Games
           </button>
 
-    <button className="metal-button" onClick={() => navigate("/seeAllGamesScene")}>
-       Game Administration
-    </button>
+          <button className="metal-button" onClick={() => navigate("/seeAllGamesScene")}>
+            Game Administration
+          </button>
 
-    <button className="metal-button" onClick={() => navigate("/userSettings")}>
-        User Settings
-    </button>
+          <button className="metal-button" onClick={() => navigate("/userSettings")}>
+            User Settings
+          </button>
 
-    <button className="metal-button" onClick={handleLogout}>
-      Logout
-    </button>
-  </div>
-</div>
+          <button className="metal-button" onClick={handleLogout}>
+            Logout
+          </button>
+        </div>
+      </div>
 
     </Layout>
   );

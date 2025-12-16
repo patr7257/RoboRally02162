@@ -17,11 +17,11 @@ export interface WallEffect extends BaseEffect { kind: "walldto"; walls: Directi
 export interface GearEffect extends BaseEffect { kind: "geardto"; rotation: Rotation; }
 export interface RebootTokenEffect extends BaseEffect { kind: "reboot_token"; direction: Direction }
 export interface StartingTileEffect extends BaseEffect { kind: "startingtile"; playerId: number; }
-export interface AntennaEffect extends BaseEffect { kind : "antenna"; direction: Direction}
+export interface AntennaEffect extends BaseEffect { kind: "antenna"; direction: Direction }
 export interface BoardLaserEffect extends BaseEffect { kind: "board_laser"; direction: Direction; power: number; }
 export interface RobotLaserEffect extends BaseEffect { kind: "robot_laser"; direction: Direction; robotId: number; }
 export interface PitsEffect extends BaseEffect { kind: "pits"; }
-export type TileEffect = CheckpointEffect | BlueConveyorEffect | GreenConveyorEffect  | WallEffect | StartingTileEffect | RebootTokenEffect | AntennaEffect | GearEffect | BoardLaserEffect | RobotLaserEffect | PitsEffect;
+export type TileEffect = CheckpointEffect | BlueConveyorEffect | GreenConveyorEffect | WallEffect | StartingTileEffect | RebootTokenEffect | AntennaEffect | GearEffect | BoardLaserEffect | RobotLaserEffect | PitsEffect;
 
 export type MoveType =
     | "MOVE1"

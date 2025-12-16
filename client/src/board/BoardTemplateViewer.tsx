@@ -25,11 +25,11 @@ export const BoardTemplateViewer: React.FC<BoardTemplateViewerProps> = ({
         // 1. Starter-Course always first
         if (a.name === "Starter-Course") return -1;
         if (b.name === "Starter-Course") return 1;
-        
+
         // 2. Random always last
         if (a.name === "Random") return 1;
         if (b.name === "Random") return -1;
-        
+
         // 3. Custom maps after predefined templates
         const aIsCustom = a.imageUrl.endsWith('/CustomMap.png');
         const bIsCustom = b.imageUrl.endsWith('/CustomMap.png');
@@ -37,7 +37,7 @@ export const BoardTemplateViewer: React.FC<BoardTemplateViewerProps> = ({
         if (!aIsCustom && bIsCustom) return -1;
         const aName = (a.displayName || a.name).toLowerCase();
         const bName = (b.displayName || b.name).toLowerCase();
-        
+
         return aName.localeCompare(bName);
     });
 
@@ -57,7 +57,7 @@ export const BoardTemplateViewer: React.FC<BoardTemplateViewerProps> = ({
                         <button className="close-button" onClick={handleConfirm}>✕</button>
                     </div>
                 </div>
-                
+
                 <div className="templates-grid">
                     {sortedTemplates.map((template) => (
                         <div
@@ -79,7 +79,7 @@ export const BoardTemplateViewer: React.FC<BoardTemplateViewerProps> = ({
                                     <div className="selected-overlay">✓</div>
                                 )}
                             </div>
-                            
+
                             <div className="template-info">
                                 <h3 className="template-title">{template.displayName || template.name}</h3>
                                 <div className="template-details">

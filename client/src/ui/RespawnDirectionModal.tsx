@@ -55,11 +55,11 @@ export const RespawnDirectionModal: React.FC<RespawnDirectionModalProps> = ({
     label: string;
     icon: React.ReactNode;
   }> = [
-    { value: 'NORTH', label: 'North', icon: <ArrowUp size={32} /> },
-    { value: 'EAST', label: 'East', icon: <ArrowRight size={32} /> },
-    { value: 'SOUTH', label: 'South', icon: <ArrowDown size={32} /> },
-    { value: 'WEST', label: 'West', icon: <ArrowLeft size={32} /> },
-  ];
+      { value: 'NORTH', label: 'North', icon: <ArrowUp size={32} /> },
+      { value: 'EAST', label: 'East', icon: <ArrowRight size={32} /> },
+      { value: 'SOUTH', label: 'South', icon: <ArrowDown size={32} /> },
+      { value: 'WEST', label: 'West', icon: <ArrowLeft size={32} /> },
+    ];
 
   return (
     <div className="respawn-modal-overlay">

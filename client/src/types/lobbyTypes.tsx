@@ -26,7 +26,7 @@ export interface fullLobbyInfo {
     playerCount: number;
     capacity: number;
     isRunning: boolean; //is it running or not.
-    readinessMap: Record<string,boolean>;
+    readinessMap: Record<string, boolean>;
 }
 
 export const DEFAULT_FULL_LOBBY_INFO: fullLobbyInfo = {

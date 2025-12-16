@@ -12,7 +12,7 @@ import { calculateLaserBeamLength } from "../../utils/boardUtils";
  */
 
 type RobotLaserProps = {
-  effect: RobotLaserEffect & { 
+  effect: RobotLaserEffect & {
     robotId: number;
     x?: number;
     y?: number;
@@ -125,18 +125,18 @@ function hasRobotInLineOfSight(
 
 export default function RobotLaser({ effect }: RobotLaserProps) {
   const { direction, robotId, x, y, board, robots } = effect;
-  
+
   // Calculate if there's another robot in line of sight (excluding the shooting robot)
   const hasTarget = x !== undefined && y !== undefined && board && robots
     ? hasRobotInLineOfSight(x, y, direction, robotId, board, robots)
     : false;
 
   const beamLength = calculateLaserBeamLength(x, y, direction, board, 'robot');
-  
+
   const [isFiring, setIsFiring] = useState(false);
   const firingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const lastFiringTimeRef = useRef(0);
-  
+
   // Get robot color from ROBOT_COLORS based on robotId
   const getRobotLaserColorRGB = (id: number): string => {
     const colors = [
@@ -149,7 +149,7 @@ export default function RobotLaser({ effect }: RobotLaserProps) {
     ];
     return colors[(id - 1) % colors.length];
   };
-  
+
   const robotLaserColor = getRobotLaserColorRGB(robotId);
 
   // Listen for WebSocket messages to trigger laser firing
@@ -181,7 +181,7 @@ export default function RobotLaser({ effect }: RobotLaserProps) {
       }
     };
   }, [x, y, robotId]);
-  
+
   /*
   // TESTING ONLY - see all lasers firing every 3 seconds
   useEffect(() => {
@@ -215,7 +215,7 @@ export default function RobotLaser({ effect }: RobotLaserProps) {
   const firingClass = isFiring ? "laser-firing" : "";
 
   return (
-    <div 
+    <div
       className={`robot-laser ${firingClass}`}
       style={{ "--current-robot-laser-color": robotLaserColor } as React.CSSProperties}>
       {isFiring && (
@@ -223,7 +223,7 @@ export default function RobotLaser({ effect }: RobotLaserProps) {
           className="robot-laser-beam"
           data-direction={direction}
           style={{
-            ...(direction === 'N' || direction === 'S' 
+            ...(direction === 'N' || direction === 'S'
               ? { height: `${beamLength * 100}%` }
               : { width: `${beamLength * 100}%` }
             ),
