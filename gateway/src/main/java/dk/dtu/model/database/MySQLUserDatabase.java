@@ -1,5 +1,6 @@
 package dk.dtu.model.database;
 
+import dk.dtu.dto.ChangeUserNameResponse;
 import dk.dtu.interfaces.UserDatabase;
 import dk.dtu.model.User;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -164,5 +165,40 @@ public class MySQLUserDatabase implements UserDatabase {
     @Override
     public boolean existsNamePassword(String name, String passwordHash) {
         return findUserByNamePassword(name, passwordHash) != null;
+    }
+
+    @Override
+    public ChangeUserNameResponse changeUsername(String userID, String newName) {
+
+        //step 1: check if another user is using the username
+        String checkQuery = "SELECT 1 FROM users WHERE  UserID<>? AND UserName=?";
+
+        try (Connection conn = connect(); PreparedStatement stmt = conn.prepareStatement(checkQuery)) {
+            stmt.setString(1,userID);
+            stmt.setString(2,newName);
+            try (ResultSet rs = stmt.executeQuery()) {
+                boolean nameTaken = rs.next();
+                if (nameTaken) {
+                    return ChangeUserNameResponse.USERNAME_ALREADY_EXISTS;
+                }
+            }
+        } catch (Exception e) {
+            return ChangeUserNameResponse.ERROR;
+        }
+
+        String sqlQuery =  "UPDATE users SET UserName=? WHERE UserID=?";
+        try (Connection conn = connect(); PreparedStatement stmt = conn.prepareStatement(sqlQuery)){
+            stmt.setString(1, newName);
+            stmt.setString(2, userID);
+            if ( stmt.executeUpdate()>0) {
+                return ChangeUserNameResponse.SUCCESS;
+            } else {
+                return ChangeUserNameResponse.NO_SUCH_USER;
+            }
+
+        }catch (SQLException e){
+            return ChangeUserNameResponse.ERROR;
+        }
+
     }
 }

@@ -3,6 +3,7 @@ package dk.dtu.shared;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import dk.dtu.dto.ClientUpdateReason;
 import dk.dtu.dto.LobbyUpdateReason;
+import dk.dtu.dto.UserNameUpdateEvent;
 import dk.dtu.interfaces.UserDatabase;
 import dk.dtu.model.*;
 import dk.dtu.model.database.DynamicUserDatabase;
@@ -10,6 +11,7 @@ import dk.dtu.observer.ClientObserver;
 import dk.dtu.observer.LobbyObserver;
 import dk.dtu.util.JsonUtil;
 import dk.dtu.util.LobbyFactory;
+import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Component;
 import org.springframework.web.socket.WebSocketSession;
 
@@ -114,11 +116,26 @@ public class ServerManager implements LobbyObserver, ClientObserver {
             default: return;
         }
     }
+
+    @Override
+    public void handleClientNameUpdate(Client client) {
+
+    }
+
     /**
      * @author Bjarke Søderhamn Petersen
      * @author Benjamin Benyo Endahl Hansen
      * @author Karl Johannes Agerbo
      */
+
+    @EventListener
+    public void handleUsernameUpdateEvent(UserNameUpdateEvent event) {
+        String newUsername = event.getNewUsername();
+        String userID = event.getUserID();
+        Client c = clients.get(userID);
+        if (c==null) {return;}
+        c.changeUsername(newUsername);
+    }
     public Lobby getLobbyFromLobbyID(String lobID) {
         Lobby lob = loadedLobbies.get(lobID);
         if (lob != null) return lob;

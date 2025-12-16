@@ -1,6 +1,7 @@
 package dk.dtu.interfaces;
 
 
+import dk.dtu.dto.ChangeUserNameResponse;
 import dk.dtu.model.User;
 /**
  * @author Niklas Emil Lysdal
@@ -15,5 +16,6 @@ public interface UserDatabase {
     public boolean deleteUser(String id);
     public boolean wipeUserDatabase(); //Resets entire user database
     public boolean existsNamePassword(String name, String passwordHash);
+    ChangeUserNameResponse changeUsername(String userID, String newName);
 }
 

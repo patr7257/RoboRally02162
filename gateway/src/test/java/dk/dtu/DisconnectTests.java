@@ -100,7 +100,7 @@ public class DisconnectTests {
         Host mockHost = mock(Host.class);
         String userID= "user-1";
         when(user.getUserID()).thenReturn( userID);
-        when(user.getName()).thenReturn("testName");
+        //when(user.getName()).thenReturn("testName");
         LobbyObserver lobbyObserver = mock(LobbyObserver.class);
         Lobby lobby = new Lobby("testLobby","1",client,mockHost,3, false);
         lobby.addObserver(lobbyObserver);
@@ -132,7 +132,7 @@ public class DisconnectTests {
         String userID = "user-1";
         when(session.getId()).thenReturn("sess-1");
         when(user.getUserID()).thenReturn(userID);
-        when(user.getName()).thenReturn("testName");
+        //when(user.getName()).thenReturn("testName");
         Host mockHost = mock(Host.class);
         LobbyObserver lobbyObserver = mock(LobbyObserver.class);
 

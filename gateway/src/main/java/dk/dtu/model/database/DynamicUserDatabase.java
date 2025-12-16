@@ -2,6 +2,7 @@ package dk.dtu.model.database;
 
 
 
+import dk.dtu.dto.ChangeUserNameResponse;
 import dk.dtu.interfaces.UserDatabase;
 import dk.dtu.model.User;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -189,6 +190,16 @@ public class DynamicUserDatabase implements UserDatabase {
         } catch (Exception e) {
             disableMySQL();
             return local.existsNamePassword(name, passwordHash);
+        }
+    }
+
+    @Override
+    public ChangeUserNameResponse changeUsername(String userID, String newName) {
+        try {
+           return  active().changeUsername(userID, newName);
+        } catch (Exception e) {
+            disableMySQL();
+            return local.changeUsername(userID, newName);
         }
     }
 }

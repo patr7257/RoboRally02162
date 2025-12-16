@@ -37,7 +37,6 @@ public class Lobby  implements ClientObserver {
     private final Set<String> disconnectedPlayers = ConcurrentHashMap.newKeySet();
     //always use the changeReadyMapStatus and removeFromReadiness functions instead of direct access.
     private final Map<String, Boolean> playerReadinessMap = new ConcurrentHashMap<>();
-    private final Map<String, Boolean> userNameReadinessMap = new ConcurrentHashMap<>();
     private int nextPlayerID = 1;
     private int capacity = 6;
     public final boolean loadedLobby;
@@ -124,7 +123,7 @@ public class Lobby  implements ClientObserver {
             if (isRunning) {
                 disconnectedPlayers.add(removed.getUserID());
             }
-            removeFromReadiness(removed);
+
             removed.removeObserver(this);
             if (checkEndGame()) {
                 return new OperationResult("lobby_empty");
@@ -481,8 +480,9 @@ public class Lobby  implements ClientObserver {
      */
 
     public LobbyPrivateJson asPrivateJson() {
-        return new LobbyPrivateJson(this.lobbyName,this.lobbyID,capacity,players.size(),this.isRunning,userNameReadinessMap,this.boardTemplateName);
+        return new LobbyPrivateJson(this.lobbyName,this.lobbyID,capacity,players.size(),this.isRunning,getUserNameReadinessMap(),this.boardTemplateName);
     }
+
 
     /**
      * @author Karl Johannes Agerbo
@@ -517,6 +517,7 @@ public class Lobby  implements ClientObserver {
         if (client == null) {
             return new OperationResult("user_not_in_lobby");
         }
+
         changeReadyMapStatus(client,false);
 
         notifyClients();
@@ -555,7 +556,18 @@ public class Lobby  implements ClientObserver {
         }
     }
 
+    /**
+     * @author Niklas Emil Lysdal
+     */
+    @Override
+    public void handleClientNameUpdate(Client client) {
 
+        notifyClients();
+    }
+
+    private void changeReadyMapStatus(Client client, boolean readiness) {
+        playerReadinessMap.put(client.getUserID(), readiness);
+    }
 
     /**
      * @author Niklas Emil Lysdal
@@ -607,14 +619,16 @@ public class Lobby  implements ClientObserver {
         return userToPlayer.keySet().toString();
     }
 
+    /**
+     * @author Niklas Emil Lysdal
 
-    private void changeReadyMapStatus(Client c, boolean newStatus) {
-        playerReadinessMap.put(c.getUserID(), newStatus);
-        userNameReadinessMap.put(c.getUsername(), newStatus);
-    }
-    private void removeFromReadiness(Client c) {
-        playerReadinessMap.remove(c.getUserID());
-        userNameReadinessMap.remove(c.getUsername());
+     */
+    public Map<String,Boolean> getUserNameReadinessMap() {
+        Map<String,Boolean> readinessMap = new HashMap<>();
+        for (Client c : players.values()) {
+            readinessMap.put(c.getUsername(), playerReadinessMap.get(c.getUserID()));
+        }
+        return readinessMap;
     }
 
     /**

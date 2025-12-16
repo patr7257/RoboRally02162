@@ -8,4 +8,5 @@ import dk.dtu.model.Client;
  */
 public interface ClientObserver {
     void handleClientUpdate(ClientUpdateReason reason, Client client);
+    void handleClientNameUpdate(Client client);
 }

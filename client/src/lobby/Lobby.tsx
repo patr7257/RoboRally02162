@@ -48,6 +48,9 @@ export default function Lobby() {
        Game Administration
     </button>
 
+    <button className="metal-button" onClick={() => navigate("/userSettings")}>
+        User Settings
+    </button>
 
     <button className="metal-button" onClick={() => navigate("/")}>
       Go to homepage

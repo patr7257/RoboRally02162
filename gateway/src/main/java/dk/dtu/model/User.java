@@ -27,4 +27,5 @@ public class User {
     public String getName() {return this.name;}
     public String getUserID() {return this.userID;}
     public String getPasswordHash() { return passwordHash; }
+    public void setName(String name) {this.name = name;}
 }

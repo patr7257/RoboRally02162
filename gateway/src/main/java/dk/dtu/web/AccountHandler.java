@@ -1,15 +1,15 @@
 package dk.dtu.web;
 
+import dk.dtu.dto.*;
 import dk.dtu.model.database.DynamicUserDatabase;
 
 import dk.dtu.model.User;
 import dk.dtu.interfaces.UserDatabase;
-import dk.dtu.dto.AuthResponse;
-import dk.dtu.dto.LoginRequest;
-import dk.dtu.dto.RegisterRequest;
 import dk.dtu.shared.AuthManager;
 import dk.dtu.shared.SessionManager;
 import dk.dtu.util.APIUtil;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
@@ -22,6 +22,8 @@ import java.util.UUID;
  * @author Lizette Bloch Dahl Nikolajsen
  * @author Niklas Emil Lysdal
  * @author Kajsa Alice Ulrika Berlstedt
+ * @author Weihao Mo
+ * @author Karl Johannes Agerbo
  */
 @RestController
 @RequestMapping("/api")
@@ -33,16 +35,18 @@ public class AccountHandler {
     private final SessionManager sessionManager;
     // Track which users are logged in (by userID)
 
+    private final ApplicationEventPublisher eventPublisher;
 
     /**
      * @author Lizette Bloch Dahl Nikolajsen
      * @author Niklas Emil Lysdal
      * @author Kajsa Alice Ulrika Berlstedt
      */
-    public AccountHandler(DynamicUserDatabase userDatabase, AuthManager authManager, SessionManager sessionManager) {
+    public AccountHandler(DynamicUserDatabase userDatabase, AuthManager authManager, SessionManager sessionManager,ApplicationEventPublisher eventPublisher) {
         this.userDatabase = userDatabase;
         this.authManager = authManager;
         this.sessionManager = sessionManager;
+        this.eventPublisher=eventPublisher;
     }
 
     /**
@@ -121,8 +125,34 @@ public class AccountHandler {
         return ResponseEntity.ok(new AuthResponse("successful", "Logged out", null, userID));
     }
 
-   /* @GetMapping("/users/isLoggedIn")
-    public ResponseEntity<Boolean> isLoggedIn() {
-        return ResponseEntity.ok(isLoggedIn(APIUtil.getCallerID()));
-    } */
+   @PostMapping("/users/changeUsername")
+    public ResponseEntity<String> changeUsername(@RequestParam String newUsername) {
+        ChangeUserNameResponse result  =userDatabase.changeUsername(APIUtil.getCallerID(), newUsername);
+        return switch (result) {
+            case SUCCESS-> {
+                eventPublisher.publishEvent(new UserNameUpdateEvent(APIUtil.getCallerID(), newUsername));
+                yield ResponseEntity.ok("successful");
+            }
+            case USERNAME_ALREADY_EXISTS-> ResponseEntity.status(HttpStatus.CONFLICT).body("USERNAME_ALREADY_EXISTS");
+            case NO_SUCH_USER-> ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("NO_SUCH_USER");
+            default-> ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("ERROR");
+        };
+   }
+
+    /**
+     * @author Weihao Mo
+     * @author Karl Johannes Agerbo
+     */
+   @PostMapping("/users/delete")
+    public ResponseEntity<AuthResponse> deleteUser() {
+        String userID = APIUtil.getCallerID();
+        sessionManager.logOutUser(userID);
+        boolean deleted = userDatabase.deleteUser(userID);
+
+        if (deleted) {
+            return ResponseEntity.ok(new AuthResponse("successful", "user deleted", null, null));
+        } else {
+            return ResponseEntity.status(HttpStatus.CONFLICT).body(new AuthResponse("unsuccessful", "Server Error", null, null));
+        }
+   }
 }

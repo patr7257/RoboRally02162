@@ -15,6 +15,7 @@ import "./ui/registerEffects";
 import LoadLobby from './lobby/LoadLobby';
 import useSound from 'use-sound';
 import SeeAllGames from './lobby/SeeAllGames';
+import UserSettings from './lobby/UserSettings';
 import LoadDemo from './lobby/LoadDemo';
 
 const API_BASE_URL = process.env.REACT_APP_API_BASE_URL;
@@ -163,6 +164,7 @@ function App() {
         <Route path="/lobbyCreationScene" element={<LobbyCreation />} />
         <Route path="/lobbyLoadScene" element={<LoadLobby />} />
         <Route path="/seeAllGamesScene" element={<SeeAllGames />} />
+        <Route path="/userSettings" element={<UserSettings />} />
         <Route path="/demoLoadScene" element={<LoadDemo />} />
 
       </Routes>

@@ -128,12 +128,9 @@ public class Client {
      * @author Niklas Emil Lysdal
      */
     public synchronized void handleConnect(WebSocketSession socket, ClientConnectReason reason ) {
-        System.out.println("client handleconnect, reason: " + reason);
         if (disconnectCallback != null ) {
             boolean cancelSuccess = disconnectCallback.cancel(false); //handler is fast, so false is safer.
-            if (cancelSuccess) {
-                System.out.println("client timer cancelled successfully");
-            }
+
             this.disconnectCallback = null;
         }
         this.session = socket;
@@ -144,6 +141,18 @@ public class Client {
         }
 
 
+    }
+
+    /**
+     * @author Niklas Emil Lysdal
+     *
+     */
+    public void changeUsername(String username) {
+        this.user.setName(username);
+        this.session.getAttributes().put("user",this.user);
+        for (ClientObserver observer : this.observers) {
+            observer.handleClientNameUpdate(this);
+        }
     }
 
 }

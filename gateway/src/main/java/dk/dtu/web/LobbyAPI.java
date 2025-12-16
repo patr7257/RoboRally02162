@@ -205,7 +205,9 @@ public class LobbyAPI {
         for (Lobby lobby : serverManager.getLobbiesListCopy()) {
             result.add(lobby.asPublicJson(APIUtil.getCallerID()));
         }
-        result.sort(Comparator.comparing(LobbyPublicJson::joinable, Comparator.reverseOrder()).thenComparing(LobbyPublicJson::isRunning, Comparator.reverseOrder()));
+            result.sort(Comparator.comparing(LobbyPublicJson::joinable,
+                    Comparator.reverseOrder())
+                    .thenComparing(LobbyPublicJson::isRunning, Comparator.reverseOrder()));
         String response = JsonUtil.toJson(result);
 
         return ResponseEntity.ok(response);
