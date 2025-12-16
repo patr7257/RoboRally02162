@@ -15,7 +15,7 @@ public interface RoundPacer {
     /**
      * @author William Pii Jæger
      */
-    void onPlayerSubmitted(GameSession session, PlayerID playerId);
+    void onPlayerSubmitted(GameSession session, int robotId);
 
     /**
      * @author William Pii Jæger
@@ -46,7 +46,7 @@ public interface RoundPacer {
         /**
          * @author William Pii Jæger
          */
-        void onPlayerSubmitted(GameSession session, PlayerID playerId);
+        void onPlayerSubmitted(GameSession session, int robotId);
 
         /**
          * @author William Pii Jæger

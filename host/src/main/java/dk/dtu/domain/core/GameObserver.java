@@ -18,6 +18,6 @@ package dk.dtu.domain.core;
  * @author William Pii Jæger
  */
 public interface GameObserver {
-    void onWinnerDeclared(Game game,PlayerID winner);
+    void onWinnerDeclared(Game game, int winner);
     void onGameUpdate(Game game);
 }

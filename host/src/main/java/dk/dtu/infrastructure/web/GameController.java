@@ -558,7 +558,7 @@ public class GameController {
                 "trojanHorseCount", gameDamageDecks.getTrojanHorseDrawPile(),
                 "wormCount", gameDamageDecks.getWormDrawPile()
         );
-        Integer winner = session.getGame().getWinner().map(PlayerID::value).orElse(null);
+        Integer winner = session.getGame().getWinner().orElse(null);
 
         return new SaveGameResponse(snapShotPayload, decks, damageDecksMap,winner);
     }

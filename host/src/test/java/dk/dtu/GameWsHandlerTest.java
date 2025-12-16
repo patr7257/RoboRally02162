@@ -62,7 +62,7 @@ class GameWsHandlerTest {
         verify(gameManager).execute(cmdCap.capture());
 
         GameCommand.SubmitPrograms cmd = (GameCommand.SubmitPrograms) cmdCap.getValue();
-        assert cmd.player().value() == 42;
+        assert cmd.robot() == 42;
         assert cmd.cards().equals(java.util.List.of(ProgramCard.move1(), ProgramCard.move1()));
     }
 }

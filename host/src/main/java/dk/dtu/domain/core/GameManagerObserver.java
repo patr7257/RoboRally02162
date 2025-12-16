@@ -15,7 +15,7 @@ public interface GameManagerObserver {
     default void onProgrammingStarted(Game game, UUID gameID) {
     }
 
-    default void onPlayerSubmitted(Game game, UUID gameID, PlayerID playerId) {
+    default void onPlayerSubmitted(Game game, UUID gameID, int robotId) {
     }
 
     default void onRoundExecuting(Game game, UUID gameID) {
@@ -24,7 +24,7 @@ public interface GameManagerObserver {
     default void onGameFinished(Game game, UUID gameID) {
     }
 
-    default void onWinnerDeclared(Game game, UUID gameID, PlayerID winner) {
+    default void onWinnerDeclared(Game game, UUID gameID, int winner) {
     }
 
     default void onRobotNeedsRespawn(Game game, UUID gameID, int robotId) {

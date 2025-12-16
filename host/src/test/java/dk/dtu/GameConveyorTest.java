@@ -2,7 +2,6 @@ package dk.dtu;
 
 import dk.dtu.domain.core.Game;
 import dk.dtu.domain.core.GameObserver;
-import dk.dtu.domain.core.PlayerID;
 import dk.dtu.domain.model.Board;
 import dk.dtu.domain.model.Direction;
 import dk.dtu.domain.model.Robot;
@@ -91,9 +90,9 @@ class GameConveyorTest {
         List<Robot> robots = List.of(r1,r2);
         BoardAPI api = new BoardApiImpl(board, robots);
         Game game = new Game(board, api, robots);
-        AtomicReference<PlayerID> observedWinner = new AtomicReference<>();
+        AtomicReference<Integer> observedWinner = new AtomicReference<>();
         game.addObserver(new GameObserver() {
-            @Override public void onWinnerDeclared(Game game,PlayerID winner) { observedWinner.set(winner); }
+            @Override public void onWinnerDeclared(Game game, int winner) { observedWinner.set(winner); }
             @Override public void onGameUpdate(Game g) { }
         });
 
@@ -102,8 +101,8 @@ class GameConveyorTest {
         assertPosDir(r1, 3, 2, Direction.S);
         assertPosDir(r2, 3, 3, Direction.S);
         assertEquals(2,r2.getNextCheckpoint());
-        assertEquals(new PlayerID(2), game.getWinner().orElse(null));
-       assertEquals(new PlayerID(2), observedWinner.get());
+        assertEquals(2, game.getWinner().orElse(null));
+        assertEquals(2, observedWinner.get());
     }
 
     /**
@@ -120,9 +119,9 @@ class GameConveyorTest {
         List<Robot> robots = List.of(r1,r2);
         BoardAPI api = new BoardApiImpl(board, robots);
         Game game = new Game(board, api, robots);
-        AtomicReference<PlayerID> observedWinner = new AtomicReference<>();
+        AtomicReference<Integer> observedWinner = new AtomicReference<>();
         game.addObserver(new GameObserver() {
-            @Override public void onWinnerDeclared(Game game,PlayerID winner) { observedWinner.set(winner); }
+            @Override public void onWinnerDeclared(Game game, int winner) { observedWinner.set(winner); }
             @Override public void onGameUpdate(Game g) { }
         });
 
@@ -131,8 +130,8 @@ class GameConveyorTest {
         assertPosDir(r1, 4, 4, Direction.S);
         assertPosDir(r2, 4, 5, Direction.S);
         assertEquals(2,r2.getNextCheckpoint());
-        assertEquals(new PlayerID(2), game.getWinner().orElse(null));
-        assertEquals(new PlayerID(2), observedWinner.get());
+        assertEquals(2, game.getWinner().orElse(null));
+        assertEquals(2, observedWinner.get());
     }
 
     /**

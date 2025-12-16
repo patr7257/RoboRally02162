@@ -173,7 +173,7 @@ public class GatewaysWsHandler extends TextWebSocketHandler implements GameManag
                     GameCommand cmd = new GameCommand.SubmitPrograms(
                             UUID.randomUUID(),
                             gameId,
-                            new PlayerID(msg.playerId),
+                            msg.playerId,
                             cards
                     );
                     CommandResult result = gameManager.execute(cmd);
@@ -344,7 +344,7 @@ public class GatewaysWsHandler extends TextWebSocketHandler implements GameManag
                     }
 
                     GameCommand cmd = new GameCommand.SetRespawnDirection(
-                            UUID.randomUUID(), gameId, new PlayerID(msg.playerId), direction);
+                            UUID.randomUUID(), gameId, msg.playerId, direction);
                     CommandResult result = gameManager.execute(cmd);
 
                     if (result.ok()) {
@@ -392,7 +392,7 @@ public class GatewaysWsHandler extends TextWebSocketHandler implements GameManag
                     GameCommand cmd = new GameCommand.SubmitReaction(
                             UUID.randomUUID(),
                             gameId,
-                            new PlayerID(msg.playerId),
+                            msg.playerId,
                             pending.id(),
                             choice
                     );
@@ -502,12 +502,12 @@ public class GatewaysWsHandler extends TextWebSocketHandler implements GameManag
      * @author William Pii Jæger
      */
     @Override
-    public void onPlayerSubmitted(Game game, UUID gameID, PlayerID playerId) {
+    public void onPlayerSubmitted(Game game, UUID gameID, int robotId) {
         try {
             GameDto gameDto = SnapshotMapper.mapGame(gameID, game);
             EventMetaDTO meta = new EventMetaDTO(gameDto, null);
             OutgoingMessage<?> out = new OutgoingMessage<>("playerSubmitted", Delivery.BROADCAST, meta,
-                    Map.of("playerId", playerId.value()));
+                    Map.of("playerId", robotId));
             send(out);
         } catch (Exception e) {
             System.err.println("Failed to broadcast player submitted: " + e);
@@ -545,7 +545,7 @@ public class GatewaysWsHandler extends TextWebSocketHandler implements GameManag
             GameDto gameDto = SnapshotMapper.mapGame(gameID, game);
             EventMetaDTO meta = new EventMetaDTO(gameDto, null);
             OutgoingMessage<?> out = new OutgoingMessage<>("gameFinished", Delivery.BROADCAST, meta,
-                    Map.of("winner", game.getWinner().map(PlayerID::value).orElse(null)));
+                    Map.of("winner", game.getWinner().orElse(null)));
             send(out);
         } catch (Exception e) {
             System.err.println("Failed to broadcast game finished: " + e);

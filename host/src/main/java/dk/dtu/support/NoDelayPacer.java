@@ -36,11 +36,11 @@ public class NoDelayPacer implements RoundPacer {
     }
 
     @Override
-    public void onPlayerSubmitted(GameSession s, PlayerID pid) {
+    public void onPlayerSubmitted(GameSession s, int rid) {
         synchronized (s) {
-            s.markSubmitted(pid);
+            s.markSubmitted(rid);
         }
-        listeners.forEach(l -> l.onPlayerSubmitted(s, pid));
+        listeners.forEach(l -> l.onPlayerSubmitted(s, rid));
     }
 
     public void runAllRegisters(GameSession s) {

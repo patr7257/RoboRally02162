@@ -25,7 +25,7 @@ public class GameSession {
     private final Game game;
     private GameState state;
     private Instant programmingDeadline;
-    private final Set<PlayerID> submittedPlayers;
+    private final Set<Integer> submittedPlayers;
     private ScheduledFuture<?> autoExecuteTask;
     private ScheduledFuture<?> stepTask;
     private ScheduledFuture<?> respawnTimeoutTask;
@@ -126,23 +126,23 @@ public class GameSession {
     /**
      * Checks if a player has submitted their program.
      *
-     * @param playerId player to check
+     * @param robotId player to check
      * @return true if submitted; false otherwise
      * @author William Pii Jæger
      */
-    public synchronized boolean hasSubmitted(PlayerID playerId) {
-        return submittedPlayers.contains(playerId);
+    public synchronized boolean hasSubmitted(int robotId) {
+        return submittedPlayers.contains(robotId);
     }
 
-    public synchronized void markSubmitted(PlayerID playerId) {
-        submittedPlayers.add(playerId);
+    public synchronized void markSubmitted(int robotId) {
+        submittedPlayers.add(robotId);
     }
 
     public synchronized boolean allPlayersSubmitted() {
         return submittedPlayers.size() == totalPlayers;
     }
 
-    public synchronized Set<PlayerID> getSubmittedPlayers() {
+    public synchronized Set<Integer> getSubmittedPlayers() {
         return new HashSet<>(submittedPlayers);
     }
 

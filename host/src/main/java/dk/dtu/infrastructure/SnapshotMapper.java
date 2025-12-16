@@ -1,7 +1,6 @@
 package dk.dtu.infrastructure;
 
 import dk.dtu.domain.core.Game;
-import dk.dtu.domain.core.PlayerID;
 import dk.dtu.domain.model.*;
 import dk.dtu.domain.rules.effects.Checkpoint;
 import dk.dtu.domain.rules.effects.RebootToken;
@@ -77,7 +76,7 @@ public final class SnapshotMapper {
                     effects.add(new GreenConveyorDto(gc.direction(), gc.rotation()));
                 }
                 if (effect instanceof StartingTile st) {
-                    effects.add(new StartingTileDto(st.playerId()));
+                    effects.add(new StartingTileDto(st.robotId()));
                 }
                 if (effect instanceof RebootToken rt) {
                     effects.add(new RebootTokenDto(rt.direction()));
@@ -201,7 +200,7 @@ public final class SnapshotMapper {
      * @author Weihao Mo
      */
     public static GameDto mapGame(UUID gameID, Game game) {
-        Integer winner = game.getWinner().map(PlayerID::value).orElse(null);
+        Integer winner = game.getWinner().orElse(null);
         return new GameDto(gameID, winner);
     }
 

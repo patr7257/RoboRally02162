@@ -38,7 +38,7 @@ class GameManagerStartGameTest {
 
         manager.execute(new GameCommand.StartProgramming(UUID.randomUUID(), gid, 60_000));
 
-        manager.execute(new GameCommand.SubmitPrograms(UUID.randomUUID(), gid, new PlayerID(1),
+        manager.execute(new GameCommand.SubmitPrograms(UUID.randomUUID(), gid, 1,
                 List.of(ProgramCard.move1())));
 
         GameSession s = manager.findSessionByID(gid).orElseThrow();

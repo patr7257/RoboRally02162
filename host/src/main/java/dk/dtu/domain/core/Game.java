@@ -37,11 +37,10 @@ public class Game {
     private final BoardAPI api;
     private final Map<Phase, List<Tile>> phaseIndex;
     private final List<Robot> robots;
-    private final Map<Integer, Robot> robotsMap;
-    private final Map<PlayerID, Robot> robotMap = new HashMap<>();
+    private final Map<Integer, Robot> robotMap = new HashMap<>();
     private final Map<Integer, Deck> deckMap = new HashMap<>();
     private Map<Integer, String> lastMove;
-    private PlayerID winner;
+    private Integer winner;
     private final List<GameObserver> observers = new ArrayList<>();
     private DamageDecks damageDecks;
 
@@ -54,7 +53,6 @@ public class Game {
         this.api = api;
         this.robots = robots;
         this.winner = null;
-        this.robotsMap = new HashMap<>();
         this.damageDecks = new DamageDecks(38, 15, 15);
         ensureMutableTileEffects(board);  // for dynamic robot lasers to not crash all tests
         initGame(robots, null);
@@ -73,7 +71,6 @@ public class Game {
         this.api = api;
         this.robots = robots;
         this.winner = null;
-        this.robotsMap = new HashMap<>();
         this.damageDecks = damageDecks;
         ensureMutableTileEffects(board); // for dynamic robot lasers to not crash all tests
         initGame(robots, decks);
@@ -86,7 +83,7 @@ public class Game {
     private void ensureMutableTileEffects(Board board) {
         Tile[][] tiles = board.getCells();
         if (tiles == null) return;
-        
+
         for (int x = 0; x < board.getWidth(); x++) {
             for (int y = 0; y < board.getHeight(); y++) {
                 Tile tile = tiles[x][y];
@@ -99,21 +96,15 @@ public class Game {
     }
 
     /**
-     * 
+     *
      * @author William Pii Jæger
      * @author Weihao Mo
+     * @author Karl Johannes Agerbo
      */
     private void initGame(List<Robot> robots, Map<Integer, Deck> decks) {
-        int playerCounter = 1;
-
         for (Robot r : robots) {
-            this.robotMap.put(new PlayerID(playerCounter), r);
+            this.robotMap.put(r.getId(), r);
             this.deckMap.put(r.getId(), decks == null ? new Deck(damageDecks) : decks.get(r.getId()));
-            playerCounter++;
-        }
-
-        for (Robot robot : robots) {
-            this.robotsMap.put(robot.getId(), robot);
         }
     }
 
@@ -178,7 +169,6 @@ public class Game {
         return List.copyOf(deckMap.get(robotID).getDiscardPile());
     }
 
-
     /**
      * @author Benjamin Benyo Endahl Hansen
      * @author Bjarke Søderhamn Petersen
@@ -193,17 +183,17 @@ public class Game {
      * Submits and validates a player's selected program (fills remaining slots if
      * allowed) and loads it on the robot.
      *
-     * @param player the player ID
+     * @param robotID the robot ID
      * @param picked the list of picked program cards for this round/registers
      * @param demoMode if true, bypasses validation of cards, used for demonstrations
      * @throws IllegalArgumentException if no robot is associated with the player
      * @author William Pii Jæger
      * @author Weihao Mo
      */
-    public void submitProgram(PlayerID player, List<ProgramCard> picked, boolean demoMode) {
-        Robot robot = robotMap.get(player);
+    public void submitProgram(int robotID, List<ProgramCard> picked, boolean demoMode) {
+        Robot robot = robotMap.get(robotID);
         if (robot == null)
-            throw new IllegalArgumentException("No robot for player " + player.value());
+            throw new IllegalArgumentException("No robot for player " + robotID);
         Deck deck = deckMap.get(robot.getId());
 
         List<ProgramCard> program;
@@ -272,7 +262,7 @@ public class Game {
      */
     public boolean evaluateWinConditions() {
         int totalCheckpoints = countCheckpoints(phaseIndex);
-        for (Map.Entry<PlayerID, Robot> entry : robotMap.entrySet()) {
+        for (Map.Entry<Integer, Robot> entry : robotMap.entrySet()) {
             Robot r = entry.getValue();
             if (r.hasWon(totalCheckpoints)) {
                 declareWinner(entry.getKey());
@@ -285,13 +275,13 @@ public class Game {
     /**
      * Returns the robot for a given player ID.
      *
-     * @param playerID the player ID
+     * @param robotID the player ID
      * @return the robot, or {@code null} if none is mapped
      * @author William Pii Jæger
      * @author Weihao Mo
      */
-    public Robot getRobot(PlayerID playerID) {
-        return robotMap.get(playerID);
+    public Robot getRobot(int robotID) {
+        return robotMap.get(robotID);
     }
 
     /**
@@ -386,12 +376,12 @@ public class Game {
      * resulting
      * movement and destruction intents through the BoardAPI. Robots are updated
      * accordingly.
-     * 
+     *
      * Robot lasers ({@link Phase#ACTIVATE_ROBOT_LASERS})
-     * are handled specially as they are dynamic effects based on robot positions 
-     * rather than static tile effects, but are processed here to maintain correct 
+     * are handled specially as they are dynamic effects based on robot positions
+     * rather than static tile effects, but are processed here to maintain correct
      * game rule sequence order without interrupting {@link #runPhase(Phase, Runnable)}.
-     * 
+     *
      * moved robots have their positions updated, and destroyed robots are marked as
      * dead and
      * have their registers cleared.
@@ -420,13 +410,13 @@ public class Game {
 
         if (out instanceof Outcome.Moved moved) {
             for (MoveEvent e : moved.moves()) {
-                robotsMap.get(e.robotId()).setPosition(e.to().x(), e.to().y());
+                robotMap.get(e.robotId()).setPosition(e.to().x(), e.to().y());
             }
             for (DestroyEvent d : moved.destroys()) {
                 if(d.cause() == DestroyCause.LASER) {
                     drawDamageCards(deckMap.get(d.robotId()),d.power());
                 } else {
-                    Robot r = robotsMap.get(d.robotId());
+                    Robot r = robotMap.get(d.robotId());
                     if (r.isAlive()) {
                         applyRebootPenalty(d.robotId());
                     }
@@ -475,12 +465,12 @@ public class Game {
     /**
      * Set the respawn direction for the robot with the corresponding ID
      *
-     * @param playerID  the player ID for the robot
+     * @param robotID  the player ID for the robot
      * @param direction the direction the robot should be facing
      * @author Weihao Mo
      */
-    public void setRespawnDirection(PlayerID playerID, Direction direction) {
-        Robot robot = robotMap.get(playerID);
+    public void setRespawnDirection(int robotID, Direction direction) {
+        Robot robot = robotMap.get(robotID);
         robot.setRespawnDirection(direction);
     }
 
@@ -509,16 +499,16 @@ public class Game {
         Outcome out = api.tryMoveOneStep(r.getId(), dir);
         if (out instanceof Outcome.Moved moved) {
             for (MoveEvent e : moved.moves()) {
-                robotsMap.get(e.robotId()).setPosition(e.to().x(), e.to().y());
+                robotMap.get(e.robotId()).setPosition(e.to().x(), e.to().y());
             }
             for (DestroyEvent d : moved.destroys()) {
                 if(d.cause() == DestroyCause.PITS || d.cause() == DestroyCause.FELL_OFF) {
                     if (r.isAlive()) {
                         applyRebootPenalty(d.robotId());
                     }
-                    robotsMap.get(d.robotId()).setPosition(d.at().x(), d.at().y());
-                    robotsMap.get(d.robotId()).clearRegisters();
-                    robotsMap.get(d.robotId()).setDead();
+                    robotMap.get(d.robotId()).setPosition(d.at().x(), d.at().y());
+                    robotMap.get(d.robotId()).clearRegisters();
+                    robotMap.get(d.robotId()).setDead();
                 }
             }
             return true;
@@ -611,7 +601,7 @@ public class Game {
      */
     private void applyRebootPenalty(int robotId) {
         Deck deck = deckMap.get(robotId);
-        if (!robotsMap.get(robotId).isAlive()) {
+        if (!robotMap.get(robotId).isAlive()) {
             return;
         }
         drawDamageCards(deck, 2);
@@ -715,7 +705,7 @@ public class Game {
      * @param win the winning player ID
      * @author Weihao Mo
      */
-    private void notifyWinner(PlayerID win) {
+    private void notifyWinner(int win) {
         for (GameObserver obs : observers) {
             obs.onWinnerDeclared(this, win);
         }
@@ -740,7 +730,7 @@ public class Game {
      * @param win the winning player ID
      * @author Weihao Mo
      */
-    public void declareWinner(PlayerID win) {
+    public void declareWinner(int win) {
         if (this.winner != null)
             return;
         this.winner = win;
@@ -754,7 +744,7 @@ public class Game {
      * empty
      * @author Weihao Mo
      */
-    public Optional<PlayerID> getWinner() {
+    public Optional<Integer> getWinner() {
         return Optional.ofNullable(winner);
     }
 

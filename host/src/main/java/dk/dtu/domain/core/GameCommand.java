@@ -27,17 +27,17 @@ public sealed interface GameCommand permits GameCommand.EndGame, GameCommand.For
     record StartProgramming(UUID commandId, UUID gameId, long windowMs) implements GameCommand {
     }
 
-    record SubmitPrograms(UUID commandId, UUID gameId, PlayerID player,
+    record SubmitPrograms(UUID commandId, UUID gameId, int robot,
                           List<ProgramCard> cards) implements GameCommand {
     }
 
     record EndGame(UUID commandId, UUID gameId) implements GameCommand {
     }
 
-    record SetRespawnDirection(UUID commandId, UUID gameId, PlayerID player, Direction direction) implements GameCommand{
+    record SetRespawnDirection(UUID commandId, UUID gameId, int robot, Direction direction) implements GameCommand{
     }
 
-    record SubmitReaction(UUID commandId, UUID gameId, PlayerID player, ReactionId reactionId, ReactionChoice choice) implements GameCommand {}
+    record SubmitReaction(UUID commandId, UUID gameId, int robot, ReactionId reactionId, ReactionChoice choice) implements GameCommand {}
 
     /**
      * Toggles demo mode for a game session.

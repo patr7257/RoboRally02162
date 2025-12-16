@@ -100,13 +100,13 @@ public class GameScheduler implements RoundPacer {
      * and immediately starts round execution.
      *
      * @param session  the current game session
-     * @param playerId the player who submitted their program
+     * @param robotId the player who submitted their program
      * @author William Pii Jæger
      */
     @Override
-    public void onPlayerSubmitted(GameSession session, PlayerID playerId) {
-        session.markSubmitted(playerId);
-        listeners.forEach(l -> l.onPlayerSubmitted(session, playerId));
+    public void onPlayerSubmitted(GameSession session, int robotId) {
+        session.markSubmitted(robotId);
+        listeners.forEach(l -> l.onPlayerSubmitted(session, robotId));
 
         if (session.allPlayersSubmitted()) {
             session.cancelAutoExecuteTask();
@@ -126,8 +126,7 @@ public class GameScheduler implements RoundPacer {
 
         Game game = session.getGame();
         for (Robot robot : game.getRobots()) {
-            PlayerID playerId = new PlayerID(robot.getId());
-            if (!session.hasSubmitted(playerId)) {
+            if (!session.hasSubmitted(robot.getId())) {
                 List<ProgramCard> randomCards = game.getRobotHand(robot.getId());
                 if (randomCards.size() >= 5) robot.loadProgram(randomCards.subList(0, 5));
                 else robot.loadProgram(randomCards);

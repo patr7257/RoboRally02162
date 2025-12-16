@@ -38,7 +38,7 @@ public class GameRebootTest {
 
         assertFalse(r.isAlive());
 
-        game.setRespawnDirection(new PlayerID(1), Direction.E);
+        game.setRespawnDirection(1, Direction.E);
 
         game.applyTileEffects(Phase.ACTIVATE_REBOOT);
 
@@ -67,8 +67,8 @@ public class GameRebootTest {
         assertFalse(r1.isAlive());
         assertFalse(r2.isAlive());
 
-        game.setRespawnDirection(new PlayerID(1), Direction.E);
-        game.setRespawnDirection(new PlayerID(2), Direction.E);
+        game.setRespawnDirection(1, Direction.E);
+        game.setRespawnDirection(2, Direction.E);
 
         game.applyTileEffects(Phase.ACTIVATE_REBOOT);
 
@@ -103,9 +103,9 @@ public class GameRebootTest {
         assertFalse(r2.isAlive());
         assertFalse(r3.isAlive());
 
-        game.setRespawnDirection(new PlayerID(1), Direction.E);
-        game.setRespawnDirection(new PlayerID(2), Direction.E);
-        game.setRespawnDirection(new PlayerID(3), Direction.E);
+        game.setRespawnDirection(1, Direction.E);
+        game.setRespawnDirection(2, Direction.E);
+        game.setRespawnDirection(3, Direction.E);
 
         game.applyTileEffects(Phase.ACTIVATE_REBOOT);
 

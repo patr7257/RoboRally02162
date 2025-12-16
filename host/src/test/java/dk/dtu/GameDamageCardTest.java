@@ -1,7 +1,6 @@
 package dk.dtu;
 
 import dk.dtu.domain.core.Game;
-import dk.dtu.domain.core.PlayerID;
 import dk.dtu.domain.model.*;
 import dk.dtu.domain.program.ProgramCard;
 import dk.dtu.domain.rules.api.BoardAPI;

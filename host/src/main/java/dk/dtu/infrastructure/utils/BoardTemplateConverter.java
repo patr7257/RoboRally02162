@@ -88,8 +88,8 @@ public class BoardTemplateConverter {
                 yield new Antenna(dir);
             }
             case "startingtile" -> {
-                int playerId = effectNode.get("playerId").asInt();
-                yield new StartingTile(playerId);
+                int robotId = effectNode.get("playerId").asInt();
+                yield new StartingTile(robotId);
             }
             case "checkpoint" -> {
                 int number = effectNode.get("number").asInt();

@@ -33,9 +33,9 @@ class GameCheckpointTest {
         BoardAPI api = new BoardApiImpl(board, robots);
         Game game = new Game(board, api, robots);
 
-        AtomicReference<PlayerID> observedWinner = new AtomicReference<>();
+        AtomicReference<Integer> observedWinner = new AtomicReference<>();
         game.addObserver(new GameObserver() {
-            @Override public void onWinnerDeclared(Game g,PlayerID winner) { observedWinner.set(winner); }
+            @Override public void onWinnerDeclared(Game g, int winner) { observedWinner.set(winner); }
             @Override public void onGameUpdate(Game g) { }
         });
 
@@ -55,8 +55,8 @@ class GameCheckpointTest {
         assertEquals(2,r.getX());
         assertEquals(2,r.getY());
         assertEquals(3, r.getNextCheckpoint());
-        assertEquals(new PlayerID(1), game.getWinner().orElse(null));
-        assertEquals(new PlayerID(1), observedWinner.get());
+        assertEquals(1, game.getWinner().orElse(null));
+        assertEquals(1, observedWinner.get());
     }
 
     /**
@@ -72,9 +72,9 @@ class GameCheckpointTest {
         BoardAPI api = new BoardApiImpl(board, robots);
         Game game = new Game(board, api, robots);
 
-        AtomicReference<PlayerID> observedWinner = new AtomicReference<>();
+        AtomicReference<Integer> observedWinner = new AtomicReference<>();
         game.addObserver(new GameObserver() {
-            @Override public void onWinnerDeclared(Game g,PlayerID winner) { observedWinner.set(winner); }
+            @Override public void onWinnerDeclared(Game g, int winner) { observedWinner.set(winner); }
             @Override public void onGameUpdate(Game g) { }
         });
 
@@ -111,9 +111,9 @@ class GameCheckpointTest {
         BoardAPI api = new BoardApiImpl(board, robots);
         Game game = new Game(board, api, robots);
 
-        AtomicReference<PlayerID> observedWinner = new AtomicReference<>();
+        AtomicReference<Integer> observedWinner = new AtomicReference<>();
         game.addObserver(new GameObserver() {
-            @Override public void onWinnerDeclared(Game g,PlayerID winner) { observedWinner.set(winner); }
+            @Override public void onWinnerDeclared(Game g, int winner) { observedWinner.set(winner); }
             @Override public void onGameUpdate(Game g) { }
         });
 

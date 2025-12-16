@@ -2,7 +2,6 @@ package dk.dtu;
 
 import dk.dtu.domain.core.Game;
 import dk.dtu.domain.core.Phase;
-import dk.dtu.domain.core.PlayerID;
 import dk.dtu.domain.model.*;
 import dk.dtu.domain.program.ProgramCard;
 import dk.dtu.domain.rules.api.BoardAPI;
@@ -316,7 +315,7 @@ public class BoardLaserTest {
         Deck deck = new Deck(drawPile, discard, hand, new DamageDecks(38, 15, 15));
         game.setDeck(deck, 1);
         
-        game.submitProgram(new PlayerID(1), List.of(
+        game.submitProgram(1, List.of(
             ProgramCard.uturn(),
             ProgramCard.back1(),
             ProgramCard.move1(),
@@ -380,7 +379,7 @@ public class BoardLaserTest {
         Deck deck = new Deck(drawPile, discard, hand, new DamageDecks(38, 15, 15));
         game.setDeck(deck, 1);
         
-        game.submitProgram(new PlayerID(1), List.of(
+        game.submitProgram(1, List.of(
             ProgramCard.move1(),
             ProgramCard.move1(),
             ProgramCard.move1(),

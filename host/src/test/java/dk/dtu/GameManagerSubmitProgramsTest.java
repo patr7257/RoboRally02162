@@ -40,7 +40,7 @@ class GameManagerSubmitProgramsTest {
         var start = new GameCommand.StartProgramming(UUID.randomUUID(), gid, 60_000);
         assertTrue(manager.execute(start).ok());
 
-        var submit = new GameCommand.SubmitPrograms(UUID.randomUUID(), gid, new PlayerID(1),
+        var submit = new GameCommand.SubmitPrograms(UUID.randomUUID(), gid, 1,
                 List.of(ProgramCard.move1()));
         assertTrue(manager.execute(submit).ok());
 

@@ -154,14 +154,14 @@ public class GameManager implements GameObserver {
                 GameSession session = activeSessions.get(submit.gameId());
                 if (session == null) yield CommandResult.fail("Game not found");
                 if (session.getState() != GameState.PROGRAMMING) yield CommandResult.fail("Not in programming phase");
-                if (session.hasSubmitted(submit.player())) yield CommandResult.fail("Already submitted for this round");
+                if (session.hasSubmitted(submit.robot())) yield CommandResult.fail("Already submitted for this round");
 
                 try {
                     synchronized (session) {
                         Game game = session.getGame();
-                        game.submitProgram(submit.player(), submit.cards(), session.isDemoMode());
+                        game.submitProgram(submit.robot(), submit.cards(), session.isDemoMode());
                     }
-                    pacer.onPlayerSubmitted(session, submit.player());
+                    pacer.onPlayerSubmitted(session, submit.robot());
                     yield CommandResult.ok("Program submitted");
                 } catch (Exception e) {
                     yield CommandResult.fail("SubmitPrograms failed: " + e.getMessage());
@@ -184,9 +184,9 @@ public class GameManager implements GameObserver {
                 try {
                     synchronized (session) {
                         Game game = session.getGame();
-                        Robot robot = game.getRobot(setRespawnDirection.player());
+                        Robot robot = game.getRobot(setRespawnDirection.robot());
 
-                        game.setRespawnDirection(setRespawnDirection.player(), setRespawnDirection.direction());
+                        game.setRespawnDirection(setRespawnDirection.robot(), setRespawnDirection.direction());
                         session.markRespawnDirectionSet(robot.getId());
 
                         if (session.allRespawnDirectionsSet()) {
@@ -214,7 +214,7 @@ public class GameManager implements GameObserver {
                         if (!pending.id().equals(submitReaction.reactionId())) {
                             yield CommandResult.fail("Reaction ID mismatch");
                         }
-                        if (!String.valueOf(submitReaction.player().value()).equals(pending.robotid())) {
+                        if (!String.valueOf(submitReaction.robot()).equals(pending.robotid())) {
                             yield CommandResult.fail("Wrong player for this reaction");
                         }
 
@@ -327,8 +327,7 @@ public class GameManager implements GameObserver {
                 case GameQuery.GetReadiness ready -> {
                     Map<Integer, Boolean> submitted = new HashMap<>();
                     for (Robot robot : session.getGame().getRobots()) {
-                        PlayerID pid = new PlayerID(robot.getId());
-                        submitted.put(robot.getId(), session.hasSubmitted(pid));
+                        submitted.put(robot.getId(), session.hasSubmitted(robot.getId()));
                     }
                     long msRemaining = session.getMillisecondsRemaining();
                     ReadinessDto dto = new ReadinessDto(submitted, msRemaining);
@@ -340,8 +339,8 @@ public class GameManager implements GameObserver {
                 }
                 case GameQuery.GetWinner getWinner -> {
                     Game game = session.getGame();
-                    Integer winner = game.getWinner().map(PlayerID::value).orElse(null);
-                    yield Optional.of((T) winner);
+                    Integer winner = game.getWinner().orElse(null);
+                    yield Optional.ofNullable((T) winner);
                 }
 
             };
@@ -384,12 +383,12 @@ public class GameManager implements GameObserver {
      * Broadcasts that a player has submitted their program.
      *
      * @param session  the session
-     * @param playerId the submitting player
+     * @param robotId the submitting player
      * @author William Pii Jæger
      */
-    void broadcastPlayerSubmitted(GameSession session, PlayerID playerId) {
+    void broadcastPlayerSubmitted(GameSession session, int robotId) {
         for (GameManagerObserver obs : observers) {
-            obs.onPlayerSubmitted(session.getGame(), session.getGameId(), playerId);
+            obs.onPlayerSubmitted(session.getGame(), session.getGameId(), robotId);
         }
     }
 
@@ -465,12 +464,12 @@ public class GameManager implements GameObserver {
          * Forwards player-submitted event.
          *
          * @param session  current session
-         * @param playerId submitting player
+         * @param robotId submitting player
          * @author William Pii Jæger
          */
         @Override
-        public void onPlayerSubmitted(GameSession session, PlayerID playerId) {
-            broadcastPlayerSubmitted(session, playerId);
+        public void onPlayerSubmitted(GameSession session, int robotId) {
+            broadcastPlayerSubmitted(session, robotId);
         }
 
         /**
@@ -529,7 +528,7 @@ public class GameManager implements GameObserver {
      * @author Weihao Mo
      */
     @Override
-    public void onWinnerDeclared(Game game, PlayerID winner) {
+    public void onWinnerDeclared(Game game, int winner) {
         UUID gameId = null;
         GameSession session = null;
 

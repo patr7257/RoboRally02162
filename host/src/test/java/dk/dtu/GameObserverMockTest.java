@@ -3,7 +3,6 @@ package dk.dtu;
 import dk.dtu.domain.core.Game;
 import dk.dtu.domain.core.GameManager;
 import dk.dtu.domain.core.GameObserver;
-import dk.dtu.domain.core.PlayerID;
 import dk.dtu.domain.model.Board;
 import dk.dtu.domain.model.Direction;
 import dk.dtu.domain.model.Robot;
@@ -42,7 +41,7 @@ class GameObserverMockTest {
 
         GameObserver observer = mock(GameObserver.class);
         game.addObserver(observer);
-        PlayerID winner = new PlayerID(1);
+        int winner = 1;
         game.declareWinner(winner);
 
         verify(observer, times(1)).onWinnerDeclared(game, winner);
@@ -67,7 +66,7 @@ class GameObserverMockTest {
         UUID gameId = manager.startGame(board, api, robots);
         Game game = manager.findByID(gameId).orElseThrow();
 
-        PlayerID winner = new PlayerID(1);
+        int winner = 1;
         game.declareWinner(winner);
 
         Optional<Game> found = manager.findByID(gameId);

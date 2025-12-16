@@ -2,7 +2,6 @@ package dk.dtu;
 
 import dk.dtu.domain.core.Game;
 import dk.dtu.domain.core.Phase;
-import dk.dtu.domain.core.PlayerID;
 import dk.dtu.domain.model.Board;
 import dk.dtu.domain.model.Direction;
 import dk.dtu.domain.model.Robot;
@@ -41,7 +40,7 @@ public class GamePitsTest {
 
         assertFalse(r.isAlive());
 
-        game.setRespawnDirection(new PlayerID(1), Direction.E);
+        game.setRespawnDirection(1, Direction.E);
 
         game.applyTileEffects(Phase.ACTIVATE_REBOOT);
 
@@ -70,8 +69,8 @@ public class GamePitsTest {
         assertFalse(r1.isAlive());
         assertFalse(r2.isAlive());
 
-        game.setRespawnDirection(new PlayerID(1), Direction.E);
-        game.setRespawnDirection(new PlayerID(2), Direction.E);
+        game.setRespawnDirection(1, Direction.E);
+        game.setRespawnDirection(2, Direction.E);
 
         game.applyTileEffects(Phase.ACTIVATE_REBOOT);
 

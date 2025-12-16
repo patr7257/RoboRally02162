@@ -10,7 +10,7 @@ import java.util.EnumSet;
 /**
  * @author Patrick Røbel
  */
-public record StartingTile(int playerId) implements TileEffect {
+public record StartingTile(int robotId) implements TileEffect {
     @Override
     public void onPhase(Phase phase, Tile tile, BoardAPI api) {
 	// probably no effect here?
