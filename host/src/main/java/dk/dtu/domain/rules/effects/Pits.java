@@ -16,6 +16,9 @@ import java.util.List;
  * @author Weihao Mo
  */
 public record Pits() implements TileEffect{
+    /**
+     * @author Weihao Mo
+     */
     @Override
     public void onPhase(Phase phase, Tile tile, BoardAPI api) {
         int x = tile.getX();
@@ -25,6 +28,9 @@ public record Pits() implements TileEffect{
         }
     }
 
+    /**
+     * @author Weihao Mo
+     */
     public static boolean hasPits(Tile t) {
         if (t == null) {
             return false;
@@ -37,6 +43,9 @@ public record Pits() implements TileEffect{
         return false;
     }
 
+    /**
+     * @author Weihao Mo
+     */
     @Override
     public EnumSet<Phase> phases() {
         return EnumSet.of(Phase.ACTIVATE_PITS);

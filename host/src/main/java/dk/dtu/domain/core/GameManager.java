@@ -299,7 +299,7 @@ public class GameManager implements GameObserver {
             return switch (query) {
                 case GameQuery.GetSnapshot snap -> {
                     Game game = session.getGame();
-                    SnapshotPayload payload = SnapshotMapper.createSnapshot(gameId, game);
+                    SnapshotPayload payload = SnapshotMapper.createSnapshot(game);
                     yield Optional.of((T) payload);
                 }
                 case GameQuery.GetHand hand -> {
@@ -337,6 +337,11 @@ public class GameManager implements GameObserver {
                 case GameQuery.GetTimeRemaining time -> {
                     Long ms = session.getMillisecondsRemaining();
                     yield Optional.of((T) ms);
+                }
+                case GameQuery.GetWinner getWinner -> {
+                    Game game = session.getGame();
+                    Integer winner = game.getWinner().map(PlayerID::value).orElse(null);
+                    yield Optional.of((T) winner);
                 }
 
             };

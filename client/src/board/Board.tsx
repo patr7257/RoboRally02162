@@ -68,6 +68,8 @@ export default function Board() {
     deadline?: number;
   } | null>(null);
 
+  const [winner, setWinner] = useState<number | null>(null);
+
   const readinessIntervalRef = useRef<NodeJS.Timeout | null>(null);
 
   const isDemoMode = sessionStorage.getItem("mode") == "demo";
@@ -168,6 +170,11 @@ export default function Board() {
           console.log("Unwrapped game payload:", actualData);
         }
 
+        if (data.meta?.game?.winner != null) {
+          setWinner(data.meta.game.winner);
+          setGameState('finished');
+        }
+
         switch (actualData.type) {
           //check if readiness polling is running
           case "stateSnapshot":
@@ -225,6 +232,9 @@ export default function Board() {
             break;
 
           case "gameFinished":
+            if (actualData.payload?.winner != null) {
+            setWinner(actualData.payload.winner);
+          }
             setGameState('finished');
             stopReadinessPolling();
             sendMessage({ lobbyID: lobbyId, payload: { type: "getBoard" } });
@@ -555,8 +565,8 @@ export default function Board() {
 
   return (
     <div className="board-Master">
-      {gameData?.game?.winner != null && (
-        <WinnerBanner winnerId={gameData.game.winner} />
+      {winner != null && (
+        <WinnerBanner winnerId={winner} />
       )}
 
       <RespawnDirectionModal

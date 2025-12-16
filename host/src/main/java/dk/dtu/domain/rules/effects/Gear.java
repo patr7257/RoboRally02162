@@ -17,11 +17,13 @@ import java.util.UUID;
  * @param rotation the direction this gear rotates robots ({@link Rotation#LEFT}, {@link Rotation#RIGHT}, or {@link Rotation#NONE})
  *
  * @author William Pii Jæger
+ * @author Weihao Mo
  */
 public record Gear(Rotation rotation) implements TileEffect {
 
     /**
      * @author William Pii Jæger
+     * @author Weihao Mo
      */
     @Override
     public void onPhase(Phase phase, Tile tile, BoardAPI api) {
@@ -43,6 +45,10 @@ public record Gear(Rotation rotation) implements TileEffect {
         }
     }
 
+    /**
+     * @author William Pii Jæger
+     * @author Weihao Mo
+     */
     @Override
     public EnumSet<Phase> phases() {
         return EnumSet.of(Phase.ACTIVATE_GEAR);

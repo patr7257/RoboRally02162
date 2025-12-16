@@ -18,16 +18,24 @@ import java.util.*;
  * A class for mapping between domain objects and data transfer objects (DTOs).
  * @author William Pii Jæger
  * @author Weihao Mo
+ * @author Karl Johannes Agerbo
  */
 public final class SnapshotMapper {
 
-    public static SnapshotPayload createSnapshot(UUID gameId, Game game) {
-        GameDto gameDto = mapGame(gameId, game);
+    /**
+     * @author William Pii Jæger
+     * @author Weihao Mo
+     */
+    public static SnapshotPayload createSnapshot(Game game) {
         BoardDto board = toBoardDto(game.getBoard());
         List<RobotDto> robots = mapRobots(game.getRobots());
-        return new SnapshotPayload(gameDto, board, robots);
+        return new SnapshotPayload(board, robots);
     }
 
+    /**
+     * @author William Pii Jæger
+     * @author Weihao Mo
+     */
     public static BoardDto toBoardDto(Board b) {
         int w = b.getWidth(), h = b.getHeight();
         TileDto[][] tiles = new TileDto[w][h];
@@ -41,6 +49,10 @@ public final class SnapshotMapper {
         return new BoardDto(w, h, tiles);
     }
 
+    /**
+     * @author William Pii Jæger
+     * @author Weihao Mo
+     */
     private static TileDto mapTile(Tile t) {
         List<EffectDto> effects = new ArrayList<>();
         // t is null? Game has a check for null
@@ -157,10 +169,16 @@ public final class SnapshotMapper {
         return tile;
     }
 
+    /**
+     * @author William Pii Jæger
+     */
     public static List<RobotDto> mapRobots(List<Robot> robots) {
         return robots.stream().map(SnapshotMapper::mapRobot).toList();
     }
 
+    /**
+     * @author William Pii Jæger
+     */
     public static RobotDto mapRobot(Robot r) {
         return new RobotDto(r.getId(), r.getX(), r.getY(), r.getDirection().name(), r.getNextCheckpoint());
     }
@@ -179,6 +197,9 @@ public final class SnapshotMapper {
         return new Robot(dto.id(), dto.x(), dto.y(), Direction.valueOf(dto.facing()), dto.nextCheckpoint());
     }
 
+    /**
+     * @author Weihao Mo
+     */
     public static GameDto mapGame(UUID gameID, Game game) {
         Integer winner = game.getWinner().map(PlayerID::value).orElse(null);
         return new GameDto(gameID, winner);

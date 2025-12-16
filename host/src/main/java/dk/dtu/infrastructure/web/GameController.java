@@ -53,7 +53,7 @@ public class GameController {
     public record EndGameResponse(boolean endedGame) {}
 
     public record SaveGameRequest(String gameID) {}
-    public record SaveGameResponse(Object snapshotPayload, Object decks, Object damageDecks){}
+    public record SaveGameResponse(Object snapshotPayload, Object decks, Object damageDecks,Integer winner){}
 
     public record SnapshotLoadedPayload(GameDto game, BoardDto board, List<RobotDto> robots){}
     public record DeckDto(List<ProgramCard> drawPile, List<ProgramCard> discardPile, List<ProgramCard> hand){}
@@ -558,7 +558,8 @@ public class GameController {
                 "trojanHorseCount", gameDamageDecks.getTrojanHorseDrawPile(),
                 "wormCount", gameDamageDecks.getWormDrawPile()
         );
+        Integer winner = session.getGame().getWinner().map(PlayerID::value).orElse(null);
 
-        return new SaveGameResponse(snapShotPayload, decks, damageDecksMap);
+        return new SaveGameResponse(snapShotPayload, decks, damageDecksMap,winner);
     }
 }

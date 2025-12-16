@@ -40,10 +40,16 @@ public record Antenna(Direction direction) implements TileEffect{
         }
     }
 
+    /**
+     * @author Weihao Mo
+     */
     private static Integer manhattan(int x1, int x2, int y1, int y2) {
         return Math.abs(x2-x1) + Math.abs(y2-y1);
     }
 
+    /**
+     * @author Weihao Mo
+     */
     private static int tieBreaker(Robot robot, int antennaX, int antennaY, Direction antennaDir) {
         int dx = robot.getX() - antennaX;
         int dy = robot.getY() - antennaY;
@@ -64,6 +70,9 @@ public record Antenna(Direction direction) implements TileEffect{
         return (int) relativeAngle;
     }
 
+    /**
+     * @author Weihao Mo
+     */
     @Override
     public EnumSet<Phase> phases() {
         return EnumSet.of(Phase.ACTIVATE_ANTENNA);

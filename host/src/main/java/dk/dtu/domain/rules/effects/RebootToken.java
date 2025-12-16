@@ -68,6 +68,9 @@ public record RebootToken(Direction direction) implements TileEffect {
         }
     }
 
+    /**
+     * @author Weihao Mo
+     */
     @Override
     public EnumSet<Phase> phases() {
         return EnumSet.of(Phase.ACTIVATE_REBOOT);

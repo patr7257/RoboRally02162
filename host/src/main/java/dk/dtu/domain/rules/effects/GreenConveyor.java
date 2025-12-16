@@ -46,7 +46,9 @@ public record GreenConveyor(Direction direction, Rotation rotation) implements T
         }
     }
 
-
+    /**
+     * @author Weihao Mo
+     */
     @Override
     public EnumSet<Phase> phases() {
         return EnumSet.of(Phase.ACTIVATE_GREENCONVEYOR);

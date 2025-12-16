@@ -208,8 +208,13 @@ public class GatewaysWsHandler extends TextWebSocketHandler implements GameManag
                     return;
                 }
                 SnapshotPayload payload = snapOpt.get();
+
+                Optional<Game> gameOpt = gameManager.findByID(gameId);
+                GameDto gameDto = gameOpt.map(g -> SnapshotMapper.mapGame(gameId, g))
+                                .orElse(new GameDto(gameId, null));
+
                 send(new OutgoingMessage<>("stateSnapshot", Delivery.DIRECT,
-                        withGame(meta, payload.game()), payload));
+                        withGame(meta, gameDto), payload));
             }
 
             case "getHand" -> {
@@ -306,6 +311,18 @@ public class GatewaysWsHandler extends TextWebSocketHandler implements GameManag
                 }
                 send(new OutgoingMessage<>("timeRemaining", Delivery.DIRECT, meta,
                         Map.of("ms", timeOpt.get())));
+            }
+
+            case "getWinner" -> {
+                Integer winner = gameManager.query(gameId, new GameQuery.GetWinner()).get();
+
+                Optional<Game> gameOpt = gameManager.findByID(gameId);
+                GameDto gameDto = gameOpt.map(g -> SnapshotMapper.mapGame(gameId, g))
+                        .orElse(new GameDto(gameId, null));
+
+                WinnerDto dto = new WinnerDto(winner);
+
+                send(new OutgoingMessage<>("winner",Delivery.DIRECT,withGame(meta,gameDto),dto));
             }
 
             case "setRespawnDirection" -> {

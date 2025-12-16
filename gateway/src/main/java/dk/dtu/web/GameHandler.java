@@ -147,7 +147,7 @@ public class GameHandler {
                     JsonNode snap = root.path("gameSnapshot").path("snapshotPayload");
                     int playerCount = snap.path("robots").size();
 
-                    JsonNode winnerNode = snap.path("game").path("winner");
+                    JsonNode winnerNode = root.path("gameSnapshot").path("winner");
                     String winnerRobotID = winnerNode.isNull() ? null : winnerNode.asText();
 
                     String lobbyName = root.path("lobbyName").asText();

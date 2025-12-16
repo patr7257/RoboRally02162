@@ -69,7 +69,6 @@ export interface GameDto {
 }
 
 export interface GameData {
-    game: GameDto;
     board: Board;
     robots: Robot[];
 }

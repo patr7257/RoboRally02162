@@ -29,6 +29,9 @@ public record Checkpoint(int number) implements TileEffect {
             }
     }
 
+    /**
+     * @author Weihao Mo
+     */
     @Override
     public EnumSet<Phase> phases() {
         return EnumSet.of(Phase.ACTIVATE_CHECKPOINTS);
