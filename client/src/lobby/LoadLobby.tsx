@@ -1,3 +1,4 @@
+import "./loadLobby.css";
 import { useNavigate } from "react-router-dom";
 import Layout from "./Layout";
 import React, { useState, useEffect, useCallback } from "react";
@@ -26,6 +27,9 @@ export default function LoadLobby() {
   const [savedGames, setSavedGames] = useState<Lobby[]>([]);
   const [error, setError] = useState<string>("");
   const API_BASE_URL = process.env.REACT_APP_API_BASE_URL;
+  const [showDeletePopup, setShowDeletePopup] = useState(false);
+  const [gameToDelete, setGameToDelete] = useState<string | null>(null);
+
 
   /** 
   * @author Bjarke Søderhamn Petersen
@@ -190,10 +194,8 @@ export default function LoadLobby() {
                     <button
                       className="metal-button small"
                       onClick={async () => {
-                        const deleted = await deleteSavedGame(game.saveID);
-                        if (deleted) {
-                          await seeSavedGames();
-                        }
+                        setGameToDelete(game.saveID);
+                        setShowDeletePopup(true);
                       }}
                     >
                       Delete
@@ -206,6 +208,43 @@ export default function LoadLobby() {
 
           {error && <p className="error-text">{error}</p>}
         </div>
+        {showDeletePopup && (
+          <div className="modal-overlay">
+            <div className="lobbies-terminal modal-popup">
+
+              <h2 className="terminal-title">Confirm Deletion</h2>
+              <p>Are you sure you want to delete this saved game?</p>
+
+              <div className="popup-buttons">
+                
+                <button
+                  className="metal-button small"
+                  onClick={async () => {
+                    if (gameToDelete) {
+                      const deleted = await deleteSavedGame(gameToDelete);
+                      if (deleted) await seeSavedGames();
+                    }
+                    setShowDeletePopup(false);
+                    setGameToDelete(null);
+                  }}
+                >
+                  Yes
+                </button>
+
+                <button
+                  className="metal-button small"
+                  onClick={() => {
+                    setShowDeletePopup(false);
+                    setGameToDelete(null);
+                  }}
+                >
+                  Cancel
+                </button>
+              </div>
+
+            </div>
+          </div>
+        )}
       </div>
     </Layout>
   );
