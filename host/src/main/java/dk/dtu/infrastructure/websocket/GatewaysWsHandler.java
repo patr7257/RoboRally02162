@@ -268,11 +268,13 @@ public class GatewaysWsHandler extends TextWebSocketHandler implements GameManag
                 GameDto gameDto = gameOpt.map(g -> SnapshotMapper.mapGame(gameId, g))
                         .orElse(new GameDto(gameId, null));
 
-                Map<Integer,String> lastMove = lastMoveOpt.get();
+                if (lastMoveOpt.isPresent()) {
+                    Map<Integer,String> lastMove = lastMoveOpt.get();
 
-                LastMovePayload payload = new LastMovePayload("lastMove", lastMove.toString());
-                send(new OutgoingMessage<>("lastMove", Delivery.DIRECT,
-                        withGame(meta, gameDto), payload));
+                    LastMovePayload payload = new LastMovePayload("lastMove", lastMove.toString());
+                    send(new OutgoingMessage<>("lastMove", Delivery.DIRECT,
+                            withGame(meta, gameDto), payload));
+                }
 
             }
             case "getDamageDecks" -> {
