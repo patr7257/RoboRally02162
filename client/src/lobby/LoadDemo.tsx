@@ -19,7 +19,6 @@ export default function LoadLobby() {
 
   useEffect(() => {
     getDemos(setError);
-    console.log(lobbies);
   }, []);
 
   return (

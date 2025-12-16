@@ -76,7 +76,6 @@ public record BoardLaser(Direction direction, int power) implements TileEffect {
                 Robot target = robotsHere.get(0);
                 // Deal damage to the robot
                 api.reportDestroy(target.getId(), currentPos,DestroyCause.LASER,power);
-                //console.log("Board laser hit robot " + robot.getId() + " for " + amount + " damage");
                 hasTarget = true;
                 break;
             }

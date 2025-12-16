@@ -83,8 +83,6 @@ export default function Board() {
 
   // Fetch lobby info and full board template for Map Banner and starting area info
   useEffect(() => {
-    console.log("lobby id is:" + lobbyId)
-    console.log("lobby id in storage is:" + sessionStorage.getItem("id"))
     const fetchLobbyInfo = async () => {
       try {
         const userToken = sessionStorage.getItem("userToken");
@@ -172,7 +170,6 @@ export default function Board() {
         let actualData = data;
         if (data.type === "game" && data.payload) {
           actualData = data.payload;
-          console.log("Unwrapped game payload:", actualData);
         }
 
         if (data.meta?.game?.winner != null) {
@@ -183,12 +180,10 @@ export default function Board() {
         switch (actualData.type) {
           //check if readiness polling is running
           case "stateSnapshot":
-            console.log("Setting game data:", actualData.payload || actualData);
             setGameData(actualData.payload || actualData);
             break;
 
           case "hand":
-            console.log("Setting hand data:", actualData.payload || actualData);
             const handPayload = actualData.payload;
             setHandData(handPayload);
             setSelectedMoves(Array(5).fill(null));
@@ -201,7 +196,6 @@ export default function Board() {
             break;
 
           case "discard":
-            console.log("Setting discard data:", actualData.payload || actualData);
             const discardPayload = actualData.payload;
             setDiscardData(discardPayload);
             break;
@@ -247,7 +241,6 @@ export default function Board() {
 
           case "reactionNeeded":
             setGameState("reaction");
-            console.log(actualData)
             if (actualData.payload?.kind && actualData.payload?.options) {
               setReactionPopup({
                 kind: actualData.payload.kind,
@@ -257,12 +250,8 @@ export default function Board() {
             }
             break;
 
-          case "gameSaved":
-            console.log("Game has been saved!");
-            break;
 
           case "ack":
-            console.log("Command acknowledged:", data.payload.message);
             if (data.payload.message === "Program submitted") {
               setHasSubmitted(true);
             }
@@ -274,27 +263,20 @@ export default function Board() {
             break;
 
           case "needRespawnDirection":
-            console.log("Robot needs respawn direction:", actualData.payload);
             const deadRobotId = actualData.payload?.robotId;
             const currentRobotId = parseInt(robotID);
-            console.log(`Dead robot ID: ${deadRobotId}, Current robot ID: ${currentRobotId}, Raw robotID: ${robotID}`);
 
             if (deadRobotId === currentRobotId) {
-              console.log("This player's robot died - showing respawn modal");
               setNeedsRespawn(true);
               setRespawnRobotId(deadRobotId);
-            } else {
-              console.log("Different player's robot died - not showing modal");
             }
             break;
 
           case "damageDecks":
-            console.log("Setting damage deck data:", actualData.payload);
             setDamageDecks(actualData.payload);
             break;
 
           case "lastMove":
-            console.log("Getting Last Move", actualData.payload);
             if (actualData.payload?.lastMove) {
               const str = actualData.payload.lastMove;
 
@@ -303,7 +285,6 @@ export default function Board() {
               if (match) {
                 const robotId = parseInt(match[1], 10);
                 const move = match[2];
-                console.log(robotID, move)
                 setLastMove({ robotId, move });
               }
             }
@@ -380,8 +361,6 @@ export default function Board() {
       return;
     }
 
-    console.log(`Sending respawn direction ${direction} for robot ${respawnRobotId}`);
-
     const backendDirection = direction.charAt(0);
 
     sendMessage({
@@ -417,7 +396,6 @@ export default function Board() {
    * @author Asger Allin Jensen
    */
   const getRobotIDS = async () => {
-    console.log("Fetching robot ID for user:", userID);
 
     try {
       const response = await fetch(`${API_BASE_URL}/api/lobby/getRobot`, {
@@ -438,7 +416,6 @@ export default function Board() {
       }
 
       const data = await response.json();
-      console.log("Robot ID map received:", data);
       setRobotMap(data);
 
       const username = sessionStorage.getItem("username");
@@ -450,7 +427,6 @@ export default function Board() {
       const id = data[username];
 
       if (id) {
-        console.log(`Your robot ID is: ${id} `);
         setRobotID(id.toString());
         sessionStorage.setItem("robotID", id.toString()); // optional persistence
       } else {
@@ -587,7 +563,6 @@ export default function Board() {
             setReactionPopup(null);
           }}
           onSelect={(option) => {
-            console.log("Submitting reaction choice:", option);
             sendMessage({
               lobbyID: lobbyId,
               playerID: parseInt(robotID),

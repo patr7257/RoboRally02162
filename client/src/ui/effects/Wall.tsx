@@ -16,17 +16,20 @@ export default function Wall({ effect }: { effect: WallEffect }) {
   };
   return (
     <>
-      {effect.walls.map((direction, index) => (
-        <img
-          key={index}
-          src={`${process.env.PUBLIC_URL}/boardelements/walls/wall-n.png`}
-          alt={`wall ${direction}`}
-          className={`wall wall-${direction.toLowerCase()}`}
-          style={{
-            transform: `rotate(${rotationMap[direction] || 0}deg)`
-          }}
-        />
-      ))}
+      <>
+        {effect.walls.map((direction) => (
+          <img
+            key={direction}
+            src={`${process.env.PUBLIC_URL}/boardelements/walls/wall-n.png`}
+            alt={`wall ${direction}`}
+            className={`wall wall-${direction.toLowerCase()}`}
+            style={{
+              transform: `rotate(${rotationMap[direction] || 0}deg)`
+            }}
+          />
+        ))}
+      </>
+
     </>
   );
 }

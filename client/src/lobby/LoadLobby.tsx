@@ -109,7 +109,6 @@ export default function LoadLobby() {
       });
 
       const data = await response.text();
-      console.log("data received: " + data);
 
       if (response.status === 201) {
         sessionStorage.setItem("id", data);
@@ -147,10 +146,8 @@ export default function LoadLobby() {
       });
 
       const data = await response.text();
-      console.log("data received: " + data);
 
       if (response.status === 200) {
-        console.log("Game deleted successfully");
         return true;
       } else if (response.status === 403) {
         setError("Error in deleting game");

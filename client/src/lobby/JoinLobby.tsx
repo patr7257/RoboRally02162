@@ -44,7 +44,6 @@ export default function JoinLobby() {
       });
 
       const data: lobbyInfo[] = await response.json();
-      console.log("received lobby data:", data);
       if (response.ok) {
         const parsedData: Lobby[] = data.map((input: any) => ({
           lobbyInfo: {
@@ -78,7 +77,6 @@ export default function JoinLobby() {
     const unsubscribe = subscribe((message: string) => {
       try {
         const data = JSON.parse(message);
-        console.log("Parsed data:", data);
         if (data.type === "lobbies" && data.action === "updatedLobbies") {
           updateLobbyList();
           return;
@@ -111,7 +109,6 @@ export default function JoinLobby() {
       });
 
       const data: string = await response.text();
-      console.log("data received: " + data);
 
       if (response.status === 201) {
         //setLobbyId(data);

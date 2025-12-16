@@ -45,11 +45,8 @@ export default function LoginComp({ onLogin }: LoginCompProps) {
         sessionStorage.setItem("userToken", data.token);
         sessionStorage.setItem("username", usernameInput);
         sessionStorage.setItem("userID", data.userID);
-        console.log("userID: " + data.userID);
-        console.log("pass: " + usernameInput);
         await getSocket("LOGIN");
         subscribe((message: string) => {
-          // I remove the print statement, it was annoying
         });
 
         onLogin?.(data.username ?? usernameInput);

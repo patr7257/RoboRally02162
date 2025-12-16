@@ -29,7 +29,6 @@ export default function LobbyCreation() {
    */
   const updateLobbyInfo = useCallback(async () => {
     try {
-      console.log("updating lobby info using id:" + sessionStorage.getItem("id"));
       const response = await fetch(API_BASE_URL + "/api/lobby/lobbyInfo", {
         method: "POST",
         headers: {
@@ -43,20 +42,15 @@ export default function LobbyCreation() {
       }
 
       const parsedData = await response.json();
-      console.log("Raw Server Response:", parsedData);
       const lobbyInfo: fullLobbyInfo = parsedData as fullLobbyInfo;
-      console.log("lobby status:" + lobbyInfo.isRunning)
       if (lobbyInfo.isRunning) { //if already running, then navigate.
-        console.log("lobby already running:" + lobbyInfo.isRunning)
         navigate("/boardScene");
       }
 
       setFullLobbyInfo(lobbyInfo);
       setPlayersReady(lobbyInfo.readinessMap);
-      console.log("lobbyID from parsed:" + fullLobbyInfo?.lobbyID);
     } catch (err) {
       console.error("updateLobbyInfo error lobby error:", err);
-      console.log("lobbyID from parsed:" + fullLobbyInfo?.lobbyID);
       if (setError) setError("Network error. Try Again.");
     }
   }, [userID, setFullLobbyInfo, setPlayersReady, setError, API_BASE_URL]);
@@ -70,19 +64,16 @@ export default function LobbyCreation() {
   useEffect(() => {
     updateLobbyInfo();
     const unsubscribe = subscribe((message: string) => {
-      console.log("Received message:", message);
 
       try {
         const data = JSON.parse(message);
 
         if (data.type === "lobby" && data.action === "lobbyUpdate") {
-          console.log("updating lobby info based on notification");
           updateLobbyInfo();
           return;
         }
 
         if (data.type === "game" && data.payload?.action === "start") {
-          console.log("Game started!");
           navigate("/boardScene");
         } else if (data.type === "lobby" && data.action === "start_denied") {
           console.warn("Cannot start game:", data.payload.reason);
@@ -121,7 +112,6 @@ export default function LobbyCreation() {
 
       if (response.status === 204) {
         setIsReady(!isReady);
-        console.log(`Player marked as ${!isReady ? "READY" : "NOT READY"}`);
       } else {
         const text = await response.text();
         console.error("Operation failed:", text);
@@ -145,7 +135,6 @@ export default function LobbyCreation() {
       return;
     }
     try {
-      console.log("Starting game with lobbyID:", fullLobbyInfo.lobbyID);
       const response = await fetch(API_BASE_URL + '/api/lobby/start', {
         method: "POST",
         headers: {
@@ -155,7 +144,6 @@ export default function LobbyCreation() {
         body: JSON.stringify({ lobbyID: sessionStorage.getItem("id") }),
       });
       sessionStorage.setItem("mode", "normal");
-      console.log("Start game response:", response.status, response.statusText);
       if (!response.ok) {
         setError(`Failed to start game: ${response.status}`);
       }

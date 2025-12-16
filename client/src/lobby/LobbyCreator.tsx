@@ -55,7 +55,6 @@ export default function LobbyCreator() { //change this name
                 },
                 body: JSON.stringify({ capacity: capacity, lobbyName: lobbyName, boardTemplate: selectedTemplate }),
             });
-            //console.log("Reached backend. Status:", response.status);
             if (!response.ok) {
 
                 const errorCode = await response.text();

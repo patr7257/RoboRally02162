@@ -16,7 +16,6 @@ export function useDemoService() {
   */
   const loadAndStartDemoGame = async (demoName: string, setError?: (msg: string) => void) => {
     if (setError) setError("");
-    console.log(demoName);
     try {
       const response = await fetch(API_BASE_URL + "/api/lobby/createAndStartDemo", {
         method: "POST",

@@ -48,7 +48,6 @@ export function getSocket(reason: string): WebSocket |null {
         // @ts-ignore
         window.debugSocket = socket;
         socket.onopen = () => {
-            console.log("WebSocket connected!");
             reconnectAttempts = 0;
             processQueue();
         };
@@ -65,11 +64,10 @@ export function getSocket(reason: string): WebSocket |null {
             });
             socket = null;
             if (e.code == 4001) {
-                //console.log("websocket connection failed due to invalid user state"); since the navigate clears the state  the console is also cleared
                 sessionStorage.clear();
                 sessionStorage.setItem("returnReason", "You have been logged out. \nLogin again or register new profile.");
 
-                window.location.href = "/"; //navigate but can't use react hook. also cleans memory
+                window.location.href = "/";
                 return;
             }
             if (e.code !== 1000) {
@@ -86,7 +84,6 @@ export function getSocket(reason: string): WebSocket |null {
 
         socket.onerror = (err) => {
             console.error("WebSocket error:", err);
-            // Socket will close automatically and trigger onclose
         };
     }
 
@@ -119,7 +116,6 @@ function processQueue(): void {
 
     try {
         socket.send(message);
-        console.log("Sent message:", message);
     } catch (error) {
         console.error("Error sending message, re-queueing:", error);
         messageQueue.unshift(message);
