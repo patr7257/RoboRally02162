@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { getSocket, subscribe } from "../utils/ws";
 import { sha256Hex } from "../utils/hashPassword";
 
@@ -8,7 +9,7 @@ import { sha256Hex } from "../utils/hashPassword";
  */
 
 interface LoginCompProps {
-  onLogin: (username: string) => void;
+  onLogin?: (username: string) => void;
 }
 
 /**
@@ -20,6 +21,7 @@ export default function LoginComp({ onLogin }: LoginCompProps) {
   const [usernameInput, setUsernameInput] = useState<string>("");
   const [passwordInput, setPasswordInput] = useState<string>("");
   const [error, setError] = useState<string>("");
+  const navigate = useNavigate();
   const API_BASE_URL = process.env.REACT_APP_API_BASE_URL;
 
 
@@ -50,7 +52,8 @@ export default function LoginComp({ onLogin }: LoginCompProps) {
             // I remove the print statement, it was annoying
         });
 
-        onLogin(data.username ?? usernameInput);
+        onLogin?.(data.username ?? usernameInput);
+        navigate("/lobbyScene");
       } else if (response.status === 401) {
         setError("Login failed. Invalid username or password.");
       } else if (response.status === 409) {
@@ -91,8 +94,7 @@ export default function LoginComp({ onLogin }: LoginCompProps) {
       <button type="button" className="metal-button" onClick={handleLogin}>
         Login
       </button>
-      {/* Themed feedback messages */}
-      {error && <p className="auth-message error">{error}</p>}
+      <p className={`auth-message ${error ? 'error' : ''}`}>{error || '\u00A0'}</p>
     </div>
   );
 }

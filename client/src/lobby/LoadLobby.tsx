@@ -3,12 +3,14 @@ import { useNavigate } from "react-router-dom";
 import Layout from "./Layout";
 import React, { useState, useEffect, useCallback } from "react";
 import { subscribe } from "../utils/ws";
+import "../styles/joinLobby.css";
 
 
 /** 
 * @author Bjarke Søderhamn Petersen
 * @author Karl Johannes Agerbo
 * @author Benjamin Benyo Endahl Hansen
+* @author Lizette Bloch Dahl Nikolajsen
 */
 interface Lobby {
   lobbyID: string;
@@ -26,6 +28,11 @@ export default function LoadLobby() {
   const [lobbyId, setLobbyId] = useState<string>("");
   const [savedGames, setSavedGames] = useState<Lobby[]>([]);
   const [error, setError] = useState<string>("");
+  const [confirmAction, setConfirmAction] = useState<{
+    type: 'load' | 'delete';
+    saveID: string;
+    lobbyName: string;
+  } | null>(null);
   const API_BASE_URL = process.env.REACT_APP_API_BASE_URL;
   const [showDeletePopup, setShowDeletePopup] = useState(false);
   const [gameToDelete, setGameToDelete] = useState<string | null>(null);
@@ -161,19 +168,53 @@ export default function LoadLobby() {
 
   return (
     <Layout>
-      <div className="panel-container">
-        <h1 className="panel-title">Mission Access Terminal</h1>
-
-        <div className="control-panel">
-          <button className="metal-button" onClick={seeSavedGames}>
-            See Saved Games
-          </button>
-
-          <button className="metal-button" onClick={() => navigate("/lobbyScene")}>
-            Return to Command Center
-          </button>
-
-          {savedGames.length > 0 && (
+      {confirmAction && (
+        <div className="confirmation-overlay">
+          <div className="confirmation-modal">
+            <div className="confirmation-content">
+              <p className="confirmation-text">
+                {confirmAction.type === 'load'
+                  ? `DO YOU WANT TO RESUME THE GAME "${confirmAction.lobbyName.toUpperCase()}"?`
+                  : `ARE YOU SURE YOU WANT TO DELETE THE GAME "${confirmAction.lobbyName.toUpperCase()}"?`
+                }
+              </p>
+            </div>
+            <div className="confirmation-buttons">
+              <button
+                className="metal-button icon"
+                onClick={async () => {
+                  if (confirmAction.type === 'load') {
+                    if (await loadGame(confirmAction.saveID)) {
+                      navigate("/lobbyCreationScene");
+                    }
+                  } else {
+                    const deleted = await deleteSavedGame(confirmAction.saveID);
+                    if (deleted) {
+                      await seeSavedGames();
+                    }
+                  }
+                  setConfirmAction(null);
+                }}
+                aria-label="Yes, confirm action"
+              >
+                <span style={{ fontSize: '1.2rem', fontWeight: 'bold' }}>YES</span>
+              </button>
+              <button
+                className="metal-button icon"
+                onClick={() => setConfirmAction(null)}
+                aria-label="No, cancel action"
+              >
+                <span style={{ fontSize: '1.2rem', fontWeight: 'bold' }}>NO</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+      <div className="page-title">
+        <h1 className="metal-text">Load Game</h1>
+      </div>
+      <div className="control-panel">
+          {savedGames.length > 0 ? (
             <div className="lobbies-terminal">
               <h2 className="terminal-title">Saved Games</h2>
               <ul className="terminal-list">
@@ -181,71 +222,52 @@ export default function LoadLobby() {
                   <li key={index} className="terminal-item">
                     <span className="terminal-id">{game.lobbyName}</span>
                     <button
-                      className="metal-button small"
-                      onClick={async () => {
-                        if (await loadGame(game.saveID)) {
-                          navigate("/lobbyCreationScene");
-                        }
+                      className="metal-button icon"
+                      onClick={() => {
+                        setConfirmAction({
+                          type: 'load',
+                          saveID: game.saveID,
+                          lobbyName: game.lobbyName
+                        });
                       }}
                     >
-                      Continue
+                      <div className="continue-icon"></div>
                     </button>
 
                     <button
-                      className="metal-button small"
-                      onClick={async () => {
-                        setGameToDelete(game.saveID);
-                        setShowDeletePopup(true);
+                      className="metal-button icon"
+                      onClick={() => {
+                        setConfirmAction({
+                          type: 'delete',
+                          saveID: game.saveID,
+                          lobbyName: game.lobbyName
+                        });
                       }}
                     >
-                      Delete
+                      <div className="delete-icon"></div>
                     </button>
                   </li>
                 ))}
               </ul>
             </div>
+          ) : (
+            <div className="empty-state">
+              <p className="empty-state-text">No games to load</p>
+            </div>
           )}
 
           {error && <p className="error-text">{error}</p>}
-        </div>
-        {showDeletePopup && (
-          <div className="modal-overlay">
-            <div className="lobbies-terminal modal-popup">
 
-              <h2 className="terminal-title">Confirm Deletion</h2>
-              <p>Are you sure you want to delete this saved game?</p>
+          <div className="button-row">
+            <button className="metal-button icon" onClick={seeSavedGames}>
+              <div className="reload-icon"></div>
+            </button>
 
-              <div className="popup-buttons">
-                
-                <button
-                  className="metal-button small"
-                  onClick={async () => {
-                    if (gameToDelete) {
-                      const deleted = await deleteSavedGame(gameToDelete);
-                      if (deleted) await seeSavedGames();
-                    }
-                    setShowDeletePopup(false);
-                    setGameToDelete(null);
-                  }}
-                >
-                  Yes
-                </button>
-
-                <button
-                  className="metal-button small"
-                  onClick={() => {
-                    setShowDeletePopup(false);
-                    setGameToDelete(null);
-                  }}
-                >
-                  Cancel
-                </button>
-              </div>
-
-            </div>
+            <button className="metal-button icon" onClick={() => navigate("/lobbyScene")}>
+              <div className="exit-icon"></div>
+            </button>
           </div>
-        )}
-      </div>
+        </div>
     </Layout>
   );
 }

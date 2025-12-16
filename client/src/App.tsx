@@ -5,7 +5,7 @@ import RegisterComp from "./lobby/RegisterComp";
 import { BrowserRouter as Router, Routes, Route, useNavigate } from "react-router-dom";
 import Board from "./board/Board";
 import Lobby from "./lobby/Lobby";
-import React, { useState,useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import Layout from "./lobby/Layout";
 import { closeSocket } from "./utils/ws";
 import JoinLobby from './lobby/JoinLobby';
@@ -43,46 +43,13 @@ function Home() {
   const [username, setUsername] = useState<string>(sessionStorage.getItem("username") || "");
   const [error, setError] = useState<string>("");
 
-  useEffect(()=> {
-    const reason : String | null = sessionStorage.getItem("returnReason");
+  useEffect(() => {
+    const reason: String | null = sessionStorage.getItem("returnReason");
     if (reason) {
-      setError(""+reason);
+      setError("" + reason);
       sessionStorage.removeItem("returnReason");
     }
   })
-
-  const handleLogout = async () => {
-    const userID = sessionStorage.getItem("userID");
-
-    if (userID) {
-      try {
-        const response = await fetch(
-          API_BASE_URL + "/api/users/logout?userID=" + userID,
-          {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-              "Authorization": `Bearer ${sessionStorage.getItem("userToken")}`
-            }
-          }
-        );
-
-        if (!response.ok) {
-          console.error("Logout failed with status:", response.status);
-        }
-      } catch (err) {
-        console.error("Logout request error:", err);
-      }
-    }
-
-    // Always clear frontend session, even if backend fails
-    sessionStorage.removeItem("token");
-    sessionStorage.removeItem("username");
-    sessionStorage.removeItem("userID");
-
-    setUsername("");
-    closeSocket(1000);
-  };
 
   const handleLobby = () => {
     navigate("/lobbyScene");
@@ -91,14 +58,17 @@ function Home() {
   const handleLoggedIn = (name: string) => {
     setUsername(name);
   };
+
   const clearError = ():void=> {
     setError("");
   };
+
   return (
     <Layout>
       <div className="panel-container" onClick={clearError} onKeyDown={clearError}>
-        <h1 className="metal-text easteregg">Welcome to RoboRally</h1>
-        <h2 className="home-username">Command Access Portal</h2>
+        <div className="home-title">
+          <h1 className="metal-text easteregg">Welcome to RoboRally</h1>
+        </div>
 
         {username ? (
           <>
@@ -110,21 +80,15 @@ function Home() {
               <button className="metal-button" onClick={handleLobby}>
                 Enter Command Center
               </button>
-
-              <button className="metal-button" onClick={handleLogout}>
-                Logout
-              </button>
             </div>
           </>
         ) : (
           <div className="control-panel auth-panel">
             <LoginComp onLogin={handleLoggedIn} />
             <RegisterComp />
-            
+            {error && <p className="error-text">{error}</p>}
           </div>
-          
         )}
-         {error && <p className="error-text">{error}</p>}
       </div>
       {/* evenly spaced screws along both sides */}
       {Array.from({ length: 10 }).map((_, i) => (

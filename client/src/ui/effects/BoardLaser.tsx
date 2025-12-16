@@ -23,7 +23,7 @@ function BoardLaser({ effect }: { effect: BoardLaserEffect }) {
   const laserImage = `${process.env.PUBLIC_URL}/boardelements/lasers/laser-${direction.toLowerCase()}.png`;
 
   const beamLength = calculateLaserBeamLength(x, y, direction, board, 'board');
-
+  
   // Position lasers against the wall (opposite of firing direction)
   const getPositionStyle = () => {
     switch (direction) {

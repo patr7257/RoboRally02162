@@ -13,8 +13,45 @@
   --space-lg: 20px;
   --radius-md: 8px;
 
+  --header-gap: 1rem;
+  --buttons-gap: 1rem;
+  --panel-gap: 1rem;
+  --small-gap: 0.5rem;
+  --mini-gap: 0.25rem;
+
+  --standard-box-width: 280px;
+  --standard-box-height: 50px;
+
+  --metal-box-width: 280px;
+  --metal-box-width-icons: 110px;
+  --metal-box-height: 55px;
+
+  
+  
+
   --base-font: 16px;
   --font-family: -apple-system, system-ui, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+}
+
+/* Global scrollbar styles */
+::-webkit-scrollbar {
+  width: 12px;
+  height: 12px;
+}
+
+::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.4);
+  border-radius: 6px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg, #ffd700, #b8860b);
+  border-radius: 6px;
+  border: 2px solid rgba(0, 0, 0, 0.4);
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(180deg, #ffed4e, #ffd700);
 }
 
 html, body, #root { height: 100%; }

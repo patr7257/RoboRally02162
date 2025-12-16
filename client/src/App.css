@@ -87,7 +87,10 @@
   width: 100px;
 }
 
-
+.home-title {
+  margin-top: 6rem; /* adjust freely */
+  text-align: center;
+}
 
 @keyframes App-logo-spin {
   from {
@@ -98,13 +101,14 @@
     transform: rotate(360deg);
   }
 }
-
-
-
+.page-title {
+  margin-top: 6rem;      /* pushes it below the logo */
+  text-align: center;
+}
 .logo {
   width: 600px;
   position: absolute;
-  top: 30px;
+  top: 10px;
   left: 50%;
   transform: translateX(-50%);
 }
@@ -138,12 +142,6 @@
   width: 200px;
 }
 
-.auth-container {
-  display: flex;
-  gap: 40px;
-  margin-top: 40px;
-}
-
 .home-username {
   color: #e0e0e0;
   font-weight: 900;
@@ -162,7 +160,6 @@
   padding-bottom: 6px;
 }
 
-
 .home-username strong {
   color: #facc15;
   font-weight: 900;
@@ -171,6 +168,7 @@
     -1px -1px 0 #000;
   letter-spacing: 2px;
 }
+
 .auth-panel {
   display: flex;
   flex-direction: column;
@@ -192,7 +190,6 @@
 .auth-panel input,
 .auth-panel button {
   width: 100%;
-  max-width: 260px;
 }
 
 .control-panel.auth-panel {
@@ -202,11 +199,45 @@
   align-items: flex-start;
   gap: 60px;
   min-width: 800px;
-  min-height: 500px;
-  padding: 40px 100px;
+  min-height: 350px;
+  padding: 20px 60px;
   margin: 0 auto;
   box-sizing: border-box;
   flex-shrink: 0;
+  position: relative;
+}
+
+.auth-panel .error-text {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  height: 30%;
+  width: 90%;
+  max-width: 650px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  color: #fb0000;
+  font-size: 1rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  line-height: 1.5;
+  white-space: pre-line;
+  margin: 0;
+  padding: var(--space-md);
+  background: rgba(15, 0, 0, 0.95);
+  border: 2px solid #ff1a1a;
+  border-radius: 6px;
+  text-shadow:
+    1px 1px 2px #000,
+    0 0 8px rgba(255, 26, 26, 0.7);
+  box-shadow:
+    0 0 10px rgba(255, 26, 26, 0.5),
+    inset 0 1px 3px rgba(255, 255, 255, 0.1);
+  z-index: 100;
 }
 
 .auth-panel h2 {
@@ -229,13 +260,13 @@
 
 .auth-panel input[type="text"],
 .auth-panel input[type="password"] {
-  width: 100%;
-  max-width: 260px;
-  padding: 10px 12px;
+  width: var(--standard-box-width);
+  padding: 10px 12px; 
   margin: 8px 0;
   font-size: 1rem;
   font-weight: 600;
   color: #f0f0f0;
+  box-sizing: border-box;
 
   background: #1e1e1e;
   border: 2px solid #666;
@@ -304,6 +335,7 @@
   font-weight: 900;
   text-transform: uppercase;
   letter-spacing: 3px;
+  min-width: 500px;
   text-shadow:
     2px 2px 2px #000,
     -1px -1px 2px #000,

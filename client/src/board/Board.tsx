@@ -1,15 +1,18 @@
 import React, { useState, useEffect, useRef } from "react";
-import { Menu, X } from "lucide-react";
+import { Menu, X, Home } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { subscribe, sendMessage } from "../utils/ws";
 import { MoveType, GameData, HandData, ROBOT_COLORS, DiscardData } from "../types/boardTypes";
 import { WinnerBanner } from "./WinnerBanner";
 import { BoardRenderer } from "./BoardRenderer";
-import { GameControls } from "./GameControls";
+import { MoveSelector } from "./MoveSelector";
 import ReactionPopUp from "./actionSelector";
 import CheckpointChecklist from "../ui/checkpointChecklist";
 import { leaveLobby } from "../lobby/LeaveLobby";
 import { RespawnDirectionModal } from "../ui/RespawnDirectionModal";
+import "../styles/gameview.css";
+import "../styles/cards.css";
+import "../styles/boardelements.css";
 
 interface ReadinessData {
   playerSubmitted: Record<number, boolean>;
@@ -44,7 +47,7 @@ export default function Board() {
   >("waiting");
   const [hasSubmitted, setHasSubmitted] = useState<boolean>(false);
   const [robotID, setRobotID] = useState<string>("");
-  const [menuOpen, setMenuOpen] = useState(false);
+
   const API_BASE_URL = process.env.REACT_APP_API_BASE_URL;
   const [robotMap, setRobotMap] = useState<{ [username: string]: string }>({});
   const [mapDisplayName, setMapDisplayName] = useState<string>("");
@@ -70,6 +73,8 @@ export default function Board() {
 
   const [winner, setWinner] = useState<number | null>(null);
 
+  const [showExitConfirmation, setShowExitConfirmation] = useState<boolean>(false);
+
   const readinessIntervalRef = useRef<NodeJS.Timeout | null>(null);
 
   const isDemoMode = sessionStorage.getItem("mode") == "demo";
@@ -78,8 +83,8 @@ export default function Board() {
 
   // Fetch lobby info and full board template for Map Banner and starting area info
   useEffect(() => {
-    console.log("lobby id is:"+lobbyId)
-    console.log("lobby id in storage is:"+sessionStorage.getItem("id"))
+    console.log("lobby id is:" + lobbyId)
+    console.log("lobby id in storage is:" + sessionStorage.getItem("id"))
     const fetchLobbyInfo = async () => {
       try {
         const userToken = sessionStorage.getItem("userToken");
@@ -596,128 +601,193 @@ export default function Board() {
         />
       )}
 
-      <div className="board-Left">
-        {mapDisplayName && (
-          <div className="map-name-banner">
-            <span className="map-label">Map:</span>
-            <span className="map-name">{mapDisplayName}</span>
-          </div>
-        )}
-        <div className="boardContainer">
-          <BoardRenderer gameData={gameData} startingAreaInfo={startingAreaInfo} />
-        </div>
-
-      </div>
-
-
-      <div className="board-Right">
-        <div className="info">
-          <div className="navigation relative">
-            <button
-              className="burger-menu-btn"
-              onClick={() => setMenuOpen(!menuOpen)}
-            >
-              {menuOpen ? <X size={24} /> : <Menu size={24} />}
-            </button>
-
-            <div className={`menu-dropdown ${menuOpen ? 'open' : ''}`}>
+      {showExitConfirmation && (
+        <div className="confirmation-overlay">
+          <div className="confirmation-modal">
+            <div className="confirmation-content">
+              <p className="confirmation-text">
+                ARE YOU SURE YOU WANT TO EXIT TO THE MAIN MENU?
+                <br />
+                THE GAME WILL CONTINUE WITHOUT YOU.
+              </p>
+            </div>
+            <div className="confirmation-buttons">
               <button
-                className="go-home-btn"
+                className="metal-button icon"
                 onClick={() => {
                   leaveLobby(lobbyId, sessionStorage.getItem("userID"), null);
-                  navigate("/");
+                  navigate("/lobbyScene");
                 }}
+                aria-label="Yes, exit game"
               >
-                Go to Homepage
+                <span style={{ fontSize: '1.2rem', fontWeight: 'bold' }}>YES</span>
+              </button>
+              <button
+                className="metal-button icon"
+                onClick={() => setShowExitConfirmation(false)}
+                aria-label="No, stay in game"
+              >
+                <span style={{ fontSize: '1.2rem', fontWeight: 'bold' }}>NO</span>
               </button>
             </div>
           </div>
-          {renderRobotLabels()}
-          <div className="game-state-info">
-            <div className="state-badge">
-              State: <strong>{gameState.toUpperCase()}</strong>
-            </div>
+        </div>
+      )}
 
-            {gameState === 'programming' && (
-              <>
-                <div className="timer">
-                  Time Remaining: <strong>{formatTimeRemaining(timeRemaining)}</strong>
-                </div>
-                <div className="readiness">
-                  {getReadinessDisplay()}
-                </div>
-                {hasSubmitted && (
-                  <div className="submitted-indicator">
-                    ✓ You have submitted your program
-                  </div>
-                )}
-              </>
-            )}
+      <div className="board-top-row">
+        <div className="board-top-banner">
+          <div className="map-banner-wrapper">
+            <button
+              className="go-home-btn"
+              onClick={() => setShowExitConfirmation(true)}
+              aria-label="Go to homepage"
+            >
+              <Home size={20} />
+            </button>
 
-            {gameState === 'executing' && (
-              <div className="executing-message">
-                Round is executing...
+            {mapDisplayName && (
+              <div className="map-banner-content">
+                <span className="map-label">Map:</span>
+                <span className="map-name">{mapDisplayName}</span>
               </div>
             )}
-            {gameData && (
-              <CheckpointChecklist board={gameData.board} robots={gameData.robots} />
-            )}
+          </div>
+
+          <div className="discard-pile-wrapper">
+            <h3 className="discard-title">Discard Pile ({discardData?.discard?.length || 0})</h3>
+            <div className="discard-cards-grid">
+              {discardData?.discard && discardData.discard.length > 0 ? (
+                discardData.discard.map((card, index) => (
+                  <span key={index} className="discard-card-chip">{card}</span>
+                ))
+              ) : (
+                <span className="discard-empty-msg">No cards in discard pile</span>
+              )}
+            </div>
+          </div>
+        </div>
+
+        <div className="board-main-content">
+          <div className="board-left-column">
+            <div className="board-box-wrapper">
+              <div className="boardContainer">
+                <BoardRenderer gameData={gameData} startingAreaInfo={startingAreaInfo} />
+              </div>
+            </div>
+          </div>
+
+          <div className="board-right-column">
+            <div className="controls-wrapper">
+              <MoveSelector
+                moves={handData?.hand || []}
+                selectedMoves={selectedMoves}
+                onChange={setSelectedMoves}
+                onSubmitMove={handleSubmitMove}
+                hasEmptySlots={selectedMoves.some((m) => m === null)}
+                isDemoMode={!!isDemoMode}
+                onForceStartRound={handleForceStartRound}
+              />
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div className="board-bottom-row">
+        <div className="game-info-box">
+          <div className="info-content">
+            <div className="info-section">
+              <div className="info-section-title">Players</div>
+              {renderRobotLabels()}
+            </div>
+
+            <div className="info-section">
+              <div className="info-section-title">Last Move</div>
+              {lastMove ? (
+                <div className="last-move-content">
+                  <p className="last-move-robot">
+                    <span
+                      style={{
+                        color: ROBOT_COLORS[(lastMove.robotId - 1) % ROBOT_COLORS.length],
+                        fontWeight: "bold",
+                      }}
+                    >
+                      Robot {lastMove.robotId}
+                    </span>
+                  </p>
+                  <p className="last-move-action">{lastMove.move}</p>
+                </div>
+              ) : (
+                <p className="last-move-empty">No moves yet</p>
+              )}
+            </div>
+
             {gameState === 'programming' && readiness && (
-              <div className="readiness-details">
-                <h3>Player Status</h3>
-                <ul>
+              <div className="info-section">
+                <div className="info-section-title">Player Status</div>
+                <ul className="readiness-list">
                   {Object.entries(readiness.playerSubmitted).map(([playerId, submitted]) => (
                     <li key={playerId}>
-                      Player {playerId}: {submitted ? '✓ Submitted' : ' Waiting'}
+                      Player {playerId}: {submitted ? '✓ Submitted' : '⏳ Waiting'}
                     </li>
                   ))}
                 </ul>
               </div>
             )}
           </div>
-          {lastMove && (
-            <div className="last-move-banner">
-              <h3>Last Move:</h3>
-
-              <p>
-                <span
-                  style={{
-                    color: ROBOT_COLORS[(lastMove.robotId - 1) % ROBOT_COLORS.length],
-                    fontWeight: "bold",
-                  }}
-                >
-                  Robot {lastMove.robotId}
-                </span>
-              </p>
-
-              <p>{lastMove.move}</p>
-            </div>
-          )}
-
         </div>
-        <div className="controls">
-          <div className="damageDecksViewer">
-            <p>Damage Cards Left</p>
-            {damageDecks && (
-              <div className="damage-decks-info">
-                <p>Spam: {damageDecks.spamCount} </p>
-                <p>Trojan Horse: {damageDecks.trojanHorseCount} </p>
-                <p>Worm: {damageDecks.wormCount} </p>
-              </div>
-            )}
-          </div>
 
-          <GameControls
-            selectedMoves={selectedMoves}
-            onSubmitMove={handleSubmitMove}
-            onSelectMove={setSelectedMoves}
-            discard={discardData?.discard || []}
-            hand={handData?.hand || []}
-            isDemoMode={!!isDemoMode}
-            onForceStartRound={handleForceStartRound}
-          />
+        <div className="stats-info-box">
+          <div className="info-content">
+            <div className="info-section">
+              <div className="info-section-title">Damage Cards Left</div>
+              {damageDecks && (
+                <div className="damage-decks-info">
+                  <p>Spam: {damageDecks.spamCount} </p>
+                  <p>Trojan Horse: {damageDecks.trojanHorseCount} </p>
+                  <p>Worm: {damageDecks.wormCount} </p>
+                </div>
+              )}
+            </div>
+
+            <div className="info-section">
+              <div className="info-section-title">Game State</div>
+              <div className="state-badge">
+                State: <strong>{gameState.toUpperCase()}</strong>
+              </div>
+
+              {gameState === 'programming' && (
+                <>
+                  <div className="timer">
+                    Time Remaining: <strong>{formatTimeRemaining(timeRemaining)}</strong>
+                  </div>
+                  <div className="readiness">
+                    {getReadinessDisplay()}
+                  </div>
+                  {hasSubmitted && (
+                    <div className="submitted-indicator">
+                      ✓ You have submitted your registers
+                    </div>
+                  )}
+                </>
+              )}
+
+              {gameState === 'executing' && (
+                <div className="executing-message">
+                  Round is executing...
+                </div>
+              )}
+            </div>
+
+            <div className="info-section">
+              <div className="info-section-title">Checkpoints</div>
+              {gameData && (
+                <CheckpointChecklist board={gameData.board} robots={gameData.robots} />
+              )}
+            </div>
+          </div>
         </div>
       </div>
+
     </div>
   );
 }

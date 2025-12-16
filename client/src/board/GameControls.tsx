@@ -1,7 +1,5 @@
 import React from "react";
-import { MoveType } from "../types/boardTypes";
-import { MoveSelector } from "./MoveSelector";
-import "./board.css"
+import "../styles/gameview.css"
 
 /**
 * @author Asger Allin Jensen
@@ -14,57 +12,15 @@ import "./board.css"
 */
 
 interface GameControlsProps {
-  selectedMoves: (MoveType | null)[];
-  onSubmitMove: (moves: MoveType[]) => void;
-  onSelectMove: (moves: (MoveType | null)[]) => void;
-  hand: MoveType[];
-  discard: MoveType[];
-  isDemoMode: boolean;
-  onForceStartRound: () => void;
+  // Reserved for future game controls if needed
 }
 
 /**
  *  @author Asger Allin Jensen
  *  @author Bjarke Søderhamn Petersen
  */ 
-export const GameControls: React.FC<GameControlsProps> = ({
-  selectedMoves,
-  onSubmitMove,
-  onSelectMove,
-  hand,
-  discard,
-  isDemoMode,
-  onForceStartRound,
-}) => (
+export const GameControls: React.FC<GameControlsProps> = () => (
   <div className="controls">
-
-    <details className="discard-dropdown">
-      <summary>Discard Pile ({discard.length})</summary>
-      <ul>
-        {discard.map((card, index) => (
-          <li key={index}>{card}</li>
-        ))}
-      </ul>
-    </details>
-
-    <div className="move-controls-row">
-      <MoveSelector
-        moves={hand}
-        selectedMoves={selectedMoves}
-        onChange={onSelectMove}
-        onSubmitMove={onSubmitMove}
-        hasEmptySlots={selectedMoves.some((m) => m === null)}
-      />
-
-      {isDemoMode && (
-        <button
-          type="button"
-          className="force-start-round-btn"
-          onClick={onForceStartRound}
-        >
-          Force Start Round
-        </button>
-      )}
-    </div>
+    {/* Game controls placeholder - discard pile and force start button moved to other components */}
   </div>
 );

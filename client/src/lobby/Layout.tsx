@@ -6,7 +6,7 @@
 
 import React, { ReactNode } from "react";
 import { WebSocketManager } from "../utils/ws";
-import "./lobby.css";
+import "../styles/lobby.css";
 
 interface LayoutProps {
   children: ReactNode;

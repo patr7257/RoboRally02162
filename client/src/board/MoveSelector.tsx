@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { motion } from "framer-motion";
 import { MoveType } from "../types/boardTypes";
+import "../styles/cards.css";
 
 /**
 * @author Asger Allin Jensen
@@ -20,6 +21,8 @@ interface MoveSelectorProps {
   onChange: (selectedMoves: (MoveType | null)[]) => void;
   onSubmitMove: (moves: MoveType[]) => void;
   hasEmptySlots: boolean;
+  isDemoMode?: boolean;
+  onForceStartRound?: () => void;
 }
 /**
 * @author Lizette Bloch Dahl Nikolajsen
@@ -284,6 +287,8 @@ export const MoveSelector: React.FC<MoveSelectorProps> = ({
   onChange,
   onSubmitMove,
   hasEmptySlots,
+  isDemoMode,
+  onForceStartRound,
 }) => {
   const [draggedMove, setDraggedMove] = useState<MoveType | null>(null);
   const [dragOverIndex, setDragOverIndex] = useState<number | null>(null);
@@ -378,7 +383,7 @@ export const MoveSelector: React.FC<MoveSelectorProps> = ({
     <div className="moveSelectorContainer">
       <div className="programSlotsSection">
         <h3 className="sectionTitle">
-          YOUR PROGRAM ({selectedMoves.filter(m => m !== null).length}/5)
+          REGISTERS ({selectedMoves.filter(m => m !== null).length}/5)
         </h3>
         <div className="controls-layout">
           <div className="programSlotsGrid">
@@ -396,13 +401,23 @@ export const MoveSelector: React.FC<MoveSelectorProps> = ({
             ))}
           </div>
         </div>
-        <button
-          className="make-move-button"
-          onClick={() => onSubmitMove(selectedMoves.filter((m): m is MoveType => m !== null))}
-          disabled={hasEmptySlots}
-        >
-          Make Move
-        </button>
+        <div className="register-buttons">
+          <button
+            className="make-move-button"
+            onClick={() => onSubmitMove(selectedMoves.filter((m): m is MoveType => m !== null))}
+            disabled={hasEmptySlots}
+          >
+            LOCK REGISTERS
+          </button>
+          {isDemoMode && onForceStartRound && (
+            <button
+              className="make-move-button"
+              onClick={onForceStartRound}
+            >
+              Force Start Round
+            </button>
+          )}
+        </div>
       </div>
       <div
         className="availableMovesSection"

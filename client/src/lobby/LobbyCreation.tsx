@@ -11,6 +11,7 @@ import { fullLobbyInfo, DEFAULT_FULL_LOBBY_INFO } from '../types/lobbyTypes';
  * @author Niklas Emil Lysdal
  * @author Asger Allin Jensen
  * @author Patrick Røbel
+ * @author Lizette Bloch Dahl Nikolajsen
  */
 export default function LobbyCreation() {
   const navigate = useNavigate();
@@ -44,9 +45,9 @@ export default function LobbyCreation() {
       const parsedData = await response.json();
       console.log("Raw Server Response:", parsedData);
       const lobbyInfo: fullLobbyInfo = parsedData as fullLobbyInfo;
-      console.log("lobby status:"+lobbyInfo.isRunning)
+      console.log("lobby status:" + lobbyInfo.isRunning)
       if (lobbyInfo.isRunning) { //if already running, then navigate.
-        console.log("lobby already running:"+lobbyInfo.isRunning)
+        console.log("lobby already running:" + lobbyInfo.isRunning)
         navigate("/boardScene");
       }
 
@@ -97,7 +98,7 @@ export default function LobbyCreation() {
     }
   }, [navigate, updateLobbyInfo])
 
-  /**
+  /** 
    * @author Asger Allin Jensen
    */
 
@@ -164,11 +165,21 @@ export default function LobbyCreation() {
     }
   };
 
+  /**
+   * @author Lizette Bloch Dahl Nikolajsen
+   */
+
+  const everyoneReady =
+    fullLobbyInfo.playerCount > 0 &&
+    Object.values(playersReady).length === fullLobbyInfo.playerCount &&
+    Object.values(playersReady).every(r => r === true);
+
   return (
     <Layout>
-      <div className="panel-container">
-        <h1 className="panel-title">Mission Setup</h1>
-        <div className="lobby-panels-row">
+      <div className="page-title">
+        <h1 className="metal-text">Mission Setup</h1>
+      </div>
+      <div className="lobby-panels-row">
           <div className="readiness-panel">
             <h2>Players: {fullLobbyInfo?.playerCount}/{fullLobbyInfo?.capacity}</h2> {/*unsure if this can be misinterpreted as players ready.*/}
 
@@ -196,27 +207,39 @@ export default function LobbyCreation() {
           <div className="control-panel">
             <div className="lobby-id-display">
               <span className="lobby-name-label">LOBBY</span>
-              <span className="lobby-name-value">{fullLobbyInfo.lobbyName ? fullLobbyInfo.lobbyName : (fullLobbyInfo.lobbyID ? fullLobbyInfo!.lobbyID : "Error")}</span>
+              <span
+                className={
+                  "lobby-name-value" + (everyoneReady ? " all-ready" : "")
+                }
+              >
+                {fullLobbyInfo.lobbyName
+                  ? fullLobbyInfo.lobbyName
+                  : (fullLobbyInfo.lobbyID ? fullLobbyInfo.lobbyID : "Error")}
+              </span>
             </div>
 
-            <button className="metal-button" onClick={() => startGame()}>
-              Start Game
-            </button>
-            <button className="metal-button" onClick={handleToggleReadiness}>
+
+            <button className="metal-button ready-button" onClick={handleToggleReadiness}>
               {isReady ? "Not Ready" : "Ready"}
             </button>
-            <button
-              className="metal-button"
-              onClick={async () => {
-                await leaveLobby(fullLobbyInfo?.lobbyID, userID, setError);
-                navigate("/lobbyScene");
-              }}
-            >
-              Leave Lobby (Exit)
-            </button>
+            <div className="start-exit-row">
+              <button className="metal-button icon" onClick={() => startGame()}>
+                <div className="continue-icon"></div>
+              </button>
+
+
+              <button
+                className="metal-button icon"
+                onClick={async () => {
+                  await leaveLobby(fullLobbyInfo?.lobbyID, userID, setError);
+                  navigate("/lobbyScene");
+                }}
+              >
+                <div className="exit-icon"></div>
+              </button>
+            </div>
           </div>
         </div>
-      </div>
     </Layout>
   );
 

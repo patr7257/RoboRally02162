@@ -67,7 +67,7 @@ export function getSocket(reason: string): WebSocket |null {
             if (e.code == 4001) {
                 //console.log("websocket connection failed due to invalid user state"); since the navigate clears the state  the console is also cleared
                 sessionStorage.clear();
-                sessionStorage.setItem("returnReason", "Error with connection. You have been logged out.");
+                sessionStorage.setItem("returnReason", "You have been logged out. \nLogin again or register new profile.");
 
                 window.location.href = "/"; //navigate but can't use react hook. also cleans memory
                 return;

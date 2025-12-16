@@ -4,7 +4,8 @@ import { calculateBoardSize, getRobotAtPosition, getRobotImage } from "../utils/
 import RobotLaser from "../ui/effects/RobotLaser";
 
 import { BoardTile } from "./BoardTile";
-import "./board.css";
+import "../styles/gameview.css";
+import "../styles/boardelements.css";
 
 /**
 * @author Asger Allin Jensen

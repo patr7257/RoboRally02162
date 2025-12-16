@@ -1,0 +1,553 @@
+
+.board-grid {
+  gap: 0;
+  display: grid;
+}
+
+.tile {
+  position: relative;
+  background-size: cover;
+  background-position: center;
+  width: 100%;
+  height: 100%;
+}
+
+.tile-coords {
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  font-size: calc(var(--tile-size) * 0.15);
+  color: #666;
+}
+
+.wall-n {
+  width: 94%;
+  height: 48%;
+  position: absolute;
+  top: 4%;
+  left: 3%;
+  pointer-events: none;
+  z-index: 3;
+}
+.wall-s {
+  width: 94%;
+  height: 48%;
+  position: absolute;
+  top: 49%;
+  left: 3%;
+  pointer-events: none;
+  z-index: 3;
+}
+.wall-e {
+  width: 94%;
+  height: 48%;
+  position: absolute;
+  top: 26%;
+  left: 26%;
+  pointer-events: none;
+  z-index: 3;
+}
+.wall-w {
+  width: 94%;
+  height: 48%;
+  position: absolute;
+  top: 26%;
+  left: -19%;
+  pointer-events: none;
+  z-index: 3;
+}
+.board-empty {
+  text-align: center;
+  padding: 20px;
+}
+
+:root {
+  --tile-font-ratio: 0.3;
+}
+
+.robot {
+  text-align: center;
+  color: white;
+  font-weight: bold;
+  width: calc(var(--tile-size) * 0.8);
+  height: calc(var(--tile-size) * 0.8);
+  border-radius: 50%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.robot-arrow {
+  font-size: calc(var(--tile-size) * 0.4);
+}
+
+.robot-id {
+  font-size: calc(var(--tile-size) * 0.2);
+}
+
+.tile-effect {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.checkpoint-badge {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%) rotate(0deg);
+  width: 80%;
+  height: 80%;
+  background-size: contain;
+  background-repeat: no-repeat;
+  background-position: center;
+  z-index: 10;
+}
+
+.starting-tile {
+  position: absolute;
+  top: 10%;
+  left: 10%;
+  width: 80%;
+  height: 80%;
+  background-image: url('../../public/boardelements/others/startingtiles.png');
+  background-size: contain;
+  background-repeat: no-repeat;
+  background-position: center;
+  opacity: 1;
+}
+
+.player-indicator {
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  background: rgba(255, 255, 255, 0.9);
+  color: #1B5E20;
+  font-weight: bold;
+  padding: 1px 3px;
+  border-radius: 3px;
+  font-size: calc(var(--tile-size) * 0.2);
+}
+
+.starting-area-tile {
+  position: relative;
+}
+
+.starting-area-tile::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: transparent;
+  pointer-events: none;
+  z-index: 1;
+}
+
+.wall {
+  position: absolute;
+  object-fit: fill;
+  pointer-events: none;
+  z-index: 3;
+}
+
+.winner-banner {
+  background-color: gold;
+  padding: 12px;
+  margin: 8px 0;
+  border-radius: 8px;
+  font-weight: bold;
+  font-size: 1.2rem;
+  text-align: center;
+}
+
+.ck-lists {
+  width: 100%;
+  max-width: 720px;
+  margin-top: 12px;
+  padding: 14px 16px;
+  box-sizing: border-box;
+
+  background:
+    repeating-linear-gradient(
+      45deg,
+      #1a1a1a,
+      #1a1a1a 8px,
+      #151515 8px,
+      #151515 16px
+    );
+
+  border: 3px solid #555;
+  border-radius: 10px;
+
+  box-shadow:
+    inset 0 2px 4px rgba(0, 0, 0, 0.9),
+    inset 0 -2px 3px rgba(255, 255, 255, 0.05),
+    0 6px 14px rgba(0, 0, 0, 0.85);
+
+  color: #cfd8dc;
+}
+
+.ck-section + .ck-section {
+  margin-top: 12px;
+}
+
+.ck-title {
+  font-weight: 900;
+  font-size: 0.9rem;
+  letter-spacing: 1px;
+  margin-bottom: 6px;
+  text-transform: uppercase;
+
+  color: #e0e0e0;
+  border-bottom: 2px solid #555;
+  padding-bottom: 4px;
+}
+
+.ck-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 10px;
+}
+
+.ck-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+
+  padding: 4px 8px;
+  border-radius: 4px;
+
+  background:
+    linear-gradient(
+      180deg,
+      #2a2a2a,
+      #1b1b1b
+    );
+
+  border: 1px solid #666;
+  color: #e6e6e6;
+  font-size: 0.85rem;
+
+  box-shadow:
+    inset 0 1px 1px rgba(255, 255, 255, 0.08),
+    inset 0 -1px 2px rgba(0, 0, 0, 0.8);
+}
+
+.ck-others {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.ck-player {
+  padding-top: 10px;
+  border-top: 2px dashed #444;
+}
+
+.ck-player:first-child {
+  border-top: 0;
+  padding-top: 0;
+}
+
+.ck-player-name {
+  font-family: "Orbitron", sans-serif;
+  font-weight: 900;
+  font-size: 0.8rem;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+
+  margin-bottom: 6px;
+
+  color: #facc15; /* warning yellow */
+  text-shadow:
+    1px 1px 0 #000,
+    0 0 3px rgba(250, 204, 21, 0.4);
+}
+
+.board-grid {
+  position: relative;
+  z-index: 0;
+}
+
+button,
+.button-container {
+  position: relative;
+  z-index: 10;
+}
+
+.reboot-token {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 80%;
+  aspect-ratio: 1 / 1;
+  z-index: 10;
+}
+
+.reboot-token-image {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.gear {
+  background-size: 80%;
+  background-repeat: no-repeat;
+  background-position: center center;
+  opacity: 0.7;
+  transition: opacity 0.3s ease;
+}
+
+.gear:not(.activated) {
+  opacity: 0.9;
+}
+
+.gear.activated {
+  transition: none !important;
+}
+
+.gear.activated.dir-cw {
+  animation: rotate-cw 0.6s ease-in-out;
+  opacity: 0.9;
+}
+
+.gear.activated.dir-ccw {
+  animation: rotate-ccw 0.6s ease-in-out;
+  opacity: 0.9;
+}
+
+@keyframes rotate-cw {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(90deg); }
+}
+
+@keyframes rotate-ccw {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(-90deg); }
+}
+
+
+/* Board and Robot Laser Styles */
+:root {
+  /* Board laser color (red) */
+  --board-laser-color: 255, 0, 0;
+
+  /* Robot laser colors - matching robot colors */
+  --robot-laser-color-1: 59, 130, 246;    /* blue (#3b82f6) */
+  --robot-laser-color-2: 255, 255, 255;   /* white (#ffffff) */
+  --robot-laser-color-3: 34, 197, 94;     /* green (#22c55e) */
+  --robot-laser-color-4: 250, 204, 21;    /* yellow (#facc15) */
+  --robot-laser-color-5: 239, 68, 68;     /* red (#ef4444) */
+  --robot-laser-color-6: 168, 85, 247;    /* purple (#a855f7) */
+}
+
+/* Board Laser Container */
+.board-laser {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+}
+
+/* Laser Emitter (used by board lasers) */
+.laser-emitter {
+  position: absolute;
+  width: calc(var(--tile-size) * 0.25);
+  height: calc(var(--tile-size) * 0.25);
+  object-fit: contain;
+  filter: drop-shadow(0 0 4px rgba(var(--board-laser-color), 0.8));
+  z-index: 2;
+  pointer-events: none;
+}
+
+.board-laser.laser-firing .laser-emitter {
+  filter: drop-shadow(0 0 8px rgba(var(--board-laser-color), 1)) 
+          drop-shadow(0 0 12px rgba(var(--board-laser-color), 0.8));
+}
+
+/* Board Laser Beam */
+.laser-beam {
+  position: absolute;
+  pointer-events: none;
+  z-index: 12;
+  opacity: 0;
+  box-shadow: 
+    0 0 10px rgba(var(--board-laser-color), 0.8),
+    0 0 20px rgba(var(--board-laser-color), 0.6),
+    inset 0 0 10px rgba(255, 255, 255, 0.3);
+  animation: laser-fire 0.8s ease-out;
+}
+
+.board-laser.laser-firing .laser-beam {
+  animation: laser-fire 0.8s ease-out;
+}
+
+.laser-beam[data-direction="N"] {
+  width: calc(var(--tile-size) * 0.12);
+  bottom: 25%;
+  left: 50%;
+  transform: translateX(-50%);
+  transform-origin: bottom center;
+  background: linear-gradient(180deg, 
+    rgba(var(--board-laser-color), 0.9) 0%, 
+    rgba(var(--board-laser-color), 0.7) 50%,
+    rgba(var(--board-laser-color), 0.9) 100%
+  );
+}
+
+.laser-beam[data-direction="S"] {
+  width: calc(var(--tile-size) * 0.12);
+  top: 25%;
+  left: 50%;
+  transform: translateX(-50%);
+  transform-origin: top center;
+  background: linear-gradient(180deg, 
+    rgba(var(--board-laser-color), 0.9) 0%, 
+    rgba(var(--board-laser-color), 0.7) 50%,
+    rgba(var(--board-laser-color), 0.9) 100%
+  );
+}
+
+.laser-beam[data-direction="E"] {
+  height: calc(var(--tile-size) * 0.12);
+  left: 25%;
+  top: 50%;
+  transform: translateY(-50%);
+  transform-origin: left center;
+  background: linear-gradient(90deg, 
+    rgba(var(--board-laser-color), 0.9) 0%, 
+    rgba(var(--board-laser-color), 0.7) 50%,
+    rgba(var(--board-laser-color), 0.9) 100%
+  );
+}
+
+.laser-beam[data-direction="W"] {
+  height: calc(var(--tile-size) * 0.12);
+  right: 25%;
+  top: 50%;
+  transform: translateY(-50%);
+  transform-origin: right center;
+  background: linear-gradient(90deg, 
+    rgba(var(--board-laser-color), 0.9) 0%, 
+    rgba(var(--board-laser-color), 0.7) 50%,
+    rgba(var(--board-laser-color), 0.9) 100%
+  );
+}
+
+/* Robot Laser Container - centered on robot's tile */
+.robot-laser {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Robot Laser Beam - color set dynamically */
+.robot-laser-beam {
+  position: absolute;
+  pointer-events: none;
+  z-index: 12;
+  opacity: 0;
+  box-shadow: 
+    0 0 10px rgba(var(--current-robot-laser-color), 0.8),
+    0 0 20px rgba(var(--current-robot-laser-color), 0.6),
+    inset 0 0 10px rgba(255, 255, 255, 0.3);
+}
+
+.robot-laser.laser-firing .robot-laser-beam {
+  animation: laser-fire 0.8s ease-out;
+}
+
+/* Robot laser beam directional positioning - shoots from center */
+.robot-laser-beam[data-direction="N"] {
+  width: calc(var(--tile-size) * 0.12);
+  bottom: 50%;
+  left: 50%;
+  transform: translateX(-50%);
+  transform-origin: bottom center;
+}
+
+.robot-laser-beam[data-direction="S"] {
+  width: calc(var(--tile-size) * 0.12);
+  top: 50%;
+  left: 50%;
+  transform: translateX(-50%);
+  transform-origin: top center;
+}
+
+.robot-laser-beam[data-direction="E"] {
+  height: calc(var(--tile-size) * 0.12);
+  left: 50%;
+  top: 50%;
+  transform: translateY(-50%);
+  transform-origin: left center;
+}
+
+.robot-laser-beam[data-direction="W"] {
+  height: calc(var(--tile-size) * 0.12);
+  right: 50%;
+  top: 50%;
+  transform: translateY(-50%);
+  transform-origin: right center;
+}
+
+/* Gradient backgrounds for robot laser beams */
+.robot-laser-beam[data-direction="N"],
+.robot-laser-beam[data-direction="S"] {
+  background: linear-gradient(180deg, 
+    rgba(var(--current-robot-laser-color), 0.9) 0%, 
+    rgba(var(--current-robot-laser-color), 0.7) 50%,
+    rgba(var(--current-robot-laser-color), 0.9) 100%
+  );
+}
+
+.robot-laser-beam[data-direction="E"],
+.robot-laser-beam[data-direction="W"] {
+  background: linear-gradient(90deg, 
+    rgba(var(--current-robot-laser-color), 0.9) 0%, 
+    rgba(var(--current-robot-laser-color), 0.7) 50%,
+    rgba(var(--current-robot-laser-color), 0.9) 100%
+  );
+}
+
+/* Shared laser fire animation */
+@keyframes laser-fire {
+  0% {
+    opacity: 0;
+    filter: brightness(2.5);
+  }
+  10% {
+    opacity: 1;
+    filter: brightness(2);
+  }
+  50% {
+    opacity: 0.95;
+    filter: brightness(1.3);
+  }
+  90% {
+    opacity: 0.9;
+    filter: brightness(1.1);
+  }
+  100% {
+    opacity: 0;
+    filter: brightness(1);
+  }
+}
+
+.pits-effect {
+  filter: drop-shadow(0 0 4px rgba(0, 0, 0, 0.9));
+  z-index: 5;
+}
+
+.pits-effect--active {
+  filter: drop-shadow(0 0 10px rgba(239, 68, 68, 0.85));
+}

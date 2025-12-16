@@ -17,6 +17,7 @@ interface Lobby {
  * @author Niklas Emil Lysdal
  * @author Asger Allin Jensen
  * @author Kajsa Alice Ulrika Berlstedt
+ * @author Lizette Bloch Dahl Nikolajsen
  */
 export default function JoinLobby() {
   const navigate = useNavigate();
@@ -91,12 +92,12 @@ export default function JoinLobby() {
     }
   }, [updateLobbyList]);
 
-/**
- * @author Bjarke Søderhamn Petersen
- * @author Niklas Emil Lysdal
- * @author Asger Allin Jensen
- * @author Kajsa Alice Ulrika Berlstedt
- */
+  /**
+   * @author Bjarke Søderhamn Petersen
+   * @author Niklas Emil Lysdal
+   * @author Asger Allin Jensen
+   * @author Kajsa Alice Ulrika Berlstedt
+   */
   const joinLobby = async (id: string): Promise<boolean> => {
     setError("");
     try {
@@ -106,7 +107,7 @@ export default function JoinLobby() {
           "Content-Type": "application/json",
           "Authorization": `Bearer ${sessionStorage.getItem("userToken")}`
         },
-        body: JSON.stringify({lobbyID: id }),
+        body: JSON.stringify({ lobbyID: id }),
       });
 
       const data: string = await response.text();
@@ -133,19 +134,11 @@ export default function JoinLobby() {
 
   return (
     <Layout>
-      <div className="panel-container">
-        <h1 className="panel-title">Mission Access Terminal</h1>
-
-        <div className="lobbies-panel">
-          <button className="metal-button" onClick={updateLobbyList}>
-            Scan for Active Lobbies
-          </button>
-
-          <button className="metal-button" onClick={() => navigate("/lobbyScene")}>
-            Return to Command Center
-          </button>
-
-          {lobbies.length > 0 && (
+      <div className="page-title">
+        <h1 className="metal-text">Join Lobby</h1>
+      </div>
+      <div className="lobbies-panel">
+          {lobbies.length > 0 ? (
             <div className="lobbies-terminal">
               <h2 className="terminal-title">Available Lobbies</h2>
               <div className="terminal-search">
@@ -171,45 +164,58 @@ export default function JoinLobby() {
 
                 <tbody>
                   {lobbies
-                      .filter((lobby) => {
-                              const term = searchTerm.trim().toLowerCase();
-                              if (!term) return true; // no search term, include all
-                              const name = lobby.lobbyInfo.lobbyName?.toLowerCase() || "";
-                              return name.includes(term);
-                            })
-                      .map((lobby, index) => {
-                    const isFull = lobby.playerCount===lobby.capacity;
-                    const canJoin : boolean = lobby.canJoin;
-                    const isDisabled = isFull || !canJoin;
-                    const rowClassName = isDisabled ? "lobby-item text-red" : "lobby-item";
-                    return (
-                      <tr key={index} className={rowClassName}>
-                        <td className="lobby-table-name">{lobby.lobbyName}</td>
-                        <td className="lobby-table-players"> {lobby.playerCount}/{lobby.capacity}</td>
-                        <td className="lobby-table-status">{lobby.isRunning ? 'Running' : 'Preparing'}</td>
-                        <td>
-                          <button
-                            className="metal-button small"
-                            onClick={async () => {
-                              if (await joinLobby(lobby.lobbyID)) {
-                                navigate("/lobbyCreationScene");
-                              }
-                            }}
-                          >
-                            Join
-                          </button>
-                        </td>
-                      </tr>
-                    )
-                  })}
+                    .filter((lobby) => {
+                      const term = searchTerm.trim().toLowerCase();
+                      if (!term) return true; // no search term, include all
+                      const name = lobby.lobbyInfo.lobbyName?.toLowerCase() || "";
+                      return name.includes(term);
+                    })
+                    .map((lobby, index) => {
+                      const isFull = lobby.playerCount === lobby.capacity;
+                      const canJoin: boolean = lobby.canJoin;
+                      const isDisabled = isFull || !canJoin;
+                      const rowClassName = isDisabled ? "lobby-item text-red" : "lobby-item";
+                      return (
+                        <tr key={index} className={rowClassName}>
+                          <td className="lobby-table-name">{lobby.lobbyName}</td>
+                          <td className="lobby-table-players"> {lobby.playerCount}/{lobby.capacity}</td>
+                          <td className="lobby-table-status">{lobby.isRunning ? 'Running' : 'Preparing'}</td>
+                          <td>
+                            <button
+                              className="metal-button icon"
+                              onClick={async () => {
+                                if (await joinLobby(lobby.lobbyID)) {
+                                  navigate("/lobbyCreationScene");
+                                }
+                              }}
+                            >
+                              Join
+                            </button>
+                          </td>
+                        </tr>
+                      )
+                    })}
                 </tbody>
               </table>
+            </div>
+          ) : (
+            <div className="empty-state">
+              <p className="empty-state-text">No lobbies to join</p>
             </div>
           )}
 
           {error && <p className="error-text">{error}</p>}
+
+          <div className="button-row">
+            <button className="metal-button icon" onClick={updateLobbyList}>
+              <div className="reload-icon"></div>
+            </button>
+
+            <button className="metal-button icon" onClick={() => navigate("/lobbyScene")}>
+              <div className="exit-icon"></div>
+            </button>
+          </div>
         </div>
-      </div>
     </Layout>
   );
 }

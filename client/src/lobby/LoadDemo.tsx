@@ -2,6 +2,8 @@ import { useNavigate } from "react-router-dom";
 import Layout from "./Layout";
 import React, { useState, useEffect } from "react";
 import { useDemoService } from "../services/demoService";
+import "./loadLobby.css";
+import "../styles/joinLobby.css";
 
 
 /** 
@@ -22,42 +24,46 @@ export default function LoadLobby() {
 
   return (
     <Layout>
-      <div className="panel-container">
-        <h1 className="panel-title">Demo Games</h1>
+      <div className="page-title">
+        <h1 className="metal-text">Demo Games</h1>
+      </div>
+      <div className="control-panel">
+        {lobbies.length > 0 ? (
+          <div className="lobbies-terminal">
+            <h2 className="terminal-title">Saved Games</h2>
+            <ul className="terminal-list">
+              {lobbies.map((demoName, index) => (
+                <li key={index} className="terminal-item">
+                  <span className="terminal-id">{demoName}</span>
+                  <button
+                    className="metal-button small"
+                    onClick={async () => {
+                      const newLobbyId = await loadAndStartDemoGame(demoName);
+                      if (newLobbyId) {
+                        sessionStorage.setItem("id", newLobbyId);
+                        sessionStorage.setItem("mode", "demo");
+                        navigate("/boardScene");
+                      }
+                    }}
+                  >
+                    Start
+                  </button>
+                </li>
+              ))}
+            </ul>
+          </div>
+        ) : (
+          <div className="empty-state">
+            <p className="empty-state-text">No games to load</p>
+          </div>
+        )}
 
-        <div className="control-panel">
+        {error && <p className="error-text">{error}</p>}
 
-          <button className="metal-button" onClick={() => navigate("/lobbyScene")}>
-            Return to Command Center
+        <div className="button-row">
+          <button className="metal-button icon" onClick={() => navigate("/lobbyScene")}>
+            <div className="exit-icon"></div>
           </button>
-
-          {lobbies.length > 0 && (
-            <div className="lobbies-terminal">
-              <h2 className="terminal-title">Saved Games</h2>
-              <ul className="terminal-list">
-                {lobbies.map((demoName, index) => (
-                  <li key={index} className="terminal-item">
-                    <span className="terminal-id">{demoName}</span>
-                    <button
-                      className="metal-button small"
-                      onClick={async () => {
-                        const newLobbyId = await loadAndStartDemoGame(demoName);
-                        if (newLobbyId) {
-                          sessionStorage.setItem("id", newLobbyId);
-                          sessionStorage.setItem("mode", "demo");
-                          navigate("/boardScene");
-                        }
-                      }}
-                    >
-                      Start
-                    </button>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          )}
-
-          {error && <p className="error-text">{error}</p>}
         </div>
       </div>
     </Layout>

@@ -1,10 +1,10 @@
-import Reac, { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import Layout from "./Layout";       // import the shared layout
 import { useNavigate } from "react-router-dom";
 import { BoardTemplateInfo } from '../types/boardTypes';
 import { BoardTemplateViewer } from '../board/BoardTemplateViewer';
 import { fetchBoardTemplates } from '../services/boardTemplateService';
-import "./lobby.css";
+import "../styles/lobby.css";
 import "../styles/lobbyCreator.css";
 
 const API_BASE_URL = process.env.REACT_APP_API_BASE_URL;
@@ -12,6 +12,7 @@ const API_BASE_URL = process.env.REACT_APP_API_BASE_URL;
 /**
  *@author: Niklas Emil Lysdal
  *@author: Patrick Røbel
+ *@author Lizette Bloch Dahl Nikolajsen
  */
 export default function LobbyCreator() { //change this name
     const navigate = useNavigate();
@@ -34,11 +35,11 @@ export default function LobbyCreator() { //change this name
         setSelectedTemplate(templateName);
         // Don't close the viewer - let user confirm with button
     };
-    
+
     const handleTemplateConfirm = () => {
         setShowTemplateViewer(false);
     };
-    
+
     /**
      *@author: Niklas Emil Lysdal
      */
@@ -52,7 +53,7 @@ export default function LobbyCreator() { //change this name
                     "Content-Type": "application/json",
                     "Authorization": `Bearer ${sessionStorage.getItem("userToken")}`
                 },
-                body: JSON.stringify({ capacity: capacity, lobbyName: lobbyName, boardTemplate: selectedTemplate  }),
+                body: JSON.stringify({ capacity: capacity, lobbyName: lobbyName, boardTemplate: selectedTemplate }),
             });
             //console.log("Reached backend. Status:", response.status);
             if (!response.ok) {
@@ -136,7 +137,9 @@ export default function LobbyCreator() { //change this name
 
     return (
         <Layout>
-            <h1> Create Lobby</h1>
+            <div className="page-title">
+                <h1 className="metal-text">Create Lobby</h1>
+            </div>
             <div className="lobby-settings-panel">
                 <div className="lobby-settings" >
 
@@ -165,21 +168,16 @@ export default function LobbyCreator() { //change this name
                                 placeholder="Enter capacity (1-6)"
                             />
                         </div>
-                        
+
                         <div className="form-row">
                             <label htmlFor="boardTemplate">Map</label>
-                            <div className="template-selector">
-                                <span className="selected-template-name">
-                                    {templates.find(t => t.name === selectedTemplate)?.displayName || selectedTemplate}
-                                </span>
-                                <button 
-                                    type="button"
-                                    className="choose-template-button"
-                                    onClick={() => setShowTemplateViewer(true)}
-                                >
-                                    Choose Template
-                                </button>
-                            </div>
+                            <button
+                                type="button"
+                                className="choose-template-button"
+                                onClick={() => setShowTemplateViewer(true)}
+                            >
+                                {templates.find(t => t.name === selectedTemplate)?.displayName || selectedTemplate || "Choose Template"}
+                            </button>
                         </div>
 
                     </div>
@@ -188,12 +186,12 @@ export default function LobbyCreator() { //change this name
 
                 <div className="settings-buttons">
 
-                    <button className="metal-button" onClick={() => navigate("/lobbyScene")}>
-                        Cancel
+                    <button className="metal-button icon" onClick={() => navigate("/lobbyScene")}>
+                        <div className="exit-icon"></div>
                     </button>
 
-                    <button className="metal-button" onClick={() => finishCreation()}>
-                        Finish
+                    <button className="metal-button icon" onClick={() => finishCreation()}>
+                        <div className="continue-icon"></div>
                     </button>
 
                 </div>
@@ -202,7 +200,7 @@ export default function LobbyCreator() { //change this name
                     <label> {error} </label>
                 </div>
             </div>
-            
+
             {showTemplateViewer && (
                 <BoardTemplateViewer
                     templates={templates}

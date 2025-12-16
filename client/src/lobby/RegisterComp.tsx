@@ -89,9 +89,9 @@ export default function RegisterComp({ }: RegisterCompProps) {
       <button type="button" className="metal-button" onClick={handleRegister}>
         Register
       </button>
-      {/* Themed feedback messages */}
-      {error && <p className="auth-message error">{error}</p>}
-      {success && <p className="auth-message success">{success}</p>}
+      <p className={`auth-message ${error ? 'error' : success ? 'success' : ''}`}>
+        {error || success || '\u00A0'}
+      </p>
     </div>
   );
 }

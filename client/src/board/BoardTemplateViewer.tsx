@@ -1,6 +1,7 @@
 import React from 'react';
 import { BoardTemplateInfo } from '../types/boardTypes';
-import './board.css';
+import '../styles/gameview.css';
+import '../styles/boardTemplates.css';
 
 /**
  * Component for displaying and selecting board templates

@@ -2,6 +2,7 @@ import { useNavigate } from "react-router-dom";
 import Layout from "./Layout";
 import React, { useState, useEffect, useCallback } from "react";
 import { subscribe } from "../utils/ws";
+import "../styles/joinLobby.css";
 
 interface GameInfo {
   lobbyName: string;
@@ -11,6 +12,7 @@ interface GameInfo {
 
 /**
  * @author Benjamin Benyo Endahl Hansen
+ * @author Lizette Bloch Dahl Nikolajsen
  */
 
 export default function SeeAllGames() {
@@ -75,19 +77,11 @@ export default function SeeAllGames() {
 
   return (
     <Layout>
-      <div className="panel-container">
-        <h1 className="panel-title">Mission Access Terminal</h1>
-
-        <div className="lobbies-panel">
-          <button className="metal-button" onClick={seeAllGames}>
-            See All Games
-          </button>
-
-          <button className="metal-button" onClick={() => navigate("/lobbyScene")}>
-            Return to Command Center
-          </button>
-
-          {savedGames.length > 0 && (
+      <div className="page-title">
+        <h1 className="metal-text">GAME ADMINSTRATION</h1>
+      </div>
+      <div className="lobbies-panel">
+          {savedGames.length > 0 ? (
             <div className="lobbies-terminal">
               <h2 className="terminal-title">All Games</h2>
 
@@ -128,11 +122,24 @@ export default function SeeAllGames() {
                 </tbody>
               </table>
             </div>
+          ) : (
+            <div className="empty-state">
+              <p className="empty-state-text">No games found</p>
+            </div>
           )}
 
           {error && <p className="error-text">{error}</p>}
+
+          <div className="button-row">
+            <button className="metal-button icon" onClick={seeAllGames}>
+              <div className="reload-icon"></div>
+            </button>
+
+            <button className="metal-button icon" onClick={() => navigate("/lobbyScene")}>
+              <div className="exit-icon"></div>
+            </button>
+          </div>
         </div>
-      </div>
     </Layout>
   );
 }
