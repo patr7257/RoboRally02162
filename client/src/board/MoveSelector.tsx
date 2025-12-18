@@ -23,6 +23,7 @@ interface MoveSelectorProps {
   hasEmptySlots: boolean;
   isDemoMode?: boolean;
   onForceStartRound?: () => void;
+  hasSubmitted: boolean;
 }
 /**
 * @author Lizette Bloch Dahl Nikolajsen
@@ -215,8 +216,8 @@ const MoveCard = ({
     draggable
     onDragStart={onDragStart}
     className={`moveCard ${isDamageCard(move) ? "moveCard-damage" :
-        isSpecialCard(move) ? "moveCard-special" :
-          "moveCard-normal"
+      isSpecialCard(move) ? "moveCard-special" :
+        "moveCard-normal"
       } card-index-${index + 1}`}
     whileTap={{ scale: 0.95 }}
     initial={{ opacity: 0, y: 20 }}
@@ -259,8 +260,8 @@ const DropSlot = ({
     {move ? (
       <div
         className={`moveCard ${isDamageCard(move) ? "moveCard-damage" :
-            isSpecialCard(move) ? "moveCard-special" :
-              "moveCard-normal"
+          isSpecialCard(move) ? "moveCard-special" :
+            "moveCard-normal"
           }`}
         draggable
         onDragStart={onDragStart}
@@ -287,6 +288,7 @@ export const MoveSelector: React.FC<MoveSelectorProps> = ({
   hasEmptySlots,
   isDemoMode,
   onForceStartRound,
+  hasSubmitted,
 }) => {
   const [draggedMove, setDraggedMove] = useState<MoveType | null>(null);
   const [dragOverIndex, setDragOverIndex] = useState<number | null>(null);
@@ -403,9 +405,9 @@ export const MoveSelector: React.FC<MoveSelectorProps> = ({
           <button
             className="make-move-button"
             onClick={() => onSubmitMove(selectedMoves.filter((m): m is MoveType => m !== null))}
-            disabled={hasEmptySlots}
+            disabled={hasEmptySlots || hasSubmitted}
           >
-            LOCK REGISTERS
+            {hasSubmitted ? "REGISTERS LOCKED" : "LOCK REGISTERS"}
           </button>
           {isDemoMode && onForceStartRound && (
             <button

@@ -148,6 +148,9 @@ public class GameScheduler implements RoundPacer {
         listeners.forEach(l -> l.onRoundExecuting(session));
 
         Game game = session.getGame();
+
+        game.clearLastMoves();
+
         game.applyTileEffects(Phase.ACTIVATE_ANTENNA);
 
         ScheduledFuture<?> pre = scheduler.schedule(

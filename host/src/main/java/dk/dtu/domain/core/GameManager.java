@@ -313,10 +313,10 @@ public class GameManager implements GameObserver {
                     yield Optional.of((T) cards);
                 }
 
-                case GameQuery.GetLastMove lastMove -> {
+                case GameQuery.GetLastMoves lastMoves -> {
                     Game game = session.getGame();
-                    Map<Integer,String> card = game.getLastMove();
-                    yield Optional.ofNullable((T) card);
+                    List<Map.Entry<Integer, String>> cards = game.getLastMoves();
+                    yield Optional.ofNullable((T) cards);
                 }
 
                 case GameQuery.GetDamageDecks damageDecks -> {

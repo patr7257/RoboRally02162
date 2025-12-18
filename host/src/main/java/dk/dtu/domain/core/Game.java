@@ -39,8 +39,8 @@ public class Game {
     private final List<Robot> robots;
     private final Map<Integer, Robot> robotMap = new HashMap<>();
     private final Map<Integer, Deck> deckMap = new HashMap<>();
-    private Map<Integer, String> lastMove;
     private Integer winner;
+    private List<Map.Entry<Integer, String>> lastMoves = new ArrayList<>();;
     private final List<GameObserver> observers = new ArrayList<>();
     private DamageDecks damageDecks;
 
@@ -174,10 +174,16 @@ public class Game {
      * @author Bjarke Søderhamn Petersen
      * @author Asger Allin Jensen
      */
-    public Map<Integer, String> getLastMove() {
-        return lastMove;
+    public List<Map.Entry<Integer, String>> getLastMoves() {
+        return List.copyOf(lastMoves); // immutable view
     }
 
+    /**
+     * @author Bjarke Søderhamn Petersen
+     */
+    public void clearLastMoves() {
+        lastMoves.clear();
+    }
 
     /**
      * Submits and validates a player's selected program (fills remaining slots if
@@ -533,7 +539,6 @@ public class Game {
         ProgramOP op = robot.pollNextOp();
         ProgramCard pc = robot.pollNextPc();
         if (op == null) return;
-
         Deck deck = deckMap.get(robot.getId());
 
         boolean resolvingDamage = true;
@@ -589,7 +594,10 @@ public class Game {
         if (!(op instanceof ProgramOP.Again)) {
             robot.setLastExecutedOp(op);
         }
-        lastMove = Map.of(robot.getId(),pc.toString().equals("MOVE-1") ? "MOVEBACK" : pc.toString());
+        lastMoves.add(Map.entry(
+                robot.getId(),
+                pc.toString().equals("MOVE-1") ? "MOVEBACK" : pc.toString()
+        ));
         notifyGameUpdate();
     }
 

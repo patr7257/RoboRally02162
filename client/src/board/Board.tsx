@@ -54,6 +54,9 @@ export default function Board() {
   const [needsRespawn, setNeedsRespawn] = useState<boolean>(false);
   const [respawnRobotId, setRespawnRobotId] = useState<number | null>(null);
   const [firstSubmissionDelayed, setFirstSubmissionDelayed] = useState(false);
+  const [moveHistory, setMoveHistory] = useState<{ robotId: number; move: string }[]>([]);
+  const moveHistoryRef = useRef<HTMLDivElement | null>(null);
+  const readinessIntervalRef = useRef<NodeJS.Timeout | null>(null);
   const [startingAreaInfo, setStartingAreaInfo] = useState<{
     direction: string;
     width: number;
@@ -71,15 +74,16 @@ export default function Board() {
     deadline?: number;
   } | null>(null);
 
+  useEffect(() => {
+    if (moveHistoryRef.current) {
+      moveHistoryRef.current.scrollTop = moveHistoryRef.current.scrollHeight;
+    }
+  }, [moveHistory]);
   const [winner, setWinner] = useState<number | null>(null);
 
   const [showExitConfirmation, setShowExitConfirmation] = useState<boolean>(false);
 
-  const readinessIntervalRef = useRef<NodeJS.Timeout | null>(null);
-
   const isDemoMode = sessionStorage.getItem("mode") == "demo";
-
-  const [lastMove, setLastMove] = useState<{ robotId: number; move: string } | null>(null);
 
   // Fetch lobby info and full board template for Map Banner and starting area info
   useEffect(() => {
@@ -220,13 +224,14 @@ export default function Board() {
             break;
 
           case "roundExecuting":
+            setMoveHistory([]);
             setGameState('executing');
             stopReadinessPolling();
             break;
 
           case "update":
             sendMessage({ lobbyID: lobbyId, payload: { type: "getBoard" } });
-            sendMessage({ lobbyID: lobbyId, payload: { type: "getLastMove" } });
+            sendMessage({ lobbyID: lobbyId, payload: { type: "getLastMoves" } });
             window.dispatchEvent(new Event('roundExecuted'));
             break;
 
@@ -276,17 +281,24 @@ export default function Board() {
             setDamageDecks(actualData.payload);
             break;
 
-          case "lastMove":
-            if (actualData.payload?.lastMove) {
-              const str = actualData.payload.lastMove;
+          case "lastMoves":
 
-              const match = str.match(/\{(\d+)=(.+)\}/);
+            const raw = actualData.payload?.lastMoves;
 
-              if (match) {
-                const robotId = parseInt(match[1], 10);
-                const move = match[2];
-                setLastMove({ robotId, move });
-              }
+            if (typeof raw === "string") {
+              const trimmed = raw.slice(1, -1);
+
+              const parsed = trimmed
+                .split(", ")
+                .map((entry: string) => {
+                  const [robotId, move] = entry.split("=");
+                  return {
+                    robotId: Number(robotId),
+                    move: move,
+                  };
+                });
+
+              setMoveHistory(parsed);
             }
             break;
 
@@ -661,6 +673,7 @@ export default function Board() {
                 hasEmptySlots={selectedMoves.some((m) => m === null)}
                 isDemoMode={!!isDemoMode}
                 onForceStartRound={handleForceStartRound}
+                hasSubmitted={hasSubmitted}
               />
             </div>
           </div>
@@ -676,20 +689,29 @@ export default function Board() {
             </div>
 
             <div className="info-section">
-              <div className="info-section-title">Last Move</div>
-              {lastMove ? (
-                <div className="last-move-content">
-                  <p className="last-move-robot">
-                    <span
-                      style={{
-                        color: ROBOT_COLORS[(lastMove.robotId - 1) % ROBOT_COLORS.length],
-                        fontWeight: "bold",
-                      }}
-                    >
-                      Robot {lastMove.robotId}
-                    </span>
-                  </p>
-                  <p className="last-move-action">{lastMove.move}</p>
+              <div className="info-section-title">Last Moves</div>
+
+              {moveHistory.length > 0 ? (
+                <div
+                  className="last-move-content"
+                  ref={moveHistoryRef}
+                  style={{ maxHeight: "150px", overflowY: "auto" }}
+                >
+                  {moveHistory.map((move, index) => (
+                    <div key={index}>
+                      <p className="last-move-robot">
+                        <span
+                          style={{
+                            color: ROBOT_COLORS[(move.robotId - 1) % ROBOT_COLORS.length],
+                            fontWeight: "bold",
+                          }}
+                        >
+                          Robot {move.robotId}
+                        </span>
+                      </p>
+                      <p className="last-move-action">{move.move}</p>
+                    </div>
+                  ))}
                 </div>
               ) : (
                 <p className="last-move-empty">No moves yet</p>

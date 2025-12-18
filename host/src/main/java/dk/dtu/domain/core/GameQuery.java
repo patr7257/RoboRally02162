@@ -14,7 +14,7 @@ import java.util.Map;
  * @author William Pii Jæger
  * @author Weihao Mo
  */
-public sealed interface GameQuery<T> permits GameQuery.GetDamageDecks, GameQuery.GetDiscard, GameQuery.GetHand, GameQuery.GetLastMove, GameQuery.GetReadiness, GameQuery.GetSnapshot, GameQuery.GetTimeRemaining, GameQuery.GetWinner {
+public sealed interface GameQuery<T> permits GameQuery.GetDamageDecks, GameQuery.GetDiscard, GameQuery.GetHand, GameQuery.GetLastMoves, GameQuery.GetReadiness, GameQuery.GetSnapshot, GameQuery.GetTimeRemaining, GameQuery.GetWinner {
 
     record GetSnapshot() implements GameQuery<SnapshotPayload> {
     }
@@ -34,7 +34,7 @@ public sealed interface GameQuery<T> permits GameQuery.GetDamageDecks, GameQuery
     record GetDamageDecks() implements GameQuery<DamageDecks> {
     }
 
-    record GetLastMove() implements GameQuery<Map<Integer,String>> {
+    record GetLastMoves() implements GameQuery<List<Map.Entry<Integer, String>>> {
     }
 
     record GetWinner() implements  GameQuery<Integer> {}
