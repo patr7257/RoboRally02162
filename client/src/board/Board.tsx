@@ -495,6 +495,28 @@ export default function Board() {
     });
   };
 
+  useEffect(() => {
+    if (gameState !== 'programming') return;
+
+    if (hasSubmitted) return;
+
+    if (isDemoMode) return;
+
+    if (timeRemaining <= 2000 && timeRemaining > 0) {
+      const hasAnyMoves = selectedMoves.some(move => move !== null);
+
+      if (hasAnyMoves) {
+        console.log('Auto-submitting due to time running out...');
+
+        const movesToSubmit = selectedMoves.filter(move => move !== null) as MoveType[];
+
+        if (movesToSubmit.length > 0) {
+          handleSubmitMove(movesToSubmit);
+        }
+      }
+    }
+  }, [timeRemaining, gameState, hasSubmitted, selectedMoves]);
+
   /**
    * @author William Pii Jæger
    */
