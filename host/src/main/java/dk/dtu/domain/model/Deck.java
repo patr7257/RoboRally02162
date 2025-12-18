@@ -60,6 +60,9 @@ public class Deck {
      * @author Asger Allin Jensen
      */
     public ProgramCard popTop(){
+        if (drawPile.isEmpty()) {
+            reshuffle();
+        }
         return drawPile.pop();
     }
 
@@ -67,6 +70,9 @@ public class Deck {
      * @author Bjarke Søderhamn Petersen
      */
     public ProgramCard spamTop() {
+        if (drawPile.isEmpty()) {
+            reshuffle();
+        }
         ProgramCard card = drawPile.pop();
         discard(card);
         return card;
