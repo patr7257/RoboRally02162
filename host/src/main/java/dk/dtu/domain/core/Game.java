@@ -169,8 +169,8 @@ public class Game {
         return List.copyOf(deckMap.get(robotID).getDiscardPile());
     }
 
-    public ProgramOP spamDeckOp(Robot robot){
-        return deckMap.get(robot.getId()).spamTop().toOp();
+    public ProgramOP peekDrawPileOp(Robot robot){
+        return deckMap.get(robot.getId()).peekDrawPileTop().toOp();
     }
 
     /**
@@ -726,6 +726,13 @@ public class Game {
         return card.toOp();
     }
 
+    /**
+     * @author Bjarke Søderhamn Petersen
+     */
+    public void discardTopRobotCard(Robot robot) {
+        deckMap.get(robot.getId()).discardTopCard();
+
+    }
     /**
      * Returns the list of robots in priority order for the current register.
      *

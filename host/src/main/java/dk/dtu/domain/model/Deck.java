@@ -69,13 +69,22 @@ public class Deck {
     /**
      * @author Bjarke Søderhamn Petersen
      */
-    public ProgramCard spamTop() {
+    public void discardTopCard() {
         if (drawPile.isEmpty()) {
             reshuffle();
         }
-        ProgramCard card = drawPile.pop();
+        ProgramCard card = popTop();
         discard(card);
-        return card;
+    }
+
+    /**
+     * @author Bjarke Søderhamn Petersen
+     */
+    public ProgramCard peekDrawPileTop() {
+        if (drawPile.isEmpty()) {
+            reshuffle();
+        }
+        return drawPile.peek();
     }
 
     /**

@@ -219,14 +219,15 @@ public class GameScheduler implements RoundPacer {
 
         ProgramOP nextOp = peekNextOp(currentRobot);
 
-        ProgramOP topDeckOp = game.spamDeckOp(currentRobot);
+        ProgramOP drawPileOp = game.peekDrawPileOp(currentRobot);
 
         if (nextOp instanceof ProgramOP.Reaction reaction) {
             handleReaction(session, reg, robots, robotIndex, currentRobot, reaction);
             return;
         }
 
-        if (nextOp instanceof ProgramOP.Spam && topDeckOp instanceof ProgramOP.Reaction reaction) {
+        if (nextOp instanceof ProgramOP.Spam && drawPileOp instanceof ProgramOP.Reaction reaction) {
+            game.discardTopRobotCard(currentRobot);
             handleReaction(session, reg, robots, robotIndex, currentRobot, reaction);
             return;
         }
