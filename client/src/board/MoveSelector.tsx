@@ -24,6 +24,7 @@ interface MoveSelectorProps {
   isDemoMode?: boolean;
   onForceStartRound?: () => void;
   hasSubmitted: boolean;
+  locked: boolean;
 }
 /**
 * @author Lizette Bloch Dahl Nikolajsen
@@ -206,15 +207,23 @@ const MoveCard = ({
   onDragStart,
   isDragging,
   index,
+  locked,
 }: {
   move: MoveType;
   onDragStart: () => void;
   isDragging: boolean;
   index: number;
+  locked: boolean;
 }) => (
   <motion.div
-    draggable
-    onDragStart={onDragStart}
+    draggable={!locked}
+    onDragStart={(e) => {
+      if (locked) {
+        e.preventDefault();
+        return;
+      }
+      onDragStart();
+    }}
     className={`moveCard ${isDamageCard(move) ? "moveCard-damage" :
       isSpecialCard(move) ? "moveCard-special" :
         "moveCard-normal"
@@ -289,6 +298,7 @@ export const MoveSelector: React.FC<MoveSelectorProps> = ({
   isDemoMode,
   onForceStartRound,
   hasSubmitted,
+  locked,
 }) => {
   const [draggedMove, setDraggedMove] = useState<MoveType | null>(null);
   const [dragOverIndex, setDragOverIndex] = useState<number | null>(null);
@@ -434,6 +444,7 @@ export const MoveSelector: React.FC<MoveSelectorProps> = ({
                 onDragStart={() => handleDragStart(move)}
                 isDragging={draggedMove === move}
                 index={idx}
+                locked={locked}
               />
             ))
           ) : (

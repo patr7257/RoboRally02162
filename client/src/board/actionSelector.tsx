@@ -11,11 +11,10 @@ interface ReactionPopUpProps {
   onSelect: (option: string) => void; // callback when user picks
 }
 
-const ReactionPopUp: React.FC<ReactionPopUpProps> = ({ onClose, reactionKind, options, onSelect }) => {
+const ReactionPopUp: React.FC<ReactionPopUpProps> = ({ reactionKind, options, onSelect }) => {
   return (
-    <div className="overlay" onClick={onClose}>
+    <div className="overlay">
       <div className="popUp" onClick={(e) => e.stopPropagation()}>
-        <button className="closeButton" onClick={onClose}>x</button>
         <div className="reactionName">
           <h1>{reactionKind}</h1>
         </div>

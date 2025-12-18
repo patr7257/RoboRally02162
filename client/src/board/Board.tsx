@@ -46,6 +46,11 @@ export default function Board() {
     "waiting" | "programming" | "executing" | "finished" | "waitingForRespawn" | "reaction"
   >("waiting");
   const [hasSubmitted, setHasSubmitted] = useState<boolean>(false);
+  const locked =
+    gameState === "executing" ||
+    gameState === "finished" ||
+    gameState === "reaction" ||
+    hasSubmitted;
   const [robotID, setRobotID] = useState<string>("");
 
   const API_BASE_URL = process.env.REACT_APP_API_BASE_URL;
@@ -697,6 +702,7 @@ export default function Board() {
                 isDemoMode={!!isDemoMode}
                 onForceStartRound={handleForceStartRound}
                 hasSubmitted={hasSubmitted}
+                locked={locked}
               />
             </div>
           </div>

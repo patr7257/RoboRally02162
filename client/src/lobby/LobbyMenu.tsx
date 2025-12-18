@@ -145,7 +145,8 @@ export default function LobbyCreation() {
       });
       sessionStorage.setItem("mode", "normal");
       if (!response.ok) {
-        setError(`Failed to start game: ${response.status}`);
+        const errorText = await response.text();
+        setError(errorText || `Failed to start game (${response.status})`);
       }
     } catch (err) {
       console.error("Login error:", err);
@@ -226,6 +227,11 @@ export default function LobbyCreation() {
               <div className="exit-icon"></div>
             </button>
           </div>
+          {error && (
+            <div className="error-text">
+              <label>{error}</label>
+            </div>
+          )}
         </div>
       </div>
     </Layout>
