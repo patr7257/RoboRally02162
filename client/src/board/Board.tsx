@@ -174,6 +174,7 @@ export default function Board() {
   * @author Weihao Mo
   */
   useEffect(() => {
+    let firstProgramming: number = 0;
     const unsubscribe = subscribe((message: string) => {
       try {
         const data = JSON.parse(message);
@@ -197,6 +198,8 @@ export default function Board() {
           case "hand":
             const handPayload = actualData.payload;
             setHandData(handPayload);
+            setSelectedMoves(Array(5).fill(null));
+            setHasSubmitted(false);
             break;
 
           case "readiness":
@@ -218,6 +221,10 @@ export default function Board() {
             setFirstSubmissionDelayed(false);
             setGameState('programming');
             setHasSubmitted(false);
+            if(firstProgramming == 0) {
+              firstProgramming++;
+              break;
+            }
             sendMessage({ lobbyID: lobbyId, payload: { type: "getDiscard" } });
             sendMessage({ lobbyID: lobbyId, payload: { type: "getDamageDecks" } });
             sendMessage({ lobbyID: lobbyId, payload: { type: "getHand" } });
@@ -234,9 +241,6 @@ export default function Board() {
             setMoveHistory([]);
             setGameState('executing');
             stopReadinessPolling();
-
-            setSelectedMoves(Array(5).fill(null));
-            setHasSubmitted(false);
             break;
 
           case "update":
@@ -287,7 +291,7 @@ export default function Board() {
               setRespawnRobotId(deadRobotId);
             }
             break;
-
+          
           case "damageDecks":
             setDamageDecks(actualData.payload);
             break;
