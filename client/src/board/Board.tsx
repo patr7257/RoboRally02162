@@ -190,8 +190,6 @@ export default function Board() {
           case "hand":
             const handPayload = actualData.payload;
             setHandData(handPayload);
-            setSelectedMoves(Array(5).fill(null));
-            setHasSubmitted(false);
             break;
 
           case "readiness":
@@ -227,6 +225,9 @@ export default function Board() {
             setMoveHistory([]);
             setGameState('executing');
             stopReadinessPolling();
+
+            setSelectedMoves(Array(5).fill(null));
+            setHasSubmitted(false);
             break;
 
           case "update":
