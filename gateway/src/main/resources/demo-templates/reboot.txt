@@ -1,0 +1,115 @@
+{
+  "amountPlayers": 2,
+  "board": {
+    "width": 4,
+    "height": 3,
+    "tiles": [
+      {
+        "coord": { "x": 3, "y": 2 },
+        "tile": {
+          "effects": [
+            { "kind": "ANTENNA", "direction": "W" }
+          ]
+        }
+      },
+      {
+        "coord": { "x": 0, "y": 0 },
+        "tile": {
+          "effects": [
+            { "kind": "CHECKPOINT", "number": 1 }
+          ]
+        }
+      },
+      {
+        "coord": { "x": 2, "y": 1 },
+        "tile": {
+          "effects": [
+            { "kind": "PITS" }
+          ]
+        }
+      },
+      {
+        "coord": { "x": 0, "y": 2 },
+        "tile": {
+          "effects": [
+            { "kind": "REBOOT_TOKEN", "direction": "N" }
+          ]
+        }
+      }
+    ],
+    "robots": [
+      {
+        "id": 1,
+        "x": 0,
+        "y": 1,
+        "facing": "E"
+      },
+      {
+        "id": 2,
+        "x": 1,
+        "y": 1,
+        "facing": "E"
+      }
+    ],
+    "decks": {
+      "1": {
+        "drawPile": [
+          { "action": "ROTATERIGHT", "steps": 0 },
+          { "action": "ROTATELEFT", "steps": 0 },
+          { "action": "ROTATELEFT", "steps": 0 },
+          { "action": "MOVE", "steps": 1 },
+          { "action": "ROTATERIGHT", "steps": 0 },
+          { "action": "MOVE", "steps": -1 },
+          { "action": "AGAIN", "steps": 0 },
+          { "action": "MOVE", "steps": 2 },
+          { "action": "MOVE", "steps": 1 },
+          { "action": "SPEED", "steps": 0 },
+          { "action": "MOVE", "steps": 1 },
+          { "action": "MOVE", "steps": 1 },
+          { "action": "UTURN", "steps": 0 }
+        ],
+        "discardPile": [],
+        "hand": [
+          { "action": "MOVE", "steps": 2 },
+          { "action": "MOVE", "steps": 1 },
+          { "action": "MOVE", "steps": 1 },
+          { "action": "MOVE", "steps": 1 },
+          { "action": "MOVE", "steps": 1 },
+          { "action": "MOVE", "steps": 1 },
+          { "action": "MOVE", "steps": 1 },
+          { "action": "MOVE", "steps": 1 },
+          { "action": "MOVE", "steps": 1 }
+        ]
+      },
+      "2": {
+        "drawPile": [
+          { "action": "MOVE", "steps": 1 },
+          { "action": "MOVE", "steps": 1 },
+          { "action": "MOVE", "steps": 1 },
+          { "action": "MOVE", "steps": 1 },
+          { "action": "MOVE", "steps": 1 },
+          { "action": "MOVE", "steps": 1 },
+          { "action": "MOVE", "steps": 1 },
+          { "action": "MOVE", "steps": 1 },
+          { "action": "MOVE", "steps": 1 },
+          { "action": "MOVE", "steps": 1 },
+          { "action": "MOVE", "steps": 1 },
+          { "action": "MOVE", "steps": 1 },
+          { "action": "MOVE", "steps": 1 }
+        ],
+        "discardPile": [],
+        "hand": [
+          { "action": "MOVE", "steps": 1 },
+          { "action": "MOVE", "steps": 1 },
+          { "action": "MOVE", "steps": 1 },
+          { "action": "MOVE", "steps": 1 },
+          { "action": "MOVE", "steps": 1 },
+          { "action": "MOVE", "steps": 1 },
+          { "action": "MOVE", "steps": 1 },
+          { "action": "MOVE", "steps": 1 },
+          { "action": "MOVE", "steps": 1 }
+        ]
+      }
+    }
+  }
+}

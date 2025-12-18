@@ -251,6 +251,7 @@ const DropSlot = ({
   onDragStart,
   onDragEnd,
   isDragging,
+  locked,
 }: {
   index: number;
   move: MoveType | null;
@@ -259,6 +260,7 @@ const DropSlot = ({
   onDragStart: () => void;
   onDragEnd: () => void;
   isDragging: boolean;
+  locked: boolean;
 }) => (
   <motion.div
     onDragOver={(e) => e.preventDefault()}
@@ -272,8 +274,14 @@ const DropSlot = ({
           isSpecialCard(move) ? "moveCard-special" :
             "moveCard-normal"
           }`}
-        draggable
-        onDragStart={onDragStart}
+        draggable={!locked}
+        onDragStart={(e) => {
+          if (locked) {
+            e.preventDefault();
+            return;
+          }
+          onDragStart();
+        }}
         onDragEnd={onDragEnd}
         style={{ cursor: 'grab' }}
       >
@@ -415,6 +423,7 @@ export const MoveSelector: React.FC<MoveSelectorProps> = ({
                 onDragStart={() => move && handleSlotDragStart(move, index)}
                 onDragEnd={handleDragEnd}
                 isDragging={dragSourceIndex === index}
+                locked={locked}
               />
             ))}
           </div>

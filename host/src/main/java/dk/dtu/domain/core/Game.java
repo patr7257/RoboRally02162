@@ -510,6 +510,7 @@ public class Game {
         if (out instanceof Outcome.Moved moved) {
             for (MoveEvent e : moved.moves()) {
                 robotMap.get(e.robotId()).setPosition(e.to().x(), e.to().y());
+                applyTileEffects(Phase.ACTIVATE_PITS);
             }
             for (DestroyEvent d : moved.destroys()) {
                 if(d.cause() == DestroyCause.PITS || d.cause() == DestroyCause.FELL_OFF) {
