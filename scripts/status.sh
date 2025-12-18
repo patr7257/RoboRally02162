@@ -1,18 +1,17 @@
 #!/bin/bash
 
+## author: Asger Allin Jensen
+
 echo "======================================"
 echo "Application Status"
 echo "======================================"
 
-# Check PM2 processes
 echo -e "\nPM2 Processes:"
 pm2 list
 
-# Check Nginx
 echo -e "\nNginx Status:"
 sudo systemctl status nginx --no-pager | head -n 5
 
-# Check port usage
 echo -e "\nPort Usage:"
 echo "Gateway (8080):"
 sudo lsof -i :8080 || echo "Not listening"

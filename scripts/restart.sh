@@ -1,10 +1,11 @@
 #!/bin/bash
 
+## author: Asger Allin Jensen
+
 echo "======================================"
 echo "Restarting All Services"
 echo "======================================"
 
-# Restart PM2 processes
 echo "Restarting Gateway..."
 pm2 restart gateway
 

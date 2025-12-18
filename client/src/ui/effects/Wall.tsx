@@ -4,6 +4,7 @@ import type { WallEffect } from "../../types/boardTypes";
 
 /**
  * @author William Pii Jæger
+ * @author Asger Allin Jensen
  */
 
 export default function Wall({ effect }: { effect: WallEffect }) {
