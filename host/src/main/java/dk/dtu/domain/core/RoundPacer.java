@@ -32,10 +32,6 @@ public interface RoundPacer {
      */
     void removeListener(RoundPacerListener l);
 
-    /**
-     * @author Weihao Mo
-     */
-    void onRobotRespawnDirectionSet(GameSession session, int reg);
 
     interface RoundPacerListener {
         /**

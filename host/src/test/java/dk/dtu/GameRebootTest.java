@@ -40,7 +40,7 @@ public class GameRebootTest {
 
         game.setRespawnDirection(1, Direction.E);
 
-        game.applyTileEffects(Phase.ACTIVATE_REBOOT);
+        game.applyRespawnPhase(r);
 
         assertTrue(r.isAlive());
         assertPosDir(r, 2, 2, Direction.E);
@@ -70,9 +70,10 @@ public class GameRebootTest {
         game.setRespawnDirection(1, Direction.E);
         game.setRespawnDirection(2, Direction.E);
 
-        game.applyTileEffects(Phase.ACTIVATE_REBOOT);
 
+        game.applyRespawnPhase(r1);
         assertTrue(r1.isAlive());
+        game.applyRespawnPhase(r2);
         assertTrue(r2.isAlive());
 
         assertPosDir(r2, 2, 2, Direction.E);
@@ -107,10 +108,12 @@ public class GameRebootTest {
         game.setRespawnDirection(2, Direction.E);
         game.setRespawnDirection(3, Direction.E);
 
-        game.applyTileEffects(Phase.ACTIVATE_REBOOT);
 
+        game.applyRespawnPhase(r1);
         assertTrue(r1.isAlive());
+        game.applyRespawnPhase(r2);
         assertTrue(r2.isAlive());
+        game.applyRespawnPhase(r3);
         assertTrue(r3.isAlive());
 
         assertPosDir(r3, 2, 2, Direction.E);

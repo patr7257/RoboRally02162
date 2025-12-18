@@ -4,6 +4,7 @@ package dk.dtu.domain.model;
  * Represents a two-dimensional game board composed of tiles.
  *
  * @author William Pii Jæger
+ * @author Weihao Mo
  * @author Patrick Røbel
  */
 public class Board {

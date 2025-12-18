@@ -2,6 +2,8 @@ package dk.dtu.domain.core;
 
 import dk.dtu.domain.core.reaction.ReactionRequest;
 import dk.dtu.domain.core.reaction.ReactionResolution;
+import dk.dtu.domain.core.reaction.RespawnRequest;
+import dk.dtu.domain.core.reaction.RespawnResolution;
 import dk.dtu.domain.model.Board;
 import dk.dtu.domain.model.DamageDecks;
 import dk.dtu.domain.model.Deck;
@@ -179,23 +181,40 @@ public class GameManager implements GameObserver {
 
             case GameCommand.SetRespawnDirection setRespawnDirection -> {
                 GameSession session = activeSessions.get(setRespawnDirection.gameId());
-                if(session == null) yield CommandResult.fail("Game not found");
+                if (session == null) yield CommandResult.fail("Game not found");
 
                 try {
                     synchronized (session) {
                         Game game = session.getGame();
                         Robot robot = game.getRobot(setRespawnDirection.robot());
 
-                        game.setRespawnDirection(setRespawnDirection.robot(), setRespawnDirection.direction());
-                        session.markRespawnDirectionSet(robot.getId());
-
-                        if (session.allRespawnDirectionsSet()) {
-                            if (pacer instanceof GameScheduler scheduler) {
-                                scheduler.onRobotRespawnDirectionSet(session,getCurrentRegister(session));
-                            }
+                        if (robot == null) {
+                            yield CommandResult.fail("Robot not found");
                         }
+
+                        if (robot.isAlive()) {
+                            yield CommandResult.fail("Robot is not dead");
+                        }
+
+                        RespawnRequest pendingRespawn = session.getPendingRespawn();
+
+                        if (pendingRespawn == null || pendingRespawn.robotId() != setRespawnDirection.robot()) {
+                            game.setRespawnDirection(setRespawnDirection.robot(), setRespawnDirection.direction());
+                            yield CommandResult.ok("Respawn direction stored for later");
+                        }
+
+                        RespawnResolution resolution = new RespawnResolution(
+                                setRespawnDirection.robot(),
+                                setRespawnDirection.direction()
+                        );
+                        session.setRespawnResolution(resolution);
+
+                        if (pacer instanceof GameScheduler scheduler) {
+                            scheduler.continueAfterSingleRespawn(session);
+                        }
+
+                        yield CommandResult.ok("Respawn direction set and robot respawned");
                     }
-                    yield CommandResult.ok("Respawn direction set to " + setRespawnDirection.direction());
                 } catch (Exception e) {
                     yield CommandResult.fail("Failed to set respawn direction: " + e.getMessage());
                 }
@@ -345,10 +364,6 @@ public class GameManager implements GameObserver {
 
             };
         }
-    }
-
-    private int getCurrentRegister(GameSession session) {
-        return session.getCurrentRegister();
     }
 
     /**

@@ -529,6 +529,63 @@ public class Game {
         return false;
     }
 
+
+    /**
+     * If multiple robots occupy the reboot tile simultaneously, this effect attempts
+     * to push them one step in the reboot token’s facing direction using
+     * {@link BoardAPI#tryMoveOneStep(int, Direction)} to resolve overlaps.
+     *
+     * @author Weihao Mo
+     */
+    public void applyRespawnPhase(Robot robot) {
+        Tile rebootTile = getRebootToken();
+        if (rebootTile == null) {
+            System.err.println("No reboot token found");
+            return;
+        }
+
+        int x = rebootTile.getX();
+        int y = rebootTile.getY();
+
+        Direction respawnDir = robot.getRespawnDirection();
+        robot.setDirection(respawnDir);
+        robot.clearRespawnDirection();
+        robot.setPosition(x, y);
+        robot.setAlive();
+
+        notifyGameUpdate();
+
+        List<Robot> robotsOnTile = api.getRobotsOnTile(x, y);
+        if (robotsOnTile.size() > 1) {
+            RebootToken rebootEffect = (RebootToken) rebootTile.getEffects().stream()
+                    .filter(e -> e instanceof RebootToken)
+                    .findFirst()
+                    .orElse(null);
+
+            if (rebootEffect != null) {
+                Direction pushDirection = rebootEffect.direction();
+                for (Robot r : robotsOnTile) {
+                    if (r.getId() != robot.getId()) {
+                        Outcome result = api.tryMoveOneStep(r.getId(), pushDirection);
+                        if (result instanceof Outcome.Moved moved) {
+                            for (MoveEvent e : moved.moves()) {
+                                Robot movedRobot = getRobots().stream()
+                                        .filter(rb -> rb.getId() == e.robotId())
+                                        .findFirst()
+                                        .orElse(null);
+                                if (movedRobot != null) {
+                                    movedRobot.setPosition(e.to().x(), e.to().y());
+                                }
+                            }
+                        }
+                    }
+                }
+                notifyGameUpdate();
+            }
+
+        }
+    }
+
     /**
      * Executes the next operation for a single robot.
      * Movement ops attempt stepwise movement (respecting blocks); rotation ops update direction.
@@ -790,4 +847,25 @@ public class Game {
     public DamageDecks getDamageDecks() {
         return damageDecks;
     }
+
+    /**
+     * @author Weihao Mo
+     */
+    public Tile getRebootToken() {
+        Tile[][] cells = board.getCells();
+        for (int x = 0; x < board.getWidth(); x++) {
+            for (int y = 0; y < board.getHeight(); y++) {
+                Tile tile = cells[x][y];
+                if (tile != null && tile.getEffects() != null) {
+                    for (TileEffect effect : tile.getEffects()) {
+                        if (effect instanceof RebootToken) {
+                            return tile;
+                        }
+                    }
+                }
+            }
+        }
+        return null;
+    }
+
 }

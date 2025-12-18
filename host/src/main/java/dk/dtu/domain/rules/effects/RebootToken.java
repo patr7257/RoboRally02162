@@ -13,15 +13,6 @@ import java.util.List;
 
 /**
  * Reboot token tile effect that restores destroyed robots during the reboot phase.
- * <p>
- * If multiple robots occupy the reboot tile simultaneously, this effect attempts
- * to push them one step in the reboot token’s facing direction using
- * {@link BoardAPI#tryMoveOneStep(int, Direction)} to resolve overlaps.
- * </p>
- *
- * @param direction the direction the reboot token faces
- * @see BoardAPI#tryMoveOneStep(int, Direction)
- *
  * @author Weihao Mo
  */
 public record RebootToken(Direction direction) implements TileEffect {
@@ -31,41 +22,6 @@ public record RebootToken(Direction direction) implements TileEffect {
      */
     @Override
     public void onPhase(Phase phase, Tile tile, BoardAPI api) {
-        if (phase == Phase.ACTIVATE_REBOOT) {
-            int x = tile.getX();
-            int y = tile.getY();
-
-            List<Robot> robotsToRespawn = api.getDeadRobots().stream()
-                    .filter(r -> r.getRespawnDirection() != null)
-                    .toList();
-
-            for (Robot robot : robotsToRespawn) {
-                Direction respawnDir = robot.getRespawnDirection();
-                robot.setDirection(respawnDir);
-                robot.clearRespawnDirection();
-                robot.setPosition(x, y);
-                robot.setAlive();
-            }
-
-            List<Robot> robotsOnTile = api.getRobotsOnTile(x, y);
-            if (robotsOnTile.size() > 1) {
-                for (int i = 0; i < robotsOnTile.size() - 1; i++) {
-                    Robot r = robotsOnTile.get(i);
-                    Outcome result = api.tryMoveOneStep(r.getId(), direction);
-                    if (result instanceof Outcome.Moved moved) {
-                        for (MoveEvent e : moved.moves()) {
-                            Robot movedRobot = robotsOnTile.stream()
-                                    .filter(robot -> robot.getId() == e.robotId())
-                                    .findFirst()
-                                    .orElse(null);
-                            if (movedRobot != null) {
-                                movedRobot.setPosition(e.to().x(), e.to().y());
-                            }
-                        }
-                    }
-                }
-            }
-        }
     }
 
     /**
@@ -73,6 +29,6 @@ public record RebootToken(Direction direction) implements TileEffect {
      */
     @Override
     public EnumSet<Phase> phases() {
-        return EnumSet.of(Phase.ACTIVATE_REBOOT);
+        return null;
     }
 }

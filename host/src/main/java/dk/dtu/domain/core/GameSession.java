@@ -4,7 +4,10 @@ import dk.dtu.domain.core.reaction.*;
 import dk.dtu.domain.model.Robot;
 
 import java.time.Instant;
-import java.util.*;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+import java.util.UUID;
 import java.util.concurrent.ScheduledFuture;
 
 /**
@@ -27,10 +30,6 @@ public class GameSession {
     private ScheduledFuture<?> stepTask;
     private ScheduledFuture<?> respawnTimeoutTask;
     private final int totalPlayers;
-    private final Set<Integer> robotsWithRespawnDirection = new HashSet<>();
-
-    private List<Robot> deadRobots = new ArrayList<>();
-    private int currentRegister = 0;
 
     private boolean demoMode = false;
     private DemoTimingConfig demoTimingConfig = null;
@@ -39,6 +38,11 @@ public class GameSession {
     private ReactionResolution<?> reactionResolution;
     private ScheduledFuture<?> reactionTimeoutTask;
     private ReactionExecutionContext reactionContext;
+
+    private RespawnRequest pendingRespawn;
+    private RespawnResolution respawnResolution;
+    private ScheduledFuture<?> singleRespawnTimeoutTask;
+    private RespawnExecutionContext respawnExecutionContext;
 
     /**
      * Stores execution context when pausing for a reaction.
@@ -50,6 +54,7 @@ public class GameSession {
         private final int registerIndex;
         private final List<Robot> robotsInOrder;
         private final int robotIndex;
+
         public ReactionExecutionContext(int registerIndex, List<Robot> robotsInOrder, int robotIndex) {
             this.registerIndex = registerIndex;
             this.robotsInOrder = robotsInOrder;
@@ -58,6 +63,28 @@ public class GameSession {
 
         public int getRegisterIndex() { return registerIndex; }
         public List<Robot> getRobotsInOrder() { return robotsInOrder; }
+        public int getRobotIndex() { return robotIndex; }
+    }
+
+    /**
+     * Stores execution context when pausing for a respawn event.
+     * Allows resuming at the exact point where we paused.
+     *
+     * @author Weihao Mo
+     */
+    public static class RespawnExecutionContext {
+        private final int registerIndex;
+        private final List<Robot> deadRobots;
+        private final int robotIndex;
+
+        public RespawnExecutionContext(int registerIndex, List<Robot> deadRobots, int robotIndex) {
+            this.registerIndex = registerIndex;
+            this.deadRobots = deadRobots;
+            this.robotIndex = robotIndex;
+        }
+
+        public int getRegisterIndex() { return registerIndex; }
+        public List<Robot> getDeadRobots() { return deadRobots; }
         public int getRobotIndex() { return robotIndex; }
     }
 
@@ -173,38 +200,14 @@ public class GameSession {
     /**
      * @author Weihao Mo
      */
-    public synchronized void setDeadRobotsAwaitingRespawn(List<Robot> deadRobots) {
-        this.deadRobots = new ArrayList<>(deadRobots);
-        this.robotsWithRespawnDirection.clear();
-    }
-
-    /**
-     * @author Weihao Mo
-     */
-    public synchronized List<Robot> getRemainingDeadRobots() {
-        return deadRobots.stream()
-                .filter(r -> !robotsWithRespawnDirection.contains(r.getId()))
-                .toList();
-    }
-
-    /**
-     * @author Weihao Mo
-     */
-    public synchronized void setCurrentRegister(int register) {
-        this.currentRegister = register;
-    }
-
-    /**
-     * @author Weihao Mo
-     */
-    public synchronized int getCurrentRegister() {
-        return currentRegister;
-    }
-
     public synchronized void setRespawnTimeoutTask(ScheduledFuture<?> task) {
         this.respawnTimeoutTask = task;
     }
 
+
+    /**
+     * @author Weihao Mo
+     */
     public synchronized void cancelRespawnTimeoutTask() {
         if (respawnTimeoutTask != null && !respawnTimeoutTask.isDone()) {
             respawnTimeoutTask.cancel(false);
@@ -220,37 +223,80 @@ public class GameSession {
         return Math.max(0, ms);
     }
 
-
     /**
-     * Mark the robot that has set the respawn direction
-     *
-     * @param robotId id of the robot
      * @author Weihao Mo
      */
-    public synchronized void markRespawnDirectionSet(int robotId) {
-        robotsWithRespawnDirection.add(robotId);
-    }
-
-
-    /**
-     * Checks if all dead robots have set their direction for respawn
-     *
-     * @return true if submitted direction; false otherwise
-     * @author Weihao Mo
-     */
-    public synchronized boolean allRespawnDirectionsSet() {
-        return !deadRobots.isEmpty() &&
-                robotsWithRespawnDirection.size() >= deadRobots.size();
+    public synchronized void setPendingRespawn(RespawnRequest request) {
+        this.pendingRespawn = request;
+        this.respawnResolution = null;
     }
 
     /**
-     * Clean up all setup and respawn directions for future registration
-     *
      * @author Weihao Mo
      */
-    public synchronized void clearDeadRobotsAwaitingRespawn() {
-        this.deadRobots.clear();
-        this.robotsWithRespawnDirection.clear();
+    public synchronized RespawnRequest getPendingRespawn() {
+        return pendingRespawn;
+    }
+
+    /**
+     * @author Weihao Mo
+     */
+    public synchronized void clearRespawn() {
+        this.pendingRespawn = null;
+        this.respawnResolution = null;
+        this.respawnExecutionContext = null;
+    }
+
+    /**
+     * @author Weihao Mo
+     */
+    public synchronized void setRespawnResolution(RespawnResolution resolution) {
+        this.respawnResolution = resolution;
+    }
+
+    /**
+     * @author Weihao Mo
+     */
+    public synchronized boolean isRespawnResolved() {
+        return respawnResolution != null;
+    }
+
+    /**
+     * @author Weihao Mo
+     */
+    public synchronized RespawnResolution getRespawnResolution() {
+        return respawnResolution;
+    }
+
+    /**
+     * @author Weihao Mo
+     */
+    public synchronized void setSingleRespawnTimeoutTask(ScheduledFuture<?> task) {
+        this.singleRespawnTimeoutTask = task;
+    }
+
+    /**
+     * @author Weihao Mo
+     */
+    public synchronized void cancelSingleRespawnTimeoutTask() {
+        if (singleRespawnTimeoutTask != null && !singleRespawnTimeoutTask.isDone()) {
+            singleRespawnTimeoutTask.cancel(false);
+        }
+        singleRespawnTimeoutTask = null;
+    }
+
+    /**
+     * @author Weihao Mo
+     */
+    public synchronized void setRespawnExecutionContext(RespawnExecutionContext context) {
+        this.respawnExecutionContext = context;
+    }
+
+    /**
+     * @author Weihao Mo
+     */
+    public synchronized RespawnExecutionContext getRespawnExecutionContext() {
+        return respawnExecutionContext;
     }
 
     /**

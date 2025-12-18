@@ -5,6 +5,8 @@ import dk.dtu.domain.model.Robot;
 import dk.dtu.domain.model.Direction;
 import dk.dtu.domain.program.ProgramCard;
 import dk.dtu.domain.program.ProgramOP;
+import dk.dtu.domain.core.reaction.ReactionRequest;
+import dk.dtu.domain.core.reaction.RespawnResolution;
 
 import java.time.Instant;
 import java.util.List;
@@ -171,7 +173,6 @@ public class GameScheduler implements RoundPacer {
      */
     private void runRegister(GameSession session, int reg) {
         currentRegister = reg;
-        session.setCurrentRegister(reg);
 
         ScheduledFuture<?> task = scheduler.schedule(() -> {
             try {
@@ -442,8 +443,15 @@ public class GameScheduler implements RoundPacer {
 
                 List<Robot> deadRobots = game.getDeadRobots();
                 if (!deadRobots.isEmpty()) {
-                    session.setDeadRobotsAwaitingRespawn(deadRobots);
-                    processNextRespawn(session,reg);
+                    List<Robot> priorityOrderedRobots = game.getRobotsByPriority();
+                    List<Robot> sortedDeadRobots = deadRobots.stream()
+                            .sorted((r1, r2) -> {
+                                int index1 = priorityOrderedRobots.indexOf(r1);
+                                int index2 = priorityOrderedRobots.indexOf(r2);
+                                return Integer.compare(index1, index2);
+                            })
+                            .toList();
+                    executeRespawnsSequentially(session, reg, sortedDeadRobots, 0);
                     return;
                 }
 
@@ -466,72 +474,129 @@ public class GameScheduler implements RoundPacer {
     }
 
 
+
     /**
-     * Schedules timeout for the direction selecting
+     * Executes respawns sequentially, one robot at a time.
      * @author Weihao Mo
      */
-    private void processNextRespawn(GameSession session, int reg) {
-        List<Robot> remainingDeadRobots = session.getRemainingDeadRobots();
-
-        if (remainingDeadRobots.isEmpty()) {
-            continueAfterRespawn(session, reg);
+    private void executeRespawnsSequentially(GameSession session, int reg, List<Robot> deadRobots, int robotIndex) {
+        if (robotIndex >= deadRobots.size()) {
+            if (reg < 5) {
+                runRegister(session, reg + 1);
+            } else {
+                Game game = session.getGame();
+                game.dealNewHands();
+                session.cancelStepTask();
+                scheduleProgrammingPhase(session, NEXT_WINDOW_MS);
+            }
             return;
         }
 
-        Robot currentRobot = remainingDeadRobots.getFirst();
-
-        listeners.forEach(l -> l.onRobotNeedsRespawn(session, currentRobot.getId()));
-
-        ScheduledFuture<?> respawnTimeout = scheduler.schedule(() -> {
-            if (currentRobot.getRespawnDirection() == null) {
-                Random random = new Random();
-                Direction[] directions = Direction.values();
-                Direction randomDirection = directions[random.nextInt(directions.length)];
-                currentRobot.setRespawnDirection(randomDirection);
-            }
-
-            session.markRespawnDirectionSet(currentRobot.getId());
-            processNextRespawn(session, reg);
-
-        }, getRespawnTimeout(session), TimeUnit.MILLISECONDS);
-
-        session.setRespawnTimeoutTask(respawnTimeout);
+        Robot currentRobot = deadRobots.get(robotIndex);
+        session.setRespawnExecutionContext(
+                new GameSession.RespawnExecutionContext(reg, deadRobots, robotIndex)
+        );
+        handleRespawn(session, currentRobot, deadRobots, robotIndex);
     }
 
-
     /**
-     * Called when one robot have set their respawn directions
-     * And continues
+     * We perform respawn with delay with timeout
      * @author Weihao Mo
      */
-    public void onRobotRespawnDirectionSet(GameSession session, int reg) {
-        session.cancelRespawnTimeoutTask();
-        processNextRespawn(session, reg);
-    }
+    private void handleRespawn(GameSession session, Robot robot, List<Robot> deadRobots, int robotIndex) {
 
-
-    /**
-     * Continues the game after respawn directions have been set (either manually or automatically).
-     * This respawns robots immediately and continues with the next register.
-     *
-     * @param session the current game session
-     * @param reg the current register index
-     * @author Weihao Mo
-     */
-    private void continueAfterRespawn(GameSession session, int reg) {
-        Game game = session.getGame();
-
-        game.applyTileEffects(Phase.ACTIVATE_REBOOT);
-        game.rebootRobots();
-        session.clearDeadRobotsAwaitingRespawn();
-
-        if (reg < 5) {
-            runRegister(session, reg + 1);
-        } else {
-            game.dealNewHands();
-            session.cancelStepTask();
-            scheduleProgrammingPhase(session, NEXT_WINDOW_MS);
+        if (robot.getRespawnDirection() != null) {
+            performSingleRespawn(session, robot);
+            int reg = session.getRespawnExecutionContext().getRegisterIndex();
+            ScheduledFuture<?> nextTask = scheduler.schedule(
+                    () -> executeRespawnsSequentially(session, reg, deadRobots, robotIndex + 1),
+                    300L,
+                    TimeUnit.MILLISECONDS
+            );
+            session.setStepTask(nextTask);
+            return;
         }
+
+        session.setState(GameState.REACTION);
+        RespawnRequest request = new RespawnRequest(robot.getId());
+        session.setPendingRespawn(request);
+        listeners.forEach(l -> l.onRobotNeedsRespawn(session, robot.getId()));
+
+        ScheduledFuture<?> timeout = scheduler.schedule(
+                () -> handleRespawnTimeout(session),
+                getRespawnTimeout(session),
+                TimeUnit.MILLISECONDS
+        );
+        session.setSingleRespawnTimeoutTask(timeout);
+    }
+
+    /**
+     * Handles timeout for robot respawn
+     * @author Weihao Mo
+     */
+    private void handleRespawnTimeout(GameSession session) {
+        if (!session.isRespawnResolved()) {
+            Random random = new Random();
+            Direction[] directions = Direction.values();
+            Direction randomDirection = directions[random.nextInt(directions.length)];
+
+            RespawnRequest request = session.getPendingRespawn();
+            RespawnResolution resolution = new RespawnResolution(request.robotId(), randomDirection);
+            session.setRespawnResolution(resolution);
+        }
+        continueAfterSingleRespawn(session);
+    }
+
+    /**
+     * Continue to the next stage after respawn
+     * @author Weihao Mo
+     */
+    public void continueAfterSingleRespawn(GameSession session) {
+        session.cancelSingleRespawnTimeoutTask();
+
+        if (!session.isRespawnResolved()) {
+            return;
+        }
+
+        RespawnResolution resolution = session.getRespawnResolution();
+        Game game = session.getGame();
+        Robot robot = game.getRobots().stream()
+                .filter(r -> r.getId() == resolution.robotId())
+                .findFirst()
+                .orElse(null);
+
+        if (robot == null) {
+            return;
+        }
+
+        robot.setRespawnDirection(resolution.direction());
+        performSingleRespawn(session, robot);
+        GameSession.RespawnExecutionContext context = session.getRespawnExecutionContext();
+        session.clearRespawn();
+        session.setState(GameState.EXECUTING);
+
+        if (context != null) {
+            ScheduledFuture<?> nextTask = scheduler.schedule(
+                    () -> executeRespawnsSequentially(
+                            session,
+                            context.getRegisterIndex(),
+                            context.getDeadRobots(),
+                            context.getRobotIndex() + 1
+                    ),
+                    300L,
+                    TimeUnit.MILLISECONDS
+            );
+            session.setStepTask(nextTask);
+        }
+    }
+
+    /**
+     * Performs the actual respawn with pushing.
+     * @author Weihao Mo
+     */
+    private void performSingleRespawn(GameSession session, Robot robot) {
+        Game game = session.getGame();
+        game.applyRespawnPhase(robot);
     }
 
     /**
