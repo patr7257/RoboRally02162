@@ -205,6 +205,7 @@ public class GameScheduler implements RoundPacer {
      * @param robots list of robots in priority order
      * @param robotIndex current robot index being executed
      * @author William Pii Jæger
+     * @author Bjarke Søderhamn Petersen
      */
     private void executeRobotsSequentially(GameSession session, int reg, List<Robot> robots, int robotIndex) {
         if (robotIndex >= robots.size()) {
@@ -216,7 +217,15 @@ public class GameScheduler implements RoundPacer {
         Robot currentRobot = robots.get(robotIndex);
 
         ProgramOP nextOp = peekNextOp(currentRobot);
+
+        ProgramOP topDeckOp = game.spamDeckOp(currentRobot);
+
         if (nextOp instanceof ProgramOP.Reaction reaction) {
+            handleReaction(session, reg, robots, robotIndex, currentRobot, reaction);
+            return;
+        }
+
+        if (nextOp instanceof ProgramOP.Spam && topDeckOp instanceof ProgramOP.Reaction reaction) {
             handleReaction(session, reg, robots, robotIndex, currentRobot, reaction);
             return;
         }

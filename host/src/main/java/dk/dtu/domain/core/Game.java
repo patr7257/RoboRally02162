@@ -169,6 +169,10 @@ public class Game {
         return List.copyOf(deckMap.get(robotID).getDiscardPile());
     }
 
+    public ProgramOP spamDeckOp(Robot robot){
+        return deckMap.get(robot.getId()).spamTop().toOp();
+    }
+
     /**
      * @author Benjamin Benyo Endahl Hansen
      * @author Bjarke Søderhamn Petersen

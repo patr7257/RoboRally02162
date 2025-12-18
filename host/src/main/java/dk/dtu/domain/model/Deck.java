@@ -64,6 +64,15 @@ public class Deck {
     }
 
     /**
+     * @author Bjarke Søderhamn Petersen
+     */
+    public ProgramCard spamTop() {
+        ProgramCard card = drawPile.pop();
+        discard(card);
+        return card;
+    }
+
+    /**
      * @author Lizette Bloch Dahl Nikolajsen
      * @author Kajsa Alice Ulrika Berlstedt
      * @author Weihao Mo
