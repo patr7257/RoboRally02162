@@ -510,7 +510,6 @@ public class Game {
         if (out instanceof Outcome.Moved moved) {
             for (MoveEvent e : moved.moves()) {
                 robotMap.get(e.robotId()).setPosition(e.to().x(), e.to().y());
-                applyTileEffects(Phase.ACTIVATE_PITS);
             }
             for (DestroyEvent d : moved.destroys()) {
                 if(d.cause() == DestroyCause.PITS || d.cause() == DestroyCause.FELL_OFF) {
@@ -660,6 +659,7 @@ public class Game {
                 robot.getId(),
                 pc.toString().equals("MOVE-1") ? "MOVEBACK" : pc.toString()
         ));
+        applyTileEffects(Phase.ACTIVATE_PITS);
         notifyGameUpdate();
     }
 
