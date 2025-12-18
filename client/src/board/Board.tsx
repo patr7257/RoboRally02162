@@ -88,6 +88,8 @@ export default function Board() {
 
   const [showExitConfirmation, setShowExitConfirmation] = useState<boolean>(false);
 
+  const localSubmitLatchRef = useRef(false);
+
   const isDemoMode = sessionStorage.getItem("mode") == "demo";
 
   // Fetch lobby info and full board template for Map Banner and starting area info
@@ -212,6 +214,7 @@ export default function Board() {
             break;
 
           case "programmingStarted":
+            localSubmitLatchRef.current = false;
             setFirstSubmissionDelayed(false);
             setGameState('programming');
             setHasSubmitted(false);
@@ -227,6 +230,7 @@ export default function Board() {
             break;
 
           case "roundExecuting":
+            localSubmitLatchRef.current = false;
             setMoveHistory([]);
             setGameState('executing');
             stopReadinessPolling();
@@ -265,6 +269,7 @@ export default function Board() {
           case "ack":
             if (data.payload.message === "Program submitted") {
               setHasSubmitted(true);
+              localSubmitLatchRef.current = true;
             }
             break;
 
@@ -468,6 +473,8 @@ export default function Board() {
       return;
     }
 
+    localSubmitLatchRef.current = true;
+
     const submit = () => {
       sendMessage({
         lobbyID: lobbyId,
@@ -503,7 +510,7 @@ export default function Board() {
   useEffect(() => {
     if (gameState !== 'programming') return;
 
-    if (hasSubmitted) return;
+    if (hasSubmitted || localSubmitLatchRef.current) return;
 
     if (isDemoMode) return;
 
@@ -516,6 +523,7 @@ export default function Board() {
         const movesToSubmit = selectedMoves.filter(move => move !== null) as MoveType[];
 
         if (movesToSubmit.length > 0) {
+          localSubmitLatchRef.current = true;
           handleSubmitMove(movesToSubmit);
         }
       }
