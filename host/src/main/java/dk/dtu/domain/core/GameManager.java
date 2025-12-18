@@ -191,7 +191,7 @@ public class GameManager implements GameObserver {
 
                         if (session.allRespawnDirectionsSet()) {
                             if (pacer instanceof GameScheduler scheduler) {
-                                scheduler.continueAfterAllRespawns(session);
+                                scheduler.onRobotRespawnDirectionSet(session,getCurrentRegister(session));
                             }
                         }
                     }
@@ -345,6 +345,10 @@ public class GameManager implements GameObserver {
 
             };
         }
+    }
+
+    private int getCurrentRegister(GameSession session) {
+        return session.getCurrentRegister();
     }
 
     /**

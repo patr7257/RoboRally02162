@@ -4,10 +4,7 @@ import dk.dtu.domain.core.reaction.*;
 import dk.dtu.domain.model.Robot;
 
 import java.time.Instant;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 import java.util.concurrent.ScheduledFuture;
 
 /**
@@ -30,8 +27,10 @@ public class GameSession {
     private ScheduledFuture<?> stepTask;
     private ScheduledFuture<?> respawnTimeoutTask;
     private final int totalPlayers;
-    private int deadRobotsAwaitingRespawn = 0;
     private final Set<Integer> robotsWithRespawnDirection = new HashSet<>();
+
+    private List<Robot> deadRobots = new ArrayList<>();
+    private int currentRegister = 0;
 
     private boolean demoMode = false;
     private DemoTimingConfig demoTimingConfig = null;
@@ -51,7 +50,6 @@ public class GameSession {
         private final int registerIndex;
         private final List<Robot> robotsInOrder;
         private final int robotIndex;
-
         public ReactionExecutionContext(int registerIndex, List<Robot> robotsInOrder, int robotIndex) {
             this.registerIndex = registerIndex;
             this.robotsInOrder = robotsInOrder;
@@ -172,6 +170,37 @@ public class GameSession {
         stepTask = null;
     }
 
+    /**
+     * @author Weihao Mo
+     */
+    public synchronized void setDeadRobotsAwaitingRespawn(List<Robot> deadRobots) {
+        this.deadRobots = new ArrayList<>(deadRobots);
+        this.robotsWithRespawnDirection.clear();
+    }
+
+    /**
+     * @author Weihao Mo
+     */
+    public synchronized List<Robot> getRemainingDeadRobots() {
+        return deadRobots.stream()
+                .filter(r -> !robotsWithRespawnDirection.contains(r.getId()))
+                .toList();
+    }
+
+    /**
+     * @author Weihao Mo
+     */
+    public synchronized void setCurrentRegister(int register) {
+        this.currentRegister = register;
+    }
+
+    /**
+     * @author Weihao Mo
+     */
+    public synchronized int getCurrentRegister() {
+        return currentRegister;
+    }
+
     public synchronized void setRespawnTimeoutTask(ScheduledFuture<?> task) {
         this.respawnTimeoutTask = task;
     }
@@ -191,16 +220,6 @@ public class GameSession {
         return Math.max(0, ms);
     }
 
-    /**
-     * Set a timeout for respawn direction setting
-     *
-     * @param count for timeout
-     * @author Weihao Mo
-     */
-    public synchronized void setDeadRobotsAwaitingRespawn(int count) {
-        this.deadRobotsAwaitingRespawn = count;
-        this.robotsWithRespawnDirection.clear();
-    }
 
     /**
      * Mark the robot that has set the respawn direction
@@ -220,8 +239,8 @@ public class GameSession {
      * @author Weihao Mo
      */
     public synchronized boolean allRespawnDirectionsSet() {
-        return deadRobotsAwaitingRespawn > 0 &&
-                robotsWithRespawnDirection.size() >= deadRobotsAwaitingRespawn;
+        return !deadRobots.isEmpty() &&
+                robotsWithRespawnDirection.size() >= deadRobots.size();
     }
 
     /**
@@ -230,7 +249,7 @@ public class GameSession {
      * @author Weihao Mo
      */
     public synchronized void clearDeadRobotsAwaitingRespawn() {
-        this.deadRobotsAwaitingRespawn = 0;
+        this.deadRobots.clear();
         this.robotsWithRespawnDirection.clear();
     }
 

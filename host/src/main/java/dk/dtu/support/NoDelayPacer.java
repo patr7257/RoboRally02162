@@ -21,7 +21,7 @@ public class NoDelayPacer implements RoundPacer {
     @Override public void removeListener(RoundPacerListener l) { listeners.remove(l); }
 
     @Override
-    public void continueAfterAllRespawns(GameSession session) {}
+    public void onRobotRespawnDirectionSet(GameSession session, int reg) {}
 
     @Override public void shutdown() {}
 

@@ -171,6 +171,7 @@ public class GameScheduler implements RoundPacer {
      */
     private void runRegister(GameSession session, int reg) {
         currentRegister = reg;
+        session.setCurrentRegister(reg);
 
         ScheduledFuture<?> task = scheduler.schedule(() -> {
             try {
@@ -432,12 +433,8 @@ public class GameScheduler implements RoundPacer {
 
                 List<Robot> deadRobots = game.getDeadRobots();
                 if (!deadRobots.isEmpty()) {
-                    for (Robot robot : deadRobots) {
-                        listeners.forEach(l -> l.onRobotNeedsRespawn(session, robot.getId()));
-                    }
-                    session.setDeadRobotsAwaitingRespawn(deadRobots.size());
-
-                    scheduleRespawnTimeout(session, reg);
+                    session.setDeadRobotsAwaitingRespawn(deadRobots);
+                    processNextRespawn(session,reg);
                     return;
                 }
 
@@ -459,31 +456,50 @@ public class GameScheduler implements RoundPacer {
         session.setStepTask(effectsTask);
     }
 
+
     /**
      * Schedules timeout for the direction selecting
      * @author Weihao Mo
      */
-    private void scheduleRespawnTimeout(GameSession session, int reg) {
+    private void processNextRespawn(GameSession session, int reg) {
+        List<Robot> remainingDeadRobots = session.getRemainingDeadRobots();
+
+        if (remainingDeadRobots.isEmpty()) {
+            continueAfterRespawn(session, reg);
+            return;
+        }
+
+        Robot currentRobot = remainingDeadRobots.getFirst();
+
+        listeners.forEach(l -> l.onRobotNeedsRespawn(session, currentRobot.getId()));
+
         ScheduledFuture<?> respawnTimeout = scheduler.schedule(() -> {
-            if (!session.allRespawnDirectionsSet()) {
-                Game game = session.getGame();
+            if (currentRobot.getRespawnDirection() == null) {
                 Random random = new Random();
                 Direction[] directions = Direction.values();
-
-                for (Robot robot : game.getDeadRobots()) {
-                    if (robot.getRespawnDirection() == null) {
-                        Direction randomDirection = directions[random.nextInt(directions.length)];
-                        robot.setRespawnDirection(randomDirection);
-                        session.markRespawnDirectionSet(robot.getId());
-                    }
-                }
+                Direction randomDirection = directions[random.nextInt(directions.length)];
+                currentRobot.setRespawnDirection(randomDirection);
             }
 
-            continueAfterRespawn(session, reg);
+            session.markRespawnDirectionSet(currentRobot.getId());
+            processNextRespawn(session, reg);
+
         }, getRespawnTimeout(session), TimeUnit.MILLISECONDS);
 
         session.setRespawnTimeoutTask(respawnTimeout);
     }
+
+
+    /**
+     * Called when one robot have set their respawn directions
+     * And continues
+     * @author Weihao Mo
+     */
+    public void onRobotRespawnDirectionSet(GameSession session, int reg) {
+        session.cancelRespawnTimeoutTask();
+        processNextRespawn(session, reg);
+    }
+
 
     /**
      * Continues the game after respawn directions have been set (either manually or automatically).
@@ -507,18 +523,6 @@ public class GameScheduler implements RoundPacer {
             session.cancelStepTask();
             scheduleProgrammingPhase(session, NEXT_WINDOW_MS);
         }
-    }
-
-    /**
-     * Called when all robots have set their respawn directions
-     * Cancels the timeout and continues
-     *
-     * @param session the current game session
-     * @author Weihao Mo
-     */
-    public void continueAfterAllRespawns(GameSession session) {
-        session.cancelRespawnTimeoutTask();
-        continueAfterRespawn(session, currentRegister);
     }
 
     /**

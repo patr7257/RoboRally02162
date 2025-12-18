@@ -35,7 +35,7 @@ public interface RoundPacer {
     /**
      * @author Weihao Mo
      */
-    void continueAfterAllRespawns(GameSession session);
+    void onRobotRespawnDirectionSet(GameSession session, int reg);
 
     interface RoundPacerListener {
         /**
