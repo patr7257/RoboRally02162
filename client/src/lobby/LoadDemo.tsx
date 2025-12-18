@@ -24,12 +24,12 @@ export default function LoadLobby() {
   return (
     <Layout>
       <div className="page-title">
-        <h1 className="metal-text">Demo Games</h1>
+        <h1 className="metal-text">Demo</h1>
       </div>
       <div className="control-panel">
         {lobbies.length > 0 ? (
           <div className="lobbies-terminal">
-            <h2 className="terminal-title">Saved Games</h2>
+            <h2 className="terminal-title">Demo Games</h2>
             <ul className="terminal-list">
               {lobbies.map((demoName, index) => (
                 <li key={index} className="terminal-item">

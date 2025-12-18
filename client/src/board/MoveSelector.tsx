@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { MoveType } from "../types/boardTypes";
 import "../styles/cards.css";
@@ -303,6 +303,14 @@ export const MoveSelector: React.FC<MoveSelectorProps> = ({
   const [draggedMove, setDraggedMove] = useState<MoveType | null>(null);
   const [dragOverIndex, setDragOverIndex] = useState<number | null>(null);
   const [dragSourceIndex, setDragSourceIndex] = useState<number | null>(null);
+
+  useEffect(() => {
+    if (locked) {
+      setDraggedMove(null);
+      setDragSourceIndex(null);
+      setDragOverIndex(null);
+    }
+  }, [locked]);
 
   const getAvailableMoves = () => {
     const moveCounts = new Map<MoveType, number>();
