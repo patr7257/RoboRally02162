@@ -198,6 +198,19 @@ public class DynamicGameDatabase implements GameDatabase {
      * @author Karl Johannes Agerbo
      */
     @Override
+    public JsonNode getWinner(String saveID) {
+        try {
+            return active().getWinner(saveID);
+        } catch (Exception e) {
+            disableMySQL();
+            return local.getWinner(saveID);
+        }
+    }
+
+    /**
+     * @author Karl Johannes Agerbo
+     */
+    @Override
     public JsonNode getUsers(String saveID) {
         try {
             return active().getUsers(saveID);

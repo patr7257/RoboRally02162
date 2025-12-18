@@ -15,6 +15,7 @@ import "../styles/joinLobby.css";
 interface Lobby {
   lobbyID: string;
   [key: string]: any;
+  winner: string | null;
 }
 
 /** 
@@ -218,18 +219,20 @@ export default function LoadLobby() {
               {savedGames.map((game, index) => (
                 <li key={index} className="terminal-item">
                   <span className="terminal-id">{game.lobbyName}</span>
-                  <button
-                    className="metal-button icon"
-                    onClick={() => {
-                      setConfirmAction({
-                        type: 'load',
-                        saveID: game.saveID,
-                        lobbyName: game.lobbyName
-                      });
-                    }}
-                  >
-                    <div className="continue-icon"></div>
-                  </button>
+                  {game.winner == null && (
+                    <button
+                      className="metal-button icon"
+                      onClick={() => {
+                        setConfirmAction({
+                          type: 'load',
+                          saveID: game.saveID,
+                          lobbyName: game.lobbyName
+                        });
+                      }}
+                    >
+                      <div className="continue-icon"></div>
+                    </button>
+                  )}
 
                   <button
                     className="metal-button icon"

@@ -48,4 +48,10 @@ public  class LobbyFactory {
         return new Lobby("", "D" + nextDemoLobbyID++, c, host, 1, true);
     }
 
+    public void resetLobbyCounters() {
+        nextLobbyID = 0;
+        nextRecreatedLobbyID = 0;
+        nextDemoLobbyID = 0;
+    }
+
 }

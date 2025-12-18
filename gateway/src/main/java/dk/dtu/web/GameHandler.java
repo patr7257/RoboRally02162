@@ -53,14 +53,16 @@ public class GameHandler {
     public ResponseEntity<String> seeSavedGames() {
         String userID = APIUtil.getCallerID();
         List<String> saveIDs = gameService.getSavedGames(userID);
-        List<Map<String, String>> gameMap = new ArrayList<>();
+        List<Map<String, Object>> gameMap = new ArrayList<>();
         for (String id : saveIDs) {
             String lobbyName = gameService.getLobbyName(id).asText();
-            gameMap.add(Map.of(
-                    "saveID", id,
-                    "lobbyName", lobbyName
-                    )
-            );
+            JsonNode winner = gameService.getWinner(id);
+            Map<String, Object> entry = new HashMap<>();
+            entry.put("saveID", id);
+            entry.put("lobbyName", lobbyName);
+            entry.put("winner", winner.isNull() ? null : winner.asText());
+
+            gameMap.add(entry);
         }
         String response = JsonUtil.toJson(gameMap);
         return ResponseEntity.ok(response);
@@ -179,43 +181,5 @@ public class GameHandler {
                 .toList();
         return ResponseEntity.ok(cleaned);
     }
-//    /**
-//     * @author Karl Johannes Agerbo
-//     */
-//    @PostMapping("/game/loadDemos")
-//    public ResponseEntity<String> loadDemos() {
-//        String userID = APIUtil.getCallerID();
-//        try {
-//            demoService.loadDemoTemplates(userID);
-//            return ResponseEntity.status(HttpStatus.OK).body("Demos Loaded");
-//        } catch (IOException e) {
-//            return ResponseEntity.status(HttpStatus.FORBIDDEN).body("Error in loading demos");
-//        }
-//    }
-//
-//    /**
-//     * @author Karl Johannes Agerbo
-//     */
-//    @PostMapping("/game/toggleDemoMode")
-//    public ResponseEntity<Map<String, Boolean>> toggleDemoMode() {
-//        try {
-//            String userID = APIUtil.getCallerID();
-//            Client client = serverManager.getClient(userID);
-//
-//            client.toggleDemoMode();
-//
-//            Map<String, Boolean> response = new HashMap<>();
-//            response.put("demoMode", client.isDemoMode());
-//
-//            System.out.println("Client toggled demo mode: " + client.isDemoMode());
-//
-//            return ResponseEntity.ok(response);
-//        } catch (Exception e) {
-//            Map<String, Boolean> response = new HashMap<>();
-//            response.put("demoMode", false);
-//            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(response);
-//        }
-//    }
-
 
 }

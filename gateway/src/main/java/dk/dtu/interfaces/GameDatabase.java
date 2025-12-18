@@ -21,4 +21,5 @@ public interface GameDatabase {
     boolean checkUserInGame(String userID, String saveID);
     Map<String, JsonNode> getAllGames();
     JsonNode getLobbyName(String saveID);
+    JsonNode getWinner(String saveID);
 }

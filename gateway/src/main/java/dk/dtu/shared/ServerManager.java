@@ -337,4 +337,8 @@ public class ServerManager implements LobbyObserver, ClientObserver {
     public Map<String, String> getGameToLobbyForTest() {
         return gameToLobby;
     }
+
+    public void resetLobbyCounterForTest() {
+        lobbyFactory.resetLobbyCounters();
+    }
 }

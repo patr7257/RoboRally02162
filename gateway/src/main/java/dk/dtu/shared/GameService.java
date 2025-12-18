@@ -43,7 +43,6 @@ public class GameService {
             serverManager.notifyClientsOfUpdates("games", "updatedGames");
         } catch (Exception e) {
             lob.notifyGameSaved(false);
-            e.printStackTrace();
         }
     }
 
@@ -70,6 +69,10 @@ public class GameService {
 
     public JsonNode getLobbyName(String saveID) {
         return gameDatabase.getLobbyName(saveID);
+    }
+
+    public JsonNode getWinner(String saveID) {
+        return gameDatabase.getWinner(saveID);
     }
 
 }

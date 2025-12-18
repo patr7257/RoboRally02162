@@ -97,6 +97,7 @@ public class GameDatabaseTests {
         }
         sessions.clear();
         userTokens.clear();
+        HostConfig.forceWinner = false;
     }
 
     /**
@@ -121,7 +122,7 @@ public class GameDatabaseTests {
                 JsonNode snapshot = gameDatabase.getGameSnapshot(saveID);
                 assertThat(snapshot).isNotNull();
                 assertThat(snapshot.get("gameSnapshot"))
-                        .isEqualTo(JsonUtil.parser("\"gameInfo\""));
+                        .isEqualTo(JsonUtil.parser("{\"winner\":null}"));
             }
         }
 
@@ -185,7 +186,7 @@ public class GameDatabaseTests {
             String userID = tokenUtil.extractUserToken(token).userID();
             String response = seeSavedGames(token);
             String saveID = gameDatabase.getSavedGames(userID).getFirst();
-            assertThat(JsonUtil.parser(response)).containsExactly(JsonUtil.parser("{\"saveID\":\"" + saveID + "\",\"lobbyName\":\"" + "testName" + "\"}"));
+            assertThat(JsonUtil.parser(response)).containsExactly(JsonUtil.parser("{\"saveID\":\"" + saveID + "\",\"lobbyName\":\"" + "testName" + "\", \"winner\":null}"));
         }
     }
 
@@ -260,7 +261,7 @@ public class GameDatabaseTests {
      * @author Karl Johannes Agerbo
      */
     @Test
-    public void testStartLoadedGameFailed() throws Exception {
+    public void testStartLoadedGameFailureNotAllPlayersJoined() throws Exception {
         String lobbyID = setupLobby();
         String firstUserToken = userTokens.getFirst();
         startLobby(firstUserToken, lobbyID);
@@ -268,6 +269,9 @@ public class GameDatabaseTests {
         saveGame(lobbyID);
 
         String saveID = getFirstSaveID(firstUserToken);
+        JsonNode snapshot = gameDatabase.getGameSnapshot(saveID);
+        System.out.println("SnapshotPrint: " + snapshot.toString());
+
         String loadedLobbyID = loadGame(firstUserToken, saveID);
         readyPlayers(loadedLobbyID);
         String response = mockMvc.perform(post("/api/lobby/start")
@@ -281,6 +285,39 @@ public class GameDatabaseTests {
                 .getContentAsString();
 
         assertThat(response).isEqualTo("Not all players have joined!");
+    }
+
+    /**
+     * @author Karl Johannes Agerbo
+     */
+    @Test
+    public void testStartLoadedGameFailureGameAlreadyEnded() throws Exception {
+        String lobbyID = setupLobby();
+        String firstUserToken = userTokens.getFirst();
+        startLobby(firstUserToken, lobbyID);
+
+        HostConfig.forceWinner = true;
+        saveGame(lobbyID);
+
+        String saveID = getFirstSaveID(firstUserToken);
+        JsonNode snapshot = gameDatabase.getGameSnapshot(saveID);
+        System.out.println("SnapshotPrint: " + snapshot.toString());
+
+        String loadedLobbyID = loadGame(firstUserToken, saveID);
+
+        loadPlayers(saveID);
+        readyPlayers(loadedLobbyID);
+        String response = mockMvc.perform(post("/api/lobby/start")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .header("Authorization", "Bearer " + firstUserToken)
+                        .content(mapper.writeValueAsString(Map.of("lobbyID", loadedLobbyID))))
+                .andExpect(status().isForbidden())
+                .andExpect(content().string(Matchers.notNullValue()))
+                .andReturn()
+                .getResponse()
+                .getContentAsString();
+
+        assertThat(response).isEqualTo("GAME_ALREADY_ENDED");
     }
 
 

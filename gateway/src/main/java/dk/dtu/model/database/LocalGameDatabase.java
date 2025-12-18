@@ -130,6 +130,14 @@ public class LocalGameDatabase implements GameDatabase {
     }
 
     /**
+     * @author Karl Johannes Agerbo
+     */
+    @Override
+    public JsonNode getWinner(String saveID) {
+        return gamesFromSaveID.get(saveID).get("gameSnapshot").get("winner");
+    }
+
+    /**
      * @author Bjarke Søderhamn Petersen
      * @author Benjamin Benyo Endahl Hansen
      * @author Karl Johannes Agerbo

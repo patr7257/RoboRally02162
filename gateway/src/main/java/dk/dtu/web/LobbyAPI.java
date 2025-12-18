@@ -162,6 +162,9 @@ public class LobbyAPI {
             if (lob.isLoadedLobby()) {
                 System.out.println("Starting loaded game");
                 JsonNode snapshot = gameDatabase.getGameSnapshot(lob.getSaveID().toString());
+                if (!snapshot.get("gameSnapshot").get("winner").isNull()) {
+                    return ResponseEntity.status(HttpStatus.FORBIDDEN).body("GAME_ALREADY_ENDED");
+                }
                 lob.startGame(snapshot.get("gameSnapshot"));
             } else {
                 // Use the template name stored in the lobby
@@ -189,7 +192,6 @@ public class LobbyAPI {
             return ResponseEntity.status(HttpStatus.OK).build();
         } catch (Exception e) {
             System.out.println("ERROR starting game: " + e.getMessage());
-            e.printStackTrace();
             return ResponseEntity.status(HttpStatus.FORBIDDEN).body(e.getMessage());
         }
 

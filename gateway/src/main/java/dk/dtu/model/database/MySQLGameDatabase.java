@@ -217,6 +217,15 @@ public class MySQLGameDatabase implements GameDatabase {
      * @author Karl Johannes Agerbo
      */
     @Override
+    public JsonNode getWinner(String saveID) {
+        JsonNode snapshot = getGameSnapshot(saveID);
+        return snapshot != null ? snapshot.get("gameSnapshot").get("winner") : null;
+    }
+
+    /**
+     * @author Karl Johannes Agerbo
+     */
+    @Override
     public JsonNode getUsers(String saveID) {
         JsonNode snapshot = getGameSnapshot(saveID);
         return snapshot != null ? snapshot.get("users") : null;

@@ -88,6 +88,7 @@ public class LobbyRESTTests {
 
     @BeforeEach
     void clean() {
+        serverManager.resetLobbyCounterForTest();
         userDatabase.wipeUserDatabase();
     }
 

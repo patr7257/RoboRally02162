@@ -26,6 +26,8 @@ import java.util.UUID;
 @TestConfiguration
 public class HostConfig {
 
+    public static boolean forceWinner;
+
     @Bean
     @Primary
     public Host host() {
@@ -61,7 +63,10 @@ public class HostConfig {
             */
             @Override
             public JsonNode saveGame(UUID gameID) {
-                return JsonUtil.parser("\"gameInfo\"");
+                ObjectNode gameSnapshot  = JsonUtil.createObjectNode();
+                Integer winner = forceWinner ? 1 : null;
+                gameSnapshot.put("winner", winner);
+                return gameSnapshot;
             }
 
             @Override
