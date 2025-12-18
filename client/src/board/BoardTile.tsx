@@ -83,7 +83,7 @@ export const BoardTile: React.FC<BoardTileProps> = ({
         backgroundPosition: "center",
       }}
     >
-      <span className="tile-coords">{x},{y}</span>
+
       {robot && (
         <div
           className="robot"

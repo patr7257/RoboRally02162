@@ -1,8 +1,7 @@
-import React from "react";
+import React, { useRef, useState, useEffect } from "react";
 import { GameData, Direction, Tile, Robot } from "../types/boardTypes";
 import { calculateBoardSize, getRobotAtPosition, getRobotImage } from "../utils/boardUtils";
 import RobotLaser from "../ui/effects/RobotLaser";
-
 import { BoardTile } from "./BoardTile";
 import "../styles/gameview.css";
 import "../styles/boardelements.css";
@@ -35,13 +34,31 @@ interface BoardRendererProps {
 * @author Kajsa Alice Ulrika Berlstedt
 */
 export const BoardRenderer: React.FC<BoardRendererProps> = ({ gameData, startingAreaInfo }) => {
-  const rotationHistoryRef = React.useRef<Record<number, number>>({});
+  const rotationHistoryRef = useRef<Record<number, number>>({});
+  const containerRef = useRef<HTMLDivElement>(null);
+  const [tileSize, setTileSize] = useState<number>(0);
+
+  useEffect(() => {
+    if (!gameData || !containerRef.current) return;
+
+    const updateSize = () => {
+      const { tileSize: newTileSize } = calculateBoardSize(
+        gameData.board.width,
+        gameData.board.height,
+        containerRef.current
+      );
+      setTileSize(newTileSize);
+    };
+
+    updateSize();
+
+    window.addEventListener('resize', updateSize);
+    return () => window.removeEventListener('resize', updateSize);
+  }, [gameData]);
 
   if (!gameData) {
     return <div className="board-empty"><p>Waiting for game data...</p></div>;
   }
-
-  const { tileSize } = calculateBoardSize(gameData.board.width, gameData.board.height);
 
   const getRotationDegrees = (facing: string): number => {
     switch (facing) {
@@ -68,10 +85,16 @@ export const BoardRenderer: React.FC<BoardRendererProps> = ({ gameData, starting
     return nextRotation;
   };
 
-
+  if (tileSize === 0) {
+    return (
+      <div ref={containerRef} className="board-wrapper" style={{ width: '100%', height: '100%' }}>
+        <div className="board-empty"><p>Loading board...</p></div>
+      </div>
+    );
+  }
 
   return (
-    <div className="board-wrapper">
+    <div ref={containerRef} className="board-wrapper" style={{ width: '100%', height: '100%' }}>
       <div
         className="board-grid"
         style={{
@@ -81,7 +104,6 @@ export const BoardRenderer: React.FC<BoardRendererProps> = ({ gameData, starting
           position: 'relative',
         }}
       >
-
         {gameData.board.tiles.map((col, xIdx) =>
           col.map((tile, yIdx) => (
             <BoardTile
@@ -124,7 +146,6 @@ export const BoardRenderer: React.FC<BoardRendererProps> = ({ gameData, starting
                 boxSizing: 'border-box',
               }}
             />
-            {/* Robot laser effect - rendered for each robot */}
             <div
               className="robot-laser-container"
               style={{

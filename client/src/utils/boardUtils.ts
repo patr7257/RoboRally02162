@@ -24,19 +24,30 @@ export const getRobotAtPosition = (
  * @author Bjarke Søderhamn Petersen
  * @author Asger Allin Jensen
  * @author Patrick Røbel
+ * @author William Pii Jæger *
  */
 export const calculateBoardSize = (
   boardWidth: number,
-  boardHeight: number
+  boardHeight: number,
+  containerElement?: HTMLElement | null
 ): { tileSize: number; boardWidth: number; boardHeight: number } => {
-  const viewportWidth = window.innerWidth;
-  const viewportHeight = window.innerHeight;
-  const availableWidth = viewportWidth * 0.385;
-  const availableHeight = 0;
+  let availableWidth: number;
+  let availableHeight: number;
 
-  const tileSizeByWidth = availableWidth / boardWidth;
-  const tileSizeByHeight = availableHeight / boardHeight;
-  const tileSize = Math.max(tileSizeByWidth, tileSizeByHeight);
+  if (containerElement) {
+
+    const rect = containerElement.getBoundingClientRect();
+    availableWidth = rect.width;
+    availableHeight = rect.height;
+  } else {
+
+    availableWidth = window.innerWidth;
+    availableHeight = window.innerHeight;
+  }
+
+  const tileSizeByWidth = (availableWidth / boardWidth)*0.95;
+  const tileSizeByHeight = (availableHeight / boardHeight)*0.95;
+  const tileSize = Math.min(tileSizeByWidth, tileSizeByHeight);
 
   return {
     tileSize: Math.floor(tileSize),
@@ -58,6 +69,7 @@ export const calculateLaserBeamLength = (
   if (x === undefined || y === undefined || !board) {
     return 10;
   }
+
   let tilesToEdge = 0;
   switch (direction) {
     case 'N':
@@ -73,6 +85,7 @@ export const calculateLaserBeamLength = (
       tilesToEdge = x;
       break;
   }
+
   const extraTiles = laserType === 'board' ? 0.65 : 0.5;
   return tilesToEdge + extraTiles;
 };
