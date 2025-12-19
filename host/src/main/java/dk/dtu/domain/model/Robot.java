@@ -8,10 +8,12 @@ import java.util.Deque;
 import java.util.List;
 
 /**
+
  * Represents a robot player in the game with position, direction.
  * <p>
- * Each robot maintains also its current position on the board, facing direction, checkpoint progress,
- * and a queue of program operations to execute.
+ * Each robot also keeps:
+ *  <li> a queue of program operations to execute (registers)</li>
+ *  <li> the corresponding program cards for lastMoves / UI (pcRegisters)</li>
  * </p>
  *
  * @author William Pii Jæger
@@ -55,11 +57,15 @@ public class Robot {
     }
 
     /**
+     * Loads a full 5-card program for this round.
+     * Clears both operation and card queues so they stay in sync.
+     *
      * @author William Pii Jæger
      * @author Weihao Mo
      */
     public void loadProgram(List<ProgramCard> cards) {
         registers.clear();
+        pcRegisters.clear();
         for (ProgramCard c : cards){
             registers.addAll(c.toOps());
             pcRegisters.add(c);
@@ -140,8 +146,12 @@ public class Robot {
         return registers;
     }
 
+    /**
+     * Clears all queued ops/cards and the remembered last op.
+     */
     public void clearRegisters() {
         registers.clear();
+        pcRegisters.clear();
         lastExecutedOp = null;
     }
 
@@ -156,6 +166,7 @@ public class Robot {
 
     public boolean movedOnActivation() { return movedOnActivation; }
     public void setMovedOnActivation(boolean v) { movedOnActivation = v; }
+
     public void setAlive() {
         isAlive = true;
     }

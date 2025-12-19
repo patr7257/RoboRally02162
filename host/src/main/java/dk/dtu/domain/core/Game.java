@@ -14,16 +14,16 @@ import java.util.*;
 
 /**
  * Core game engine for RoboRally.
- * <p>
+ *
  * This class owns the board state, robots, decks, and phase index; executes
- * rounds/registers;
- * applies tile effects via {@link BoardAPI}; evaluates win conditions; and
- * notifies observers.
- * </p>
- * <p>
- * Thread-safety: not thread-safe; expected to be used from a single game-loop
- * thread.
- * </p>
+ * rounds/registers; applies tile effects via {@link BoardAPI}; evaluates win
+ * conditions; and notifies observers.
+ *
+ * Card system invariants:
+ *  <li> For each robot:</li>
+ *      normalCards(draw + discard + hand) is constant (the standard deck size).
+ *  <li> Damage cards (Spam/Trojan/Worm) move:
+ *      DamageDecks → robot discard → robot draw/hand → (when played) back to DamageDecks.</li>
  *
  * @author William Pii Jæger
  * @author Weihao Mo
@@ -40,7 +40,7 @@ public class Game {
     private final Map<Integer, Robot> robotMap = new HashMap<>();
     private final Map<Integer, Deck> deckMap = new HashMap<>();
     private Integer winner;
-    private List<Map.Entry<Integer, String>> lastMoves = new ArrayList<>();;
+    private List<Map.Entry<Integer, String>> lastMoves = new ArrayList<>();
     private final List<GameObserver> observers = new ArrayList<>();
     private DamageDecks damageDecks;
 
@@ -190,13 +190,18 @@ public class Game {
     }
 
     /**
-     * Submits and validates a player's selected program (fills remaining slots if
-     * allowed) and loads it on the robot.
+     * Submits and validates a player's selected program (fills remaining slots if allowed)
+     * and loads it on the robot.
+     *
+     * Autocomplete draws additional cards from the DECK, not from the unused hand
+     * cards, and those cards are added to the hand so they participate in discard
+     * / reshuffle like any other.
      *
      * @param robotID the robot ID
      * @param picked the list of picked program cards for this round/registers
      * @param demoMode if true, bypasses validation of cards, used for demonstrations
      * @throws IllegalArgumentException if no robot is associated with the player
+     *
      * @author William Pii Jæger
      * @author Weihao Mo
      */
@@ -378,7 +383,8 @@ public class Game {
     }
 
     /**
-     * Applies all tile effects associated with a specific phase.
+     * Applies tile effects for a phase and then resolves BoardAPI intents.
+     * Any laser damage draws damage cards into the affected robot's discard pile.
      * <p>
      * This method retrieves all tiles that have effects in the given phase,
      * executes those effects
@@ -423,8 +429,8 @@ public class Game {
                 robotMap.get(e.robotId()).setPosition(e.to().x(), e.to().y());
             }
             for (DestroyEvent d : moved.destroys()) {
-                if(d.cause() == DestroyCause.LASER) {
-                    drawDamageCards(deckMap.get(d.robotId()),d.power());
+                if (d.cause() == DestroyCause.LASER) {
+                    drawDamageCards(deckMap.get(d.robotId()), d.power());
                 } else {
                     Robot r = robotMap.get(d.robotId());
                     if (r.isAlive()) {
@@ -588,7 +594,12 @@ public class Game {
 
     /**
      * Executes the next operation for a single robot.
-     * Movement ops attempt stepwise movement (respecting blocks); rotation ops update direction.
+     *
+     * Damage resolution is handled first:
+     *  <li> Spam: remove one Spam from hand, return it to DamageDecks, then play top of deck.</li>
+     *  <li> Trojan Horse: draw 2 damage cards (into discard), remove Trojan from hand,</li>
+     *    return it to DamageDecks, then play top of deck.
+     *  <li> Worm: apply reboot penalty (2 damage), then kill robot and return Worm to DamageDecks.</li>
      *
      * @param robot the robot to execute
      * @author William Pii Jæger
@@ -605,22 +616,28 @@ public class Game {
         boolean resolvingDamage = true;
         while (resolvingDamage) {
             if (op instanceof ProgramOP.Spam) {
-                damageDecks.setSpamDrawPile(damageDecks.getSpamDrawPile() + 1);
+
                 deck.removeFromHand(ProgramCard.spam());
+                damageDecks.putBack(ProgramCard.spam());
+
                 op = playTopCard(deck);
             } else if (op instanceof ProgramOP.TrojanHorse) {
-                drawDamageCards(deck,2);
-                damageDecks.setTrojanHorseDrawPile(damageDecks.getTrojanHorseDrawPile() + 1);
+
+                drawDamageCards(deck, 2);
+
                 deck.removeFromHand(ProgramCard.trojanHorse());
+                damageDecks.putBack(ProgramCard.trojanHorse());
+
                 op = playTopCard(deck);
             } else if (op instanceof ProgramOP.Worm) {
+
                 if (robot.isAlive()) {
                     applyRebootPenalty(robot.getId());
                 }
                 robot.setDead();
                 robot.clearRegisters();
-                damageDecks.setWormDrawPile(damageDecks.getWormDrawPile() + 1);
                 deck.removeFromHand(ProgramCard.worm());
+                damageDecks.putBack(ProgramCard.worm());
                 notifyGameUpdate();
                 return;
             } else {
@@ -664,7 +681,8 @@ public class Game {
     }
 
     /**
-     * Apply damage card system in reboot phase
+     * Reboot penalty: draw 2 damage cards into the robot's discard pile
+     * (from the global damage pools).
      *
      * @param robotId the id of the robot to execute
      * @author Weihao Mo
@@ -677,42 +695,20 @@ public class Game {
         drawDamageCards(deck, 2);
     }
 
-
     /**
-     * Add spam cards to discard pile. If there are not enough spam cards, we add Trojan horse or worm instead
+     * Draws {@code count} damage cards from the global DamageDecks pools and
+     * adds them to the given robot's discard pile.
+     *
+     * These cards will enter the robot's draw pile on the next reshuffle, and
+     * from there can be drawn into the hand and eventually played.
      *
      * @param deck the deck where we add damage cards to discard pile
      * @param count the number of damage cards to add
      * @author Weihao Mo
      */
-    private void drawDamageCards(Deck deck,int count) {
-        for (int i = 0; i < count; i++) {
-            if (damageDecks.getSpamDrawPile() > 0) {
-                deck.addToDiscard(ProgramCard.spam());
-                damageDecks.setSpamDrawPile(damageDecks.getSpamDrawPile() - 1);
-            } else {
-                List<ProgramCard> availableCards = new ArrayList<>();
-
-                if (damageDecks.getTrojanHorseDrawPile() > 0) {
-                    availableCards.add(ProgramCard.trojanHorse());
-                }
-                if (damageDecks.getWormDrawPile() > 0) {
-                    availableCards.add(ProgramCard.worm());
-                }
-
-                if (availableCards.isEmpty()) {
-                    break;
-                }
-
-                ProgramCard selected = availableCards.get(new Random().nextInt(availableCards.size()));
-                deck.addToDiscard(selected);
-
-                if (selected.equals(ProgramCard.trojanHorse())) {
-                    damageDecks.setTrojanHorseDrawPile(damageDecks.getTrojanHorseDrawPile() - 1);
-                } else if (selected.equals(ProgramCard.worm())) {
-                    damageDecks.setWormDrawPile(damageDecks.getWormDrawPile() - 1);
-                }
-            }
+    private void drawDamageCards(Deck deck, int count) {
+        for (ProgramCard damageCard : damageDecks.drawDamageCards(count)) {
+            deck.addToDiscard(damageCard);
         }
     }
 
@@ -732,26 +728,18 @@ public class Game {
      */
     public void discardTopRobotCard(Robot robot) {
         deckMap.get(robot.getId()).discardTopCard();
-
     }
-    /**
-     * Returns the list of robots in priority order for the current register.
-     *
-     * @return list of robots ordered by priority
-     * @author William Pii Jæger
-     */
+
     public List<Robot> getRobotsByPriority() {
         return api.getRobotsByPriority();
     }
 
     /**
-     * @deprecated Use {@link #executeOneRobotTurn(Robot)} with scheduling for
-     * visual delays
+     * @deprecated Use {@link #executeOneRobotTurn(Robot)} with scheduling for visual delays
      */
     private void executeOneRegister() {
         for (Robot r : api.getRobotsByPriority()) {
             executeOneRobotTurn(r);
-
             applyTileEffects(Phase.ACTIVATE_PITS);
         }
     }
@@ -875,5 +863,4 @@ public class Game {
         }
         return null;
     }
-
 }
