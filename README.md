@@ -1,38 +1,62 @@
 
-# Running code locally
+# Running the project locally
 
-The code is developed using java jdk-23
-
-We are running Maven version 3.9.9
-
-To run the code do the following steps:
-
-STEP 1 Start gateway server
-    Navigate to RoboRally02162\gateway and run the following command: mvn spring-boot:run
-
-STEP 2 Start host logic
-    Navigate to RoboRally02162\host and run the following command: mvn spring-boot:run
-
-STEP 3 Setup npm
-    Navigate to RoboRally02162\client and run the following commands to setup npm:
-
-    npm install
-
-    npm install --save-dev @types/jest @testing-library/react @testing-library/jest-dom
-        
-    npm install --save typescript @types/react @types/react-dom
-
-STEP 4 Run client
-    Navigate to RoboRally02162\client and run the following command: npm start
-
-    If promted to use a different port type "y" in the terminal
-
-    If it fails make sure you have run the commands in STEP 3
-
-    To open multiple clients open a new terminal and repeat STEP 4
+## Requirements
+* Java: JDK 23
+* Maven: 3.9.9
+* Node.js + npm: for the client
 
 
+## Install dependencies
 
+### Client
+Navigate to `client`and run:
+```bash
+npm install
+```
+
+This installs all required dependencies for the client.
+
+
+### Host and Gateway
+
+You need JDK 23 and Maven to run both the Host and the Gateway.
+
+#### Without nix
+Install JDK 23 and Maven on your system, then verify:
+
+#### With nix
+From each module folder (gateway and host), run:
+```
+nix-shell -p openjdk23 maven
+```
+
+## Running the project
+
+Be in the root on the project.
+
+Step 1: Start the Gateway
+```bash
+cd gateway
+mvn spring-boot:run
+```
+
+Step 2: Start the Host
+```bash
+cd host
+mvn spring-boot:run
+```
+
+Step 3: Start the Client
+```bash
+cd client
+npm start
+```
+* If prompted to run on a different port, type y.
+* If it fails, make sure you ran npm install first.
+
+Multiple clients
+To open multiple clients, open a new terminal and repeat Step 3.
 
 # Deploy program
 
