@@ -32,7 +32,15 @@ function hitsFromNext(nextCheckpoint: number): Set<number> {
 /**
  * @author Weihao Mo
  */
-export default function CheckpointChecklist({ board, robots }: { board: Board; robots: Robot[] }) {
+export default function CheckpointChecklist({
+  board,
+  robots,
+  robotIdToUsername
+}: {
+  board: Board;
+  robots: Robot[];
+  robotIdToUsername?: Record<number, string>;
+}) {
   const checkpoints = getCheckpointNumbers(board);
   if (!checkpoints.length) {
     return <div className="ck-lists"><em>No checkpoints found.</em></div>;
@@ -42,12 +50,13 @@ export default function CheckpointChecklist({ board, robots }: { board: Board; r
     <div className="ck-lists">
       {robots.map(r => {
         const hits = hitsFromNext(r.nextCheckpoint);
+        const displayName = robotIdToUsername?.[r.id];
         return (
           <div key={r.id} className="ck-player">
-            <div className="ck-player-name">Player {r.id}</div>
+            <div className="ck-player-name">{displayName}</div>
             <div className="ck-row">
               {checkpoints.map(n => (
-                <label key={n} className="ck-item" title={`Player ${r.id} checkpoint ${n}`}>
+                <label key={n} className="ck-item" title={`${displayName} checkpoint ${n}`}>
                   <input type="checkbox" checked={hits.has(n)} readOnly />
                   <span> {n}</span>
                 </label>

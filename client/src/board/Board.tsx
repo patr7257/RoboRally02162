@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useMemo } from "react";
 import { Menu, X, Home } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { subscribe, sendMessage } from "../utils/ws";
@@ -91,6 +91,20 @@ export default function Board() {
   const localSubmitLatchRef = useRef(false);
 
   const isDemoMode = sessionStorage.getItem("mode") == "demo";
+
+  /**
+  * @author Weihao Mo
+  */
+  const robotIdToUsername = useMemo(() => {
+    const map: Record<number, string> = {};
+    Object.entries(robotMap).forEach(([username, robotId]) => {
+      const id = Number(robotId);
+      if (!isNaN(id)) {
+        map[id] = username;
+      }
+    });
+    return map;
+  }, [robotMap]);
 
   // Fetch lobby info and full board template for Map Banner and starting area info
   useEffect(() => {
@@ -291,7 +305,7 @@ export default function Board() {
               setRespawnRobotId(deadRobotId);
             }
             break;
-          
+
           case "damageDecks":
             setDamageDecks(actualData.payload);
             break;
@@ -556,6 +570,7 @@ export default function Board() {
 
   /**
    * @author Kajsa Alice Ulrika Berlstedt
+   * @author Weihao Mo
    */
   const renderRobotLabels = (): React.ReactNode => {
     const username = sessionStorage.getItem("username") || "";
@@ -599,7 +614,7 @@ export default function Board() {
   return (
     <div className="board-Master">
       {winner != null && (
-        <WinnerBanner winnerId={winner} />
+        <WinnerBanner winnerId={winner} robotIdToUsername={robotIdToUsername} />
       )}
 
       <RespawnDirectionModal
@@ -738,21 +753,24 @@ export default function Board() {
                   ref={moveHistoryRef}
                   style={{ maxHeight: "150px", overflowY: "auto" }}
                 >
-                  {moveHistory.map((move, index) => (
-                    <div key={index}>
-                      <p className="last-move-robot">
-                        <span
-                          style={{
-                            color: ROBOT_COLORS[(move.robotId - 1) % ROBOT_COLORS.length],
-                            fontWeight: "bold",
-                          }}
-                        >
-                          Robot {move.robotId}
-                        </span>
-                      </p>
-                      <p className="last-move-action">{move.move}</p>
-                    </div>
-                  ))}
+                  {moveHistory.map((move, index) => {
+                    const displayName = robotIdToUsername[move.robotId];
+                    return (
+                      <div key={index}>
+                        <p className="last-move-robot">
+                          <span
+                            style={{
+                              color: ROBOT_COLORS[(move.robotId - 1) % ROBOT_COLORS.length],
+                              fontWeight: "bold",
+                            }}
+                          >
+                            {displayName}
+                          </span>
+                        </p>
+                        <p className="last-move-action">{move.move}</p>
+                      </div>
+                    );
+                  })}
                 </div>
               ) : (
                 <p className="last-move-empty">No moves yet</p>
@@ -763,11 +781,15 @@ export default function Board() {
               <div className="info-section">
                 <div className="info-section-title">Player Status</div>
                 <ul className="readiness-list">
-                  {Object.entries(readiness.playerSubmitted).map(([playerId, submitted]) => (
-                    <li key={playerId}>
-                      Player {playerId}: {submitted ? '✓ Submitted' : '⏳ Waiting'}
-                    </li>
-                  ))}
+                  {Object.entries(readiness.playerSubmitted).map(([playerId, submitted]) => {
+                    const id = Number(playerId);
+                    const displayName = robotIdToUsername[id];
+                    return (
+                      <li key={playerId}>
+                        {displayName}: {submitted ? '✓ Submitted' : '⏳ Waiting'}
+                      </li>
+                    );
+                  })}
                 </ul>
               </div>
             )}
@@ -819,7 +841,11 @@ export default function Board() {
             <div className="info-section">
               <div className="info-section-title">Checkpoints</div>
               {gameData && (
-                <CheckpointChecklist board={gameData.board} robots={gameData.robots} />
+                <CheckpointChecklist
+                  board={gameData.board}
+                  robots={gameData.robots}
+                  robotIdToUsername={robotIdToUsername}
+                />
               )}
             </div>
           </div>

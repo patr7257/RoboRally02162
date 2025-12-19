@@ -1,5 +1,3 @@
-
-
 import React from "react";
 
 /**
@@ -8,8 +6,12 @@ import React from "react";
 
 interface WinnerBannerProps {
   winnerId: number;
+  robotIdToUsername?: Record<number, string>;
 }
 
-export const WinnerBanner: React.FC<WinnerBannerProps> = ({ winnerId }) => (
-  <div className="winner-banner">Player {winnerId} has won the game!</div>
-);
+export const WinnerBanner: React.FC<WinnerBannerProps> = ({ winnerId, robotIdToUsername }) => {
+  const displayName = robotIdToUsername?.[winnerId];
+  return (
+    <div className="winner-banner">{displayName} has won the game!</div>
+  );
+};
