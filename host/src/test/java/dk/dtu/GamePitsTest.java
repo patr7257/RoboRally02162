@@ -16,7 +16,6 @@ import org.junit.jupiter.api.Test;
 
 import java.util.List;
 
-import static dk.dtu.util.BoardTestUtils.initBoardWithRebootToken;
 import static dk.dtu.util.BoardTestUtils.initBoardWithRebootTokenAndPits;
 import static dk.dtu.util.GameTestSupport.assertMoved;
 import static dk.dtu.util.GameTestSupport.assertPosDir;

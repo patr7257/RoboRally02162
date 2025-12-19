@@ -9,7 +9,6 @@ import dk.dtu.domain.model.DamageDecks;
 import dk.dtu.domain.model.Deck;
 import dk.dtu.domain.model.Robot;
 import dk.dtu.domain.program.ProgramCard;
-import dk.dtu.domain.program.ProgramOP;
 import dk.dtu.domain.rules.TileAnimationListener;
 import dk.dtu.domain.rules.api.BoardAPI;
 import dk.dtu.infrastructure.SnapshotMapper;

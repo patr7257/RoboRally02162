@@ -1,7 +1,6 @@
 package dk.dtu.domain.rules.effects;
 
 import dk.dtu.domain.core.Phase;
-import dk.dtu.domain.model.Board;
 import dk.dtu.domain.model.Robot;
 import dk.dtu.domain.model.Tile;
 import dk.dtu.domain.rules.api.BoardAPI;

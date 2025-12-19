@@ -1,9 +1,5 @@
 package dk.dtu.infrastructure.dto;
 
-import dk.dtu.domain.model.Direction;
-
-import java.util.List;
-
 /**
  * @author Patrick Røbel
  */

@@ -1,6 +1,5 @@
 package dk.dtu.domain.rules.api;
 
-import dk.dtu.domain.core.Phase;
 import dk.dtu.domain.model.Direction;
 import dk.dtu.domain.model.Robot;
 import dk.dtu.domain.model.Tile;

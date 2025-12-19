@@ -2,14 +2,10 @@ package dk.dtu.domain.rules.effects;
 
 import dk.dtu.domain.core.Phase;
 import dk.dtu.domain.model.Direction;
-import dk.dtu.domain.model.Robot;
 import dk.dtu.domain.model.Tile;
-import dk.dtu.domain.rules.MoveEvent;
-import dk.dtu.domain.rules.Outcome;
 import dk.dtu.domain.rules.api.BoardAPI;
 
 import java.util.EnumSet;
-import java.util.List;
 
 /**
  * Reboot token tile effect that restores destroyed robots during the reboot phase.

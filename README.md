@@ -13,6 +13,7 @@
 Navigate to `client`and run:
 ```bash
 npm install
+npm install --save-dev eslint@8.57.1
 ```
 
 This installs all required dependencies for the client.

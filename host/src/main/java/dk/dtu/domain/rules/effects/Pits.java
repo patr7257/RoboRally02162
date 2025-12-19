@@ -1,7 +1,6 @@
 package dk.dtu.domain.rules.effects;
 
 import dk.dtu.domain.core.Phase;
-import dk.dtu.domain.model.Direction;
 import dk.dtu.domain.model.Robot;
 import dk.dtu.domain.model.Tile;
 import dk.dtu.domain.rules.Coord;
@@ -9,7 +8,6 @@ import dk.dtu.domain.rules.DestroyCause;
 import dk.dtu.domain.rules.api.BoardAPI;
 
 import java.util.EnumSet;
-import java.util.List;
 
 /**
  * A pits tile kills any {@link Robot} standing on it

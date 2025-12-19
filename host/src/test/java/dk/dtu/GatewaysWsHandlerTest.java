@@ -2,8 +2,6 @@ package dk.dtu;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import dk.dtu.domain.core.CommandResult;
-import dk.dtu.domain.core.GameCommand;
 import dk.dtu.domain.core.GameManager;
 import dk.dtu.infrastructure.dto.*;
 import dk.dtu.infrastructure.websocket.GatewaysWsHandler;
@@ -17,7 +15,6 @@ import java.util.Map;
 import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
 /**

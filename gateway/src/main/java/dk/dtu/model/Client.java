@@ -4,11 +4,7 @@ import dk.dtu.dto.ClientConnectReason;
 import dk.dtu.dto.ClientDisconnectReason;
 import dk.dtu.dto.ClientUpdateReason;
 import dk.dtu.observer.ClientObserver;
-import dk.dtu.util.JsonUtil;
-import org.springframework.web.socket.TextMessage;
 import org.springframework.web.socket.WebSocketSession;
-import java.io.IOException;
-import java.util.HashSet;
 import java.util.Set;
 import java.util.concurrent.*;
 

@@ -8,12 +8,8 @@ import dk.dtu.util.JsonUtil;
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Primary;
-import org.springframework.web.client.RestTemplate;
 import org.springframework.web.socket.WebSocketSession;
 
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
 import java.util.UUID;
 
 /**

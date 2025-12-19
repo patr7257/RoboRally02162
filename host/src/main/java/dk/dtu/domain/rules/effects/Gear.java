@@ -8,7 +8,6 @@ import dk.dtu.domain.rules.api.BoardAPI;
 
 import java.util.EnumSet;
 import java.util.List;
-import java.util.UUID;
 
 /**
  * A gear tile rotates any {@link Robot} standing on it

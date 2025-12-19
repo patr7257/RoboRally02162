@@ -2,8 +2,6 @@ package dk.dtu.domain.core;
 
 import dk.dtu.domain.model.DamageDecks;
 import dk.dtu.domain.program.ProgramCard;
-import dk.dtu.domain.program.ProgramOP;
-import dk.dtu.infrastructure.dto.DamageDecksDto;
 import dk.dtu.infrastructure.dto.ReadinessDto;
 import dk.dtu.infrastructure.dto.SnapshotPayload;
 

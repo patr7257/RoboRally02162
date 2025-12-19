@@ -9,7 +9,6 @@ import dk.dtu.domain.model.DamageDecks;
 import dk.dtu.domain.core.reaction.*;
 import dk.dtu.domain.model.Direction;
 import dk.dtu.domain.program.ProgramCard;
-import dk.dtu.domain.program.ProgramOP;
 import dk.dtu.infrastructure.SnapshotMapper;
 import dk.dtu.infrastructure.dto.*;
 import org.springframework.web.socket.TextMessage;

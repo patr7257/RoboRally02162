@@ -7,7 +7,6 @@ import dk.dtu.domain.model.*;
 import dk.dtu.domain.rules.api.BoardAPI;
 import dk.dtu.domain.rules.api.BoardApiImpl;
 import dk.dtu.domain.rules.effects.Checkpoint;
-import dk.dtu.domain.rules.effects.TileEffect;
 import dk.dtu.domain.rules.effects.RebootToken;
 import dk.dtu.domain.rules.effects.Gear;
 import dk.dtu.domain.rules.effects.Walls;
@@ -21,13 +20,11 @@ import dk.dtu.infrastructure.utils.ConveyorBeltPatterns;
 import dk.dtu.infrastructure.utils.BoardTemplateConverter;
 import dk.dtu.infrastructure.dto.*;
 import com.fasterxml.jackson.databind.JsonNode;
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.*;
-import java.util.stream.Collectors;
 
 /**
  * REST controller responsible for managing game operations including starting, ending, saving, and loading games

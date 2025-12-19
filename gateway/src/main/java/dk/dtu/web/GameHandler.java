@@ -3,13 +3,8 @@ package dk.dtu.web;
 import com.fasterxml.jackson.databind.JsonNode;
 import dk.dtu.dto.OperationResult;
 import dk.dtu.dto.ViewAllGamesInfoJson;
-import dk.dtu.interfaces.GameDatabase;
 import dk.dtu.model.Client;
 import dk.dtu.model.Lobby;
-import dk.dtu.model.database.DynamicGameDatabase;
-
-import dk.dtu.service.DemoService;
-import dk.dtu.shared.AuthManager;
 import dk.dtu.shared.GameService;
 import dk.dtu.shared.ServerManager;
 import dk.dtu.util.APIUtil;
@@ -17,8 +12,6 @@ import dk.dtu.util.JsonUtil;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
-import java.io.IOException;
 import java.util.*;
 
 /**

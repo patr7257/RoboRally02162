@@ -1,7 +1,6 @@
 package dk.dtu.shared;
 
 import dk.dtu.dto.UserToken;
-import dk.dtu.model.Lobby;
 import dk.dtu.util.TokenUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;

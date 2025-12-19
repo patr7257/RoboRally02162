@@ -10,7 +10,6 @@ import dk.dtu.domain.rules.api.BoardApiImpl;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
-import java.util.concurrent.atomic.AtomicReference;
 
 import static dk.dtu.util.GameTestSupport.*;
 import static dk.dtu.util.BoardTestUtils.initBoardWithRebootToken;
