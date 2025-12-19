@@ -67,6 +67,7 @@ The following are requirements for setting up the service on a server and hostin
 - Java version 23
 - maven version 3.9.9
 - npm & npx for the react app
+- pm2
 - Node.js
 - nginx
 - sudo permission
