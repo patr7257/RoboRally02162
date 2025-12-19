@@ -1,0 +1,201 @@
+{
+    "amountPlayers": 1,
+    "board": {
+        "width": 4,
+        "height": 4,
+        "tiles": [
+            {
+                "coord": {
+                    "x": 0,
+                    "y": 0
+                },
+                "tile": {
+                    "effects": [
+                        {
+                            "kind": "ANTENNA",
+                            "direction": "E"
+                        }
+                    ]
+                }
+            },
+            {
+                "coord": {
+                    "x": 0,
+                    "y": 1
+                },
+                "tile": {
+                    "effects": [
+                        {
+                            "kind": "CHECKPOINT",
+                            "number": 1
+                        }
+                    ]
+                }
+            },
+            {
+                "coord": {
+                    "x": 3,
+                    "y": 1
+                },
+                "tile": {
+                    "effects": [
+                        {
+                            "kind": "REBOOT_TOKEN",
+                            "direction": "S"
+                        }
+                    ]
+                }
+            },
+            {
+                "coord": {
+                    "x": 1,
+                    "y": 0
+                },
+                "tile": {
+                    "effects": [
+                        {
+                            "kind": "BLUE_CONVEYOR",
+                            "direction": "E",
+                            "rotation": "NONE"
+                        }
+                    ]
+                }
+            },
+            {
+                "coord": {
+                    "x": 2,
+                    "y": 0
+                },
+                "tile": {
+                    "effects": [
+                        {
+                            "kind": "BLUE_CONVEYOR",
+                            "direction": "S",
+                            "rotation": "RIGHT"
+                        }
+                    ]
+                }
+            },
+            {
+                "coord": {
+                    "x": 2,
+                    "y": 1
+                },
+                "tile": {
+                    "effects": [
+                        {
+                            "kind": "BLUE_CONVEYOR",
+                            "direction": "S",
+                            "rotation": "NONE"
+                        }
+                    ]
+                }
+            }
+        ],
+        "robots": [
+            {
+                "id": 1,
+                "x": 1,
+                "y": 0,
+                "facing": "E"
+            }
+        ],
+        "decks": {
+            "1": {
+                "drawPile": [
+                    {
+                        "action": "ROTATERIGHT",
+                        "steps": 0
+                    },
+                    {
+                        "action": "ROTATELEFT",
+                        "steps": 0
+                    },
+                    {
+                        "action": "ROTATELEFT",
+                        "steps": 0
+                    },
+                    {
+                        "action": "MOVE",
+                        "steps": 1
+                    },
+                    {
+                        "action": "ROTATERIGHT",
+                        "steps": 0
+                    },
+                    {
+                        "action": "MOVE",
+                        "steps": -1
+                    },
+                    {
+                        "action": "AGAIN",
+                        "steps": 0
+                    },
+                    {
+                        "action": "MOVE",
+                        "steps": 2
+                    },
+                    {
+                        "action": "MOVE",
+                        "steps": 1
+                    },
+                    {
+                        "action": "SPEED",
+                        "steps": 0
+                    },
+                    {
+                        "action": "MOVE",
+                        "steps": 1
+                    },
+                    {
+                        "action": "MOVE",
+                        "steps": 1
+                    },
+                    {
+                        "action": "UTURN",
+                        "steps": 0
+                    }
+                ],
+                "discardPile": [],
+                "hand": [
+                    {
+                        "action": "ROTATERIGHT",
+                        "steps": 0
+                    },
+                    {
+                        "action": "ROTATELEFT",
+                        "steps": 0
+                    },
+                    {
+                        "action": "ROTATELEFT",
+                        "steps": 0
+                    },
+                    {
+                        "action": "ROTATERIGHT",
+                        "steps": 0
+                    },
+                    {
+                        "action": "ROTATERIGHT",
+                        "steps": 0
+                    },
+                    {
+                        "action": "ROTATERIGHT",
+                        "steps": 0
+                    },
+                    {
+                        "action": "ROTATERIGHT",
+                        "steps": 0
+                    },
+                    {
+                        "action": "ROTATERIGHT",
+                        "steps": 0
+                    },
+                    {
+                        "action": "ROTATERIGHT",
+                        "steps": 0
+                    }
+                ]
+            }
+        }
+    }
+}

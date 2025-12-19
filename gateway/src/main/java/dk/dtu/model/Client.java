@@ -112,10 +112,8 @@ public class Client {
         disconnectCallback = scheduler.schedule(
                 ()-> {
                     try {
-                        System.out.println("reconnect timed out");
                         notifyObservers(ClientUpdateReason.DISCONNECTED);
                     }catch (Throwable t){
-                        System.err.println("reconnect timer failed");
                         t.printStackTrace();
                     } },
                 TIMEOUT_SECONDS,

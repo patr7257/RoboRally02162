@@ -133,14 +133,6 @@ public class Server implements WebSocketConfigurer { // TODO: after host connect
 
                     serverManager.createClient(user,session);
                 }
-                System.out.println("=== WebSocket CONNECTED ===");
-                System.out.println("Session ID: " + session.getId());
-                System.out.println("User: " + user.getName());
-                System.out.println("Session state: " + session.isOpen());
-                System.out.println("Connection reason"+getReasonFromSession(session));
-                System.out.println("========================");
-
-
             }
 
             /**
@@ -160,13 +152,8 @@ public class Server implements WebSocketConfigurer { // TODO: after host connect
                     Lobby lob = serverManager.getLobbyFromLobbyID(lobbyID); // TODO: check for valid ID
                     lob.handleClientMessage(userID, json); // TODO: Check that toString() is correct
                 } catch (Exception e) {
-                    System.err.println("=== ERROR IN MESSAGE HANDLING ===");
-                    System.err.println("Session ID: " + session.getId());
-                    System.err.println("Error: " + e.getMessage());
-                    //e.printStackTrace();
-                    System.err.println("================================");
+
                 }
-                //System.out.println("Message handling completed for: " + session.getId());
             }
 
             /**
@@ -210,18 +197,6 @@ public class Server implements WebSocketConfigurer { // TODO: after host connect
                 } else {
                     c.handleDisconnect(ClientDisconnectReason.CONNECTION_LOSS);
                 }
-
-
-                System.err.println("=== WebSocket CLOSED ===");
-                System.err.println("Session ID: " + session.getId());
-                System.err.println("User: " + getUserFromSession(session));
-                System.err.println("Close code: " + closeStatus.getCode());
-                System.err.println("Close reason: " + closeStatus.getReason());
-                System.err.println("Was clean: " + closeStatus);
-                System.err.println("Close triggered from:");
-                //Thread.dumpStack();
-                System.err.println("====================");
-                System.out.println("Client disconnected: " + session.getId());
             }
 
             /**
@@ -256,11 +231,6 @@ public class Server implements WebSocketConfigurer { // TODO: after host connect
             @Override
             public void afterConnectionEstablished(WebSocketSession session) throws Exception {
                 String token = getTokenFromSession(session);
-                System.out.println("=== WebSocket CONNECTED ===");
-                System.out.println("Session ID: " + session.getId());
-                System.out.println("Host");
-                System.out.println("Session state: " + session.isOpen());
-                System.out.println("========================");
                 serverManager.getHost().setSession(session);
             }
 

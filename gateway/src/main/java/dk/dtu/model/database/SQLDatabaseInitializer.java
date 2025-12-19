@@ -30,7 +30,6 @@ public class SQLDatabaseInitializer {
                 Statement stmt = conn.createStatement()) {
 
             stmt.executeUpdate("CREATE DATABASE IF NOT EXISTS RoboRallyDatabase");
-            System.out.println("Database ready (created or already exists)");
 
         } catch (SQLException e) {
             System.err.println("Error with database: " + e.getMessage());
@@ -79,7 +78,6 @@ public class SQLDatabaseInitializer {
             stmt.executeUpdate(createGamesTable);
             stmt.executeUpdate(createSavesTable);
 
-            System.out.println("Tables created successfully");
 
         } catch (SQLException e) {
             System.out.println("Error when creating tables");

@@ -62,7 +62,6 @@ public class LobbyAPI {
         String userID = APIUtil.getCallerID();
 
         Client creator = serverManager.getClient(userID);
-        System.out.println("CLIENT with id " + userID + " IS: " + creator);
         if (creator == null) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).body("MISSING_WEBSOCKET_CONNECTION");
         }
@@ -160,7 +159,6 @@ public class LobbyAPI {
         }
         try {
             if (lob.isLoadedLobby()) {
-                System.out.println("Starting loaded game");
                 JsonNode snapshot = gameDatabase.getGameSnapshot(lob.getSaveID().toString());
                 if (!snapshot.get("gameSnapshot").get("winner").isNull()) {
                     return ResponseEntity.status(HttpStatus.FORBIDDEN).body("GAME_ALREADY_ENDED");
@@ -169,26 +167,21 @@ public class LobbyAPI {
             } else {
                 // Use the template name stored in the lobby
                 String templateName = lob.getBoardTemplateName();
-                System.out.println("Template name from lobby: " + templateName);
 
                 // If not "Random", load the template
                 if (templateName != null && !templateName.equals("Random")) {
                     JsonNode boardTemplate = boardTemplateService.getTemplate(templateName);
 
                     if (boardTemplate == null) {
-                        System.out.println("ERROR: Template not found: " + templateName);
                         return ResponseEntity.status(HttpStatus.NOT_FOUND).body("TEMPLATE_NOT_FOUND");
                     }
 
-                    System.out.println("Starting game with template: " + templateName);
                     lob.startGameWithTemplate(boardTemplate);
                 } else {
                     // Start with random board
-                    System.out.println("Starting game with random board");
                     lob.startGame(null);
                 }
             }
-            System.out.println("=== GAME STARTED SUCCESSFULLY ===");
             return ResponseEntity.status(HttpStatus.OK).build();
         } catch (Exception e) {
             System.out.println("ERROR starting game: " + e.getMessage());
@@ -344,7 +337,6 @@ public class LobbyAPI {
         String userID = APIUtil.getCallerID();
 
         Client creator = serverManager.getClient(userID);
-        System.out.println("CLIENT with id " + userID + " IS: " + creator);
         if (creator == null) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).body("MISSING_WEBSOCKET_CONNECTION");
         }

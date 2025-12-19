@@ -227,8 +227,6 @@ public class WebSocketTests {
      */
     @Test
     void hostToClientDirectTest() throws Exception {
-        System.out.println("Lobbies before test: " + server.getLobbiesForTest().keySet());
-        System.out.println("Games before test: " + server.getGameToLobbyForTest().keySet());
         Host mockHost = mock(Host.class);
         when(mockHost.startGame(anyInt(), anyInt())).thenReturn(UUID.fromString("123e4567-e89b-12d3-a456-426614174000"));
         Client mockClient1 = mock(Client.class);
@@ -279,8 +277,6 @@ public class WebSocketTests {
      */
     @Test
     void hostToClientBroadCastTest() throws Exception {
-        System.out.println("Lobbies before test: " + server.getLobbiesForTest().keySet());
-        System.out.println("Games before test: " + server.getGameToLobbyForTest().keySet());
         Host mockHost = mock(Host.class);
         when(mockHost.startGame(anyInt(), anyInt())).thenReturn(UUID.fromString("123e4567-e89b-12d3-a456-426614174000"));
         Client mockClient1 = mock(Client.class);

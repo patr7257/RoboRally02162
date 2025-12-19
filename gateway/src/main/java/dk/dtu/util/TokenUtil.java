@@ -52,13 +52,9 @@ public class TokenUtil {
             return true;
 
         } catch (io.jsonwebtoken.security.SecurityException | MalformedJwtException e) {
-           // System.out.println("Invalid JWT signature.");
         } catch (ExpiredJwtException e) {
-            //System.out.println("Expired JWT token.");
         } catch (UnsupportedJwtException e) {
-            //System.out.println("Unsupported JWT token.");
         } catch (IllegalArgumentException e) {
-            //System.out.println("JWT claims string is empty.");
         }
         return false;
     }

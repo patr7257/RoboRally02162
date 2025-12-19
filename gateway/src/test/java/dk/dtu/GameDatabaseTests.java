@@ -270,7 +270,6 @@ public class GameDatabaseTests {
 
         String saveID = getFirstSaveID(firstUserToken);
         JsonNode snapshot = gameDatabase.getGameSnapshot(saveID);
-        System.out.println("SnapshotPrint: " + snapshot.toString());
 
         String loadedLobbyID = loadGame(firstUserToken, saveID);
         readyPlayers(loadedLobbyID);
@@ -301,7 +300,6 @@ public class GameDatabaseTests {
 
         String saveID = getFirstSaveID(firstUserToken);
         JsonNode snapshot = gameDatabase.getGameSnapshot(saveID);
-        System.out.println("SnapshotPrint: " + snapshot.toString());
 
         String loadedLobbyID = loadGame(firstUserToken, saveID);
 

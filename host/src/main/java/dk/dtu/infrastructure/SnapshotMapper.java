@@ -61,7 +61,6 @@ public final class SnapshotMapper {
         //    // We will add effects here like laser, gear ect.
         //}
         if (t != null && t.getEffects() != null) {
-            //        System.out.println("Tile effects at snapshot: " + t.getEffects());
             for (var effect : t.getEffects()) {
                 if (effect instanceof Checkpoint cp) {
                     effects.add(new CheckpointDto(cp.number()));

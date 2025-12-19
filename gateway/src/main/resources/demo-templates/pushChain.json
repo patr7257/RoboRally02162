@@ -24,7 +24,7 @@
         "coord": { "x": 3, "y": 1 },
         "tile": {
           "effects": [
-            { "kind": "REBOOT_TOKEN", "direction": "S" }
+            { "kind": "REBOOT_TOKEN", "direction": "W" }
           ]
         }
       }
@@ -68,15 +68,15 @@
         ],
         "discardPile": [],
         "hand": [
-          { "action": "ROTATERIGHT", "steps": 0 },
-          { "action": "ROTATELEFT", "steps": 0 },
-          { "action": "ROTATELEFT", "steps": 0 },
-          { "action": "WEASEL", "steps": 0 },
-          { "action": "SANDBOX", "steps": 0 },
           { "action": "MOVE", "steps": 2 },
-          { "action": "ROTATERIGHT", "steps": 0 },
-          { "action": "MOVE", "steps": 3 },
-          { "action": "MOVE", "steps": 2 }
+          { "action": "ROTATELEFT", "steps": 0 },
+          { "action": "ROTATELEFT", "steps": 0 },
+          { "action": "ROTATELEFT", "steps": 0 },
+          { "action": "ROTATELEFT", "steps": 0 },
+          { "action": "ROTATELEFT", "steps": 0 },
+          { "action": "ROTATELEFT", "steps": 0 },
+          { "action": "ROTATELEFT", "steps": 0 },
+          { "action": "ROTATELEFT", "steps": 0 }
         ]
       },
       "2": {
@@ -97,15 +97,15 @@
         ],
         "discardPile": [],
         "hand": [
-          { "action": "ROTATERIGHT", "steps": 0 },
           { "action": "ROTATELEFT", "steps": 0 },
           { "action": "ROTATELEFT", "steps": 0 },
-          { "action": "WEASEL", "steps": 0 },
-          { "action": "SANDBOX", "steps": 0 },
-          { "action": "MOVE", "steps": 2 },
-          { "action": "ROTATERIGHT", "steps": 0 },
-          { "action": "MOVE", "steps": 3 },
-          { "action": "MOVE", "steps": 2 }
+          { "action": "ROTATELEFT", "steps": 0 },
+          { "action": "ROTATELEFT", "steps": 0 },
+          { "action": "ROTATELEFT", "steps": 0 },
+          { "action": "ROTATELEFT", "steps": 0 },
+          { "action": "ROTATELEFT", "steps": 0 },
+          { "action": "ROTATELEFT", "steps": 0 },
+          { "action": "ROTATELEFT", "steps": 0 }
         ]
       },
       "3": {
@@ -126,15 +126,15 @@
         ],
         "discardPile": [],
         "hand": [
-          { "action": "ROTATERIGHT", "steps": 0 },
           { "action": "ROTATELEFT", "steps": 0 },
           { "action": "ROTATELEFT", "steps": 0 },
-          { "action": "WEASEL", "steps": 0 },
-          { "action": "SANDBOX", "steps": 0 },
-          { "action": "MOVE", "steps": 2 },
-          { "action": "ROTATERIGHT", "steps": 0 },
-          { "action": "MOVE", "steps": 3 },
-          { "action": "MOVE", "steps": 2 }
+          { "action": "ROTATELEFT", "steps": 0 },
+          { "action": "ROTATELEFT", "steps": 0 },
+          { "action": "ROTATELEFT", "steps": 0 },
+          { "action": "ROTATELEFT", "steps": 0 },
+          { "action": "ROTATELEFT", "steps": 0 },
+          { "action": "ROTATELEFT", "steps": 0 },
+          { "action": "ROTATELEFT", "steps": 0 }
         ]
       }
     }

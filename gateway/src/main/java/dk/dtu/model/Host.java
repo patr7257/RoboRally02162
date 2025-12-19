@@ -186,7 +186,6 @@ public class Host { //TODO: maybe make singleton
                 String.class
         );
 
-        //System.out.println("toggle demo in host: " + response);
     }
 
     /**
@@ -210,6 +209,5 @@ public class Host { //TODO: maybe make singleton
                 String.class
         );
 
-        //System.out.println("setDemoTimings in host: " + response);
     }
 }

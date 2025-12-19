@@ -198,7 +198,6 @@ public class Lobby  implements ClientObserver {
             broadcastToClients(root);
         } catch (Exception e) {
             this.locked = false; // game failed to start, unlock it again
-            System.out.println("Failed to start game: " + e.getMessage());
             // Consider broadcasting an error message to clients here
         }
     }
@@ -235,7 +234,6 @@ public class Lobby  implements ClientObserver {
             broadcastToClients(root);
         } catch (Exception e) {
             this.locked = false;
-            System.out.println("Failed to start game with template: " + e.getMessage());
             throw e;
         }
     }
@@ -284,7 +282,6 @@ public class Lobby  implements ClientObserver {
 
         String type = json.get("type").asText();
         if (type.equals("programmingStarted") || type.equals("gameFinished")) {
-            //System.out.println("GAME IS SAVING!");
             notifyObservers(LobbyUpdateReason.GAME_UPDATE);
         }
 
@@ -546,7 +543,6 @@ public class Lobby  implements ClientObserver {
      */
     @Override
     public void handleClientUpdate(ClientUpdateReason reason,Client client) {
-        System.out.println("LOBBY client updated - ClientUpdateReason: " + reason);
         switch (reason) {
             case DISCONNECTED,LOGOUT,RESET: {
                 removeClientByUID(client.getUserID());

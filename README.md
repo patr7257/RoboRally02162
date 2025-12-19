@@ -67,12 +67,13 @@ The following are requirements for setting up the service on a server and hostin
 - Java version 23
 - maven version 3.9.9
 - npm & npx for the react app
+- Node.js
 - nginx
 - sudo permission
-- potentially cron for automatic deployment.
+- potentially cron for automatic deployment or restarts
 - a license to use HTTPS, can be self signed.
-- a mysql database
-    
+- mysql database
+
 
 ## Installation
 The **scripts** folder contains bash scripts for deploying, stopping, checking status and restarting the entire service. Before they can be run, update the file permissions with 

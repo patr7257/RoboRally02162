@@ -840,7 +840,6 @@ public class LobbyRESTTests {
      */
     @Test
     public void unreadyPlayerTest() throws Exception {
-        System.out.println("UNREADY PLAYER TEST");
         ArrayBlockingQueue<WebSocketSession> sessions = new ArrayBlockingQueue<>(2);
         int expectedUpdates = 3; //initial add, and each ready/unready
         int expectedLobbies = 1;
@@ -857,7 +856,6 @@ public class LobbyRESTTests {
 
             @Override
             public void handleMessage(WebSocketSession session, WebSocketMessage<?> message) {
-                System.out.println("UNREADY PLAYER TEST: RECEIVED MESSAGE");
                 try {
                     totalMessages.incrementAndGet();
                     String jsonText = message.getPayload().toString();
@@ -910,7 +908,6 @@ public class LobbyRESTTests {
                         .header("Authorization", "Bearer " + token1)
                         .content(mapper.writeValueAsString(readyBody)))
                 .andExpect(status().isNoContent());
-        System.out.println("WAITING FOR LATCH");
         boolean success = latch.await(5, TimeUnit.SECONDS);
         if (!success) {
             Assertions.fail("LATCH timeout");

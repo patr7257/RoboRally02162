@@ -22,6 +22,7 @@ interface MoveSelectorProps {
   onSubmitMove: (moves: MoveType[]) => void;
   hasEmptySlots: boolean;
   isDemoMode?: boolean;
+  canForceStartRound?: boolean;
   onForceStartRound?: () => void;
   hasSubmitted: boolean;
   locked: boolean;
@@ -304,6 +305,7 @@ export const MoveSelector: React.FC<MoveSelectorProps> = ({
   onSubmitMove,
   hasEmptySlots,
   isDemoMode,
+  canForceStartRound,
   onForceStartRound,
   hasSubmitted,
   locked,
@@ -440,6 +442,7 @@ export const MoveSelector: React.FC<MoveSelectorProps> = ({
             <button
               className="make-move-button"
               onClick={onForceStartRound}
+              disabled={!canForceStartRound}
             >
               Force Start Round
             </button>

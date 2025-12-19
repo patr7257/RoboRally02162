@@ -92,6 +92,19 @@ export default function Board() {
 
   const isDemoMode = sessionStorage.getItem("mode") == "demo";
 
+  const canForceStartRound = useMemo(() => {
+    if (!isDemoMode || gameState !== 'programming' || !hasSubmitted || !readiness) {
+      return false;
+    }
+
+    const hasUnsubmittedPlayers = Object.values(readiness.playerSubmitted).some(
+      (submitted) => !submitted
+    );
+
+    return hasUnsubmittedPlayers;
+  }, [isDemoMode, gameState, hasSubmitted, readiness]);
+
+
   /**
   * @author Weihao Mo
   */
@@ -235,7 +248,10 @@ export default function Board() {
             setFirstSubmissionDelayed(false);
             setGameState('programming');
             setHasSubmitted(false);
-            if(firstProgramming == 0) {
+
+            startReadinessPolling();
+
+            if (firstProgramming == 0) {
               firstProgramming++;
               break;
             }
@@ -243,7 +259,6 @@ export default function Board() {
             sendMessage({ lobbyID: lobbyId, payload: { type: "getDamageDecks" } });
             sendMessage({ lobbyID: lobbyId, payload: { type: "getHand" } });
 
-            startReadinessPolling();
             break;
 
           case "playerSubmitted":
@@ -332,7 +347,7 @@ export default function Board() {
             break;
 
           default:
-            console.log("Unknown message type:", data.type, data);
+            break;
         }
       } catch (e) {
         console.log("Raw text message:", message);
@@ -536,8 +551,6 @@ export default function Board() {
       const hasAnyMoves = selectedMoves.some(move => move !== null);
 
       if (hasAnyMoves) {
-        console.log('Auto-submitting due to time running out...');
-
         const movesToSubmit = selectedMoves.filter(move => move !== null) as MoveType[];
 
         if (movesToSubmit.length > 0) {
@@ -727,6 +740,7 @@ export default function Board() {
                 onSubmitMove={handleSubmitMove}
                 hasEmptySlots={selectedMoves.some((m) => m === null)}
                 isDemoMode={!!isDemoMode}
+                canForceStartRound={canForceStartRound}
                 onForceStartRound={handleForceStartRound}
                 hasSubmitted={hasSubmitted}
                 locked={locked}

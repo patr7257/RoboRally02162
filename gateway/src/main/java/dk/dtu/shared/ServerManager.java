@@ -107,7 +107,6 @@ public class ServerManager implements LobbyObserver, ClientObserver {
      */
     @Override
     public void handleClientUpdate(ClientUpdateReason reason, Client client) {
-        System.out.println("Servermanager client update: "+reason);
         switch (reason) {
             case DISCONNECTED,LOGOUT:
                 clients.remove(client.getUserID()); client.removeObserver(this); sessionManager.logOutUser(client.getUserID());

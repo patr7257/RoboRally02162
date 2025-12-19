@@ -33,9 +33,7 @@ public class BoardTemplateService {
         try {
             ResourcePatternResolver resolver = new PathMatchingResourcePatternResolver();
             Resource[] resources = resolver.getResources("classpath:board-templates/*.json");
-            
-            System.out.println("Found " + resources.length + " template files");
-            
+                        
             for (Resource resource : resources) {
                 try (InputStream inputStream = resource.getInputStream()) {
                     JsonNode template = objectMapper.readTree(inputStream);
@@ -46,14 +44,12 @@ public class BoardTemplateService {
                         String templateName = filename.replace(".json", "");
                         templates.put(templateName, template);
                         
-                        System.out.println("Loaded template: " + templateName);
                     }
                 } catch (Exception e) {
                     System.err.println("Error loading template from " + resource.getFilename() + ": " + e.getMessage());
                 }
             }
             
-            System.out.println("Successfully loaded " + templates.size() + " templates");
         } catch (Exception e) {
             System.err.println("Error loading board templates: " + e.getMessage());
             e.printStackTrace();
