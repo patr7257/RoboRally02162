@@ -46,3 +46,40 @@ export { BoardLaser } from "./effects/boardLaser.js";
 export { RobotLaser } from "./effects/robotLaser.js";
 export { BoardApiImpl } from "./rules/boardApi.js";
 export type { BoardAPI } from "./rules/boardApi.js";
+export {
+  createGame,
+  submitProgram,
+  allSubmitted,
+  runActivation,
+} from "./host/hostGame.js";
+export type {
+  HostPlayerConfig,
+  Frame,
+  ActivationResult,
+} from "./host/hostGame.js";
+export {
+  boardToSnapshot,
+  boardFromSnapshot,
+  robotToSnapshot,
+  robotFromSnapshot,
+  deckToSnapshot,
+  deckFromSnapshot,
+  cardToSnapshot,
+  cardFromSnapshot,
+  effectToSnapshot,
+  effectFromSnapshot,
+  damageDecksToSnapshot,
+  damageDecksFromSnapshot,
+} from "./host/snapshot.js";
+export type {
+  GameSnapshot,
+  GameStatus,
+  BoardSnapshot,
+  TileSnapshot,
+  RobotSnapshot,
+  DeckSnapshot,
+  DamageDecksSnapshot,
+  PlayerSnapshot,
+  CardSnapshot,
+  EffectSnapshot,
+} from "./host/snapshot.js";
