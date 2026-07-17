@@ -300,3 +300,9 @@ export function initBoardWithRebootTokenAndPits(
   tiles[0][1].setEffects([new Pits()]);
   return new Board(width, height, tiles);
 }
+
+export function initBoardWithRobotLasers(width: number, height: number): Board {
+  const tiles = initEmptyCells(width, height);
+  tiles[8][8].setEffects([new Checkpoint(1)]);
+  return new Board(width, height, tiles);
+}

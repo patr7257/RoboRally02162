@@ -3,6 +3,8 @@ export { Rotation } from "./model/rotation.js";
 export { Board } from "./model/board.js";
 export { Tile } from "./model/tile.js";
 export { Robot } from "./model/robot.js";
+export { Deck } from "./model/deck.js";
+export { DamageDecks } from "./model/damageDecks.js";
 export { Coord, Edge } from "./rules/coord.js";
 export {
   MoveEvent,
@@ -40,5 +42,7 @@ export { Pits } from "./effects/pits.js";
 export { RebootToken } from "./effects/rebootToken.js";
 export { Antenna } from "./effects/antenna.js";
 export { StartingTile } from "./effects/startingTile.js";
+export { BoardLaser } from "./effects/boardLaser.js";
+export { RobotLaser } from "./effects/robotLaser.js";
 export { BoardApiImpl } from "./rules/boardApi.js";
 export type { BoardAPI } from "./rules/boardApi.js";

@@ -43,6 +43,7 @@ export interface BoardAPI {
     cause: DestroyCause,
     power?: number,
   ): void;
+  notifyTileEffectActivated(x: number, y: number, effectKind: string): void;
 }
 
 /** Ported from dk.dtu.domain.rules.api.BoardApiImpl. */
@@ -467,6 +468,10 @@ export class BoardApiImpl implements BoardAPI {
     power = 0,
   ): void {
     this.pendingDestroys.push(new DestroyEvent(robotId, at, cause, power));
+  }
+
+  notifyTileEffectActivated(_x: number, _y: number, _effectKind: string): void {
+    // Animation hook; no listeners in the headless engine.
   }
 }
 
