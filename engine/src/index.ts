@@ -46,6 +46,8 @@ export { BoardLaser } from "./effects/boardLaser.js";
 export { RobotLaser } from "./effects/robotLaser.js";
 export { BoardApiImpl } from "./rules/boardApi.js";
 export type { BoardAPI } from "./rules/boardApi.js";
+export { parseBoardDefinition } from "./host/boardLoader.js";
+export type { BoardDefinition, LoadedBoard } from "./host/boardLoader.js";
 export {
   createGame,
   submitProgram,
