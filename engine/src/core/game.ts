@@ -8,6 +8,7 @@ import type { BoardAPI } from "../rules/boardApi.js";
 import { Blocked, DestroyCause, Moved } from "../rules/outcome.js";
 import { AgainOp, MoveOp, ProgramOP } from "../program/programOp.js";
 import { Checkpoint } from "../effects/checkpoint.js";
+import { RebootToken } from "../effects/rebootToken.js";
 
 /**
  * Minimal port of dk.dtu.domain.core.Game.
@@ -206,6 +207,81 @@ export class Game {
       }
     }
     return count;
+  }
+
+  rebootRobots(): void {
+    for (const r of this.robots) {
+      if (!r.isAlive()) r.setAlive();
+    }
+  }
+
+  setRespawnDirection(robotID: number, direction: Direction): void {
+    this.robotMap.get(robotID)!.setRespawnDirection(direction);
+  }
+
+  /**
+   * Ported from dk.dtu.domain.core.Game.applyRespawnPhase.
+   * Moves the robot to the reboot token facing its respawn direction, then
+   * pushes any other robots already on the token in the token's direction.
+   */
+  applyRespawnPhase(robot: Robot): void {
+    const rebootTile = this.getRebootToken();
+    if (rebootTile === null) {
+      return;
+    }
+
+    const x = rebootTile.getX();
+    const y = rebootTile.getY();
+
+    const respawnDir = robot.getRespawnDirection()!;
+    robot.setDirection(respawnDir);
+    robot.clearRespawnDirection();
+    robot.setPosition(x, y);
+    robot.setAlive();
+
+    this.notifyGameUpdate();
+
+    const robotsOnTile = this.api.getRobotsOnTile(x, y);
+    if (robotsOnTile.length > 1) {
+      let rebootEffect: RebootToken | null = null;
+      for (const e of rebootTile.getEffects()) {
+        if (e instanceof RebootToken) {
+          rebootEffect = e;
+          break;
+        }
+      }
+
+      if (rebootEffect !== null) {
+        const pushDirection = rebootEffect.direction;
+        for (const r of robotsOnTile) {
+          if (r.getId() !== robot.getId()) {
+            const result = this.api.tryMoveOneStep(r.getId(), pushDirection);
+            if (result instanceof Moved) {
+              for (const e of result.moves) {
+                const movedRobot = this.robotMap.get(e.robotId);
+                if (movedRobot) movedRobot.setPosition(e.to.x, e.to.y);
+              }
+            }
+          }
+        }
+        this.notifyGameUpdate();
+      }
+    }
+  }
+
+  getRebootToken(): Tile | null {
+    const cells = this.board.getCells();
+    for (let x = 0; x < this.board.getWidth(); x++) {
+      for (let y = 0; y < this.board.getHeight(); y++) {
+        const tile = cells[x][y];
+        if (tile) {
+          for (const effect of tile.getEffects()) {
+            if (effect instanceof RebootToken) return tile;
+          }
+        }
+      }
+    }
+    return null;
   }
 
   declareWinner(win: number): void {

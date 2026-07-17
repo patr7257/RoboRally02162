@@ -5,6 +5,8 @@ import { Rotation } from "../../src/model/rotation.js";
 import { Checkpoint } from "../../src/effects/checkpoint.js";
 import { GreenConveyor, BlueConveyor } from "../../src/effects/conveyors.js";
 import { Walls } from "../../src/effects/walls.js";
+import { RebootToken } from "../../src/effects/rebootToken.js";
+import { Pits } from "../../src/effects/pits.js";
 
 /** Mirrors dk.dtu.util.BoardTestUtils. */
 export function initEmptyCells(width: number, height: number): Tile[][] {
@@ -278,5 +280,23 @@ export function initBoardWithMultipleCurvedBlueConveyors(
   tiles[1][0].setEffects([new BlueConveyor(Direction.S, Rotation.RIGHT)]);
   tiles[1][1].setEffects([new BlueConveyor(Direction.W, Rotation.RIGHT)]);
   tiles[6][6].setEffects([new Checkpoint(1)]);
+  return new Board(width, height, tiles);
+}
+
+export function initBoardWithRebootToken(width: number, height: number): Board {
+  const tiles = initEmptyCells(width, height);
+  tiles[2][2].setEffects([new RebootToken(Direction.E)]);
+  tiles[4][4].setEffects([new Checkpoint(1)]);
+  return new Board(width, height, tiles);
+}
+
+export function initBoardWithRebootTokenAndPits(
+  width: number,
+  height: number,
+): Board {
+  const tiles = initEmptyCells(width, height);
+  tiles[2][2].setEffects([new RebootToken(Direction.E)]);
+  tiles[4][4].setEffects([new Checkpoint(1)]);
+  tiles[0][1].setEffects([new Pits()]);
   return new Board(width, height, tiles);
 }
