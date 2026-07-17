@@ -16,13 +16,17 @@ export const ROBOT_COLORS = [
     "#a855f7", // purple
 ];
 
+// PUBLIC_URL prefixes public assets so absolute paths resolve under the arcade
+// iframe subfolder (homepage), not the site root.
+const PUB = process.env.PUBLIC_URL || "";
+
 export const ROBOT_IMAGES = [
-    "/boardelements/robots/blueRobot.png",
-    "/boardelements/robots/whiteRobot.png",
-    "/boardelements/robots/greenRobot.png",
-    "/boardelements/robots/yellowRobot.png",
-    "/boardelements/robots/redRobot.png",
-    "/boardelements/robots/purpleRobot.png",
+    `${PUB}/boardelements/robots/blueRobot.png`,
+    `${PUB}/boardelements/robots/whiteRobot.png`,
+    `${PUB}/boardelements/robots/greenRobot.png`,
+    `${PUB}/boardelements/robots/yellowRobot.png`,
+    `${PUB}/boardelements/robots/redRobot.png`,
+    `${PUB}/boardelements/robots/purpleRobot.png`,
 ];
 
 export const DIRECTION_ARROWS: Record<Direction, string> = {

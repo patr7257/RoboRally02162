@@ -6,11 +6,12 @@ import type { AntennaEffect } from "../../types/boardTypes";
  * @author Weihao Mo
  */
 
+const PUB = process.env.PUBLIC_URL || "";
 const ANTENNA_IMAGES: Record<string, string> = {
-    N: "/boardelements/antennas/antenna-n.png",
-    E: "/boardelements/antennas/antenna-e.png",
-    S: "/boardelements/antennas/antenna-s.png",
-    W: "/boardelements/antennas/antenna-w.png"
+    N: `${PUB}/boardelements/antennas/antenna-n.png`,
+    E: `${PUB}/boardelements/antennas/antenna-e.png`,
+    S: `${PUB}/boardelements/antennas/antenna-s.png`,
+    W: `${PUB}/boardelements/antennas/antenna-w.png`
 };
 
 function Antenna({ effect }: { effect: AntennaEffect }) {

@@ -11,6 +11,9 @@
 # production
 /build
 
+# engine bundle copied in by scripts/sync-engine.mjs (source of truth is engine/dist)
+/src/engine/roborally-engine.js
+
 # misc
 .DS_Store
 .env.local
