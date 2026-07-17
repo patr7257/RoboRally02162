@@ -6,9 +6,9 @@ import type { GreenConveyorEffect } from "../../types/boardTypes";
  *@author Weihao Mo
  */
 const GREEN_CONVEYOR_IMAGES: Record<string, string> = {
-  RIGHT: "/boardelements/conveyors/green-n-right.png",
-  LEFT: "/boardelements/conveyors/green-n-left.png",
-  NONE: "/boardelements/conveyors/green-n-none.png",
+  RIGHT: `${process.env.PUBLIC_URL || ""}/boardelements/conveyors/green-n-right.png`,
+  LEFT: `${process.env.PUBLIC_URL || ""}/boardelements/conveyors/green-n-left.png`,
+  NONE: `${process.env.PUBLIC_URL || ""}/boardelements/conveyors/green-n-none.png`,
 };
 
 /**

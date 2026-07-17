@@ -5,10 +5,11 @@ import type { BlueConveyorEffect } from "../../types/boardTypes";
 /**
  * @author Weihao Mo
  */
+const PUB = process.env.PUBLIC_URL || "";
 const BLUE_CONVEYOR_IMAGES: Record<string, string> = {
-  NONE: "/boardelements/conveyors/blue-n-none.png",
-  RIGHT: "/boardelements/conveyors/blue-n-right.png",
-  LEFT: "/boardelements/conveyors/blue-n-left.png",
+  NONE: `${PUB}/boardelements/conveyors/blue-n-none.png`,
+  RIGHT: `${PUB}/boardelements/conveyors/blue-n-right.png`,
+  LEFT: `${PUB}/boardelements/conveyors/blue-n-left.png`,
 };
 
 const DIRECTION_ROTATION: Record<string, number> = {

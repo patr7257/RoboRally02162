@@ -1,14 +1,13 @@
 import React, { useState, useEffect, useRef, useMemo } from "react";
 import { Menu, X, Home } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import { subscribe, sendMessage } from "../utils/ws";
+import { subscribe, sendMessage, closeSocket, getRoster, getMyRobotId } from "../utils/ws";
 import { MoveType, GameData, HandData, ROBOT_COLORS, DiscardData } from "../types/boardTypes";
 import { WinnerBanner } from "./WinnerBanner";
 import { BoardRenderer } from "./BoardRenderer";
 import { MoveSelector } from "./MoveSelector";
 import ReactionPopUp from "./actionSelector";
 import CheckpointChecklist from "../ui/checkpointChecklist";
-import { leaveLobby } from "../lobby/LeaveLobby";
 import { RespawnDirectionModal } from "../ui/RespawnDirectionModal";
 import "../styles/gameview.css";
 import "../styles/cards.css";
@@ -51,7 +50,7 @@ export default function Board() {
     gameState === "finished" ||
     gameState === "reaction" ||
     hasSubmitted;
-  const [robotID, setRobotID] = useState<string>("");
+  const [robotID, setRobotID] = useState<string>(getMyRobotId());
 
   const API_BASE_URL = process.env.REACT_APP_API_BASE_URL;
   const [robotMap, setRobotMap] = useState<{ [username: string]: string }>({});
@@ -119,76 +118,29 @@ export default function Board() {
     return map;
   }, [robotMap]);
 
-  // Fetch lobby info and full board template for Map Banner and starting area info
+  // Map banner + starting-area shading come from the bundled board definition.
   useEffect(() => {
-    const fetchLobbyInfo = async () => {
-      try {
-        const userToken = sessionStorage.getItem("userToken");
-        const response = await fetch(API_BASE_URL + "/api/lobby/lobbyInfo", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            "Authorization": `Bearer ${sessionStorage.getItem("userToken")}`
-
-          },
-          body: JSON.stringify({ userID, lobbyID: lobbyId }),
-        });
-
-        if (response.ok) {
-          const lobbyInfo = await response.json();
-          const templateName = lobbyInfo.boardTemplateName || "";
-
-          // Fetch template info to get display name
-          const templatesResponse = await fetch(
-            API_BASE_URL + "/api/templates/list",
-            {
-              method: "GET",
-              headers: {
-                "Content-Type": "application/json",
-                Authorization: `Bearer ${sessionStorage.getItem("userToken")}`,
-              },
-            }
-          );
-
-          if (templatesResponse.ok) {
-            const templates = await templatesResponse.json();
-            const template = templates.find((t: any) => t.name === templateName);
-            setMapDisplayName(template?.displayName || templateName);
-          } else {
-            setMapDisplayName(templateName);
-          }
-
-          // Get all template infos
-          if (templateName && templateName !== "Random") {
-            const templateResponse = await fetch(API_BASE_URL + "/api/templates/get", {
-              method: "POST",
-              headers: {
-                "Content-Type": "application/json",
-                "Authorization": `Bearer ${sessionStorage.getItem("userToken")}`
-              },
-              body: JSON.stringify({ templateName }),
-            });
-            if (templateResponse.ok) {
-              const fullTemplate = await templateResponse.json();
-              if (fullTemplate.startingBoardDirection) {
-                setStartingAreaInfo({
-                  direction: fullTemplate.startingBoardDirection.toUpperCase(),
-                  width: fullTemplate.startingBoardWidth || 0,
-                  height: fullTemplate.startingBoardHeight || 0,
-                });
-              }
-            }
-          }
+    let cancelled = false;
+    fetch(`${process.env.PUBLIC_URL}/board.json`)
+      .then((r) => (r.ok ? r.json() : null))
+      .then((def) => {
+        if (cancelled || !def) return;
+        setMapDisplayName(def.displayName || "Robot Rally");
+        if (def.startingBoardDirection) {
+          setStartingAreaInfo({
+            direction: String(def.startingBoardDirection).toUpperCase(),
+            width: def.startingBoardWidth || 0,
+            height: def.startingBoardHeight || 0,
+          });
         }
-      } catch (error) {
-        console.error("Failed to fetch lobby info:", error);
-      }
+      })
+      .catch(() => {
+        /* board.json is optional cosmetic metadata */
+      });
+    return () => {
+      cancelled = true;
     };
-
-    if (userID && lobbyId) {
-      fetchLobbyInfo();
-    }
-  }, [userID, lobbyId, API_BASE_URL]);
+  }, []);
 
   /**
   * @author Asger Allin Jensen
@@ -359,13 +311,18 @@ export default function Board() {
     sendMessage({ lobbyID: lobbyId, payload: { type: "getDamageDecks" } });
     sendMessage({ lobbyID: lobbyId, payload: { type: "getHand" } });
 
-    getRobotIDS();
+    refreshRoster();
 
     return () => {
       stopReadinessPolling();
       if (unsubscribe) unsubscribe();
     };
   }, [lobbyId, robotID]);
+
+  // Roster arrives with the authoritative snapshot; refresh once it loads.
+  useEffect(() => {
+    refreshRoster();
+  }, [gameData]);
 
   /**
    * @author Asger Allin Jensen
@@ -451,45 +408,19 @@ export default function Board() {
    * @author Kajsa Alice Ulrika Berlstedt
    * @author Asger Allin Jensen
    */
-  const getRobotIDS = async () => {
-
-    try {
-      const response = await fetch(`${API_BASE_URL}/api/lobby/getRobot`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${sessionStorage.getItem("userToken")}`,
-        },
-        body: JSON.stringify({
-          lobbyID: lobbyId,
-        }),
+  const refreshRoster = () => {
+    const roster = getRoster();
+    if (roster.length > 0) {
+      const map: { [username: string]: string } = {};
+      roster.forEach((p) => {
+        map[p.name] = String(p.robotId);
       });
-
-      if (!response.ok) {
-        const errorText = await response.text();
-        console.error("Failed to fetch robot IDs:", errorText);
-        return;
-      }
-
-      const data = await response.json();
-      setRobotMap(data);
-
-      const username = sessionStorage.getItem("username");
-      if (!username) {
-        console.warn("No username found in sessionStorage");
-        return;
-      }
-
-      const id = data[username];
-
-      if (id) {
-        setRobotID(id.toString());
-        sessionStorage.setItem("robotID", id.toString()); // optional persistence
-      } else {
-        console.warn(`No robot ID found for username "${username}" in `, data);
-      }
-    } catch (error) {
-      console.error("Error fetching robot ID:", error);
+      setRobotMap(map);
+    }
+    const mine = getMyRobotId();
+    if (mine) {
+      setRobotID(mine);
+      sessionStorage.setItem("robotID", mine);
     }
   };
 
@@ -670,8 +601,8 @@ export default function Board() {
               <button
                 className="metal-button icon"
                 onClick={() => {
-                  leaveLobby(lobbyId, sessionStorage.getItem("userID"), null);
-                  navigate("/lobbyScene");
+                  closeSocket(1000);
+                  navigate("/");
                 }}
                 aria-label="Yes, exit game"
               >

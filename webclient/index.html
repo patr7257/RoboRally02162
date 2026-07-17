@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Robot Rally Racer</title>
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <div id="app">
+      <!-- Home: create or join -->
+      <section id="home" class="screen">
+        <h1 class="title">Robot Rally Racer</h1>
+        <p class="sub">
+          Real-time multiplayer robot racing. Create a game and share the code,
+          or join one with a code and password.
+        </p>
+
+        <div class="panels">
+          <div class="panel">
+            <h2>Create a game</h2>
+            <label>Your name<input id="create-name" maxlength="24" placeholder="e.g. Patrick" /></label>
+            <label>Game name<input id="create-game-name" maxlength="40" placeholder="Friday race" /></label>
+            <label>Password<input id="create-pw" maxlength="32" placeholder="min 4 characters" /></label>
+            <button id="create-btn" class="primary">Create game</button>
+          </div>
+
+          <div class="panel">
+            <h2>Join a game</h2>
+            <label>Your name<input id="join-name" maxlength="24" placeholder="e.g. Alex" /></label>
+            <label>Game code<input id="join-code" maxlength="8" placeholder="ABC123" autocapitalize="characters" /></label>
+            <label>Password<input id="join-pw" maxlength="32" /></label>
+            <button id="join-btn" class="primary">Join game</button>
+          </div>
+        </div>
+        <p id="home-error" class="error" role="alert"></p>
+      </section>
+
+      <!-- Game: lobby + board -->
+      <section id="game" class="screen hidden">
+        <header class="game-bar">
+          <div>
+            <span class="game-role" id="game-role"></span>
+            <span class="game-code">Code <b id="game-code"></b></span>
+            <span class="game-pw">Password <b id="game-pw"></b></span>
+          </div>
+          <div class="game-status" id="game-status">connecting...</div>
+        </header>
+
+        <div class="game-body">
+          <aside class="roster">
+            <h2>Players</h2>
+            <ul id="roster-list"></ul>
+            <p class="hint" id="roster-hint"></p>
+          </aside>
+          <main class="board-wrap">
+            <div id="board" class="board"></div>
+          </main>
+        </div>
+      </section>
+    </div>
+
+    <script src="./app.js"></script>
+  </body>
+</html>
