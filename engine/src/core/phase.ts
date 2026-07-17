@@ -1,0 +1,36 @@
+/**
+ * Ported from dk.dtu.domain.core.Phase.
+ * Execution order matters: runPhase iterates PHASES after the activation body.
+ */
+export const Phase = {
+  UPGRADE: "UPGRADE",
+  PROGRAMMING: "PROGRAMMING",
+  ACTIVATION: "ACTIVATION",
+  ACTIVATE_BLUECONVEYOR: "ACTIVATE_BLUECONVEYOR",
+  ACTIVATE_GREENCONVEYOR: "ACTIVATE_GREENCONVEYOR",
+  ACTIVATE_GEAR: "ACTIVATE_GEAR",
+  ACTIVATE_BOARD_LASERS: "ACTIVATE_BOARD_LASERS",
+  ACTIVATE_ROBOT_LASERS: "ACTIVATE_ROBOT_LASERS",
+  ACTIVATE_CHECKPOINTS: "ACTIVATE_CHECKPOINTS",
+  ACTIVATE_PITS: "ACTIVATE_PITS",
+  ACTIVATE_REBOOT: "ACTIVATE_REBOOT",
+  ACTIVATE_ANTENNA: "ACTIVATE_ANTENNA",
+} as const;
+
+export type Phase = (typeof Phase)[keyof typeof Phase];
+
+/** Declared order, equivalent to Phase.values() in Java. */
+export const PHASES: Phase[] = [
+  Phase.UPGRADE,
+  Phase.PROGRAMMING,
+  Phase.ACTIVATION,
+  Phase.ACTIVATE_BLUECONVEYOR,
+  Phase.ACTIVATE_GREENCONVEYOR,
+  Phase.ACTIVATE_GEAR,
+  Phase.ACTIVATE_BOARD_LASERS,
+  Phase.ACTIVATE_ROBOT_LASERS,
+  Phase.ACTIVATE_CHECKPOINTS,
+  Phase.ACTIVATE_PITS,
+  Phase.ACTIVATE_REBOOT,
+  Phase.ACTIVATE_ANTENNA,
+];
