@@ -1,145 +1,91 @@
 # HANDOVER
 
-Project: make RoboRally playable with online multiplayer inside patrickrobel.dk,
-entirely on Vercel (no separate server), consolidated with the other arcade games.
-This work spans TWO repos: this one (RoboRally02162, the game + the new TypeScript
-engine) and patrickrobelweb (the website, where the backend + arcade cabinet live).
+Project: RoboRally. It is playable online today inside patrickrobel.dk/arcade, entirely on
+Vercel (no dedicated server). This repo holds the game (TypeScript engine + React client) and
+the original DTU Java stack; the serverless backend + arcade cabinet live in `patrickrobelweb`.
 
 ## 1. Date, branch, PR, CI
-
-- Date: 2026-07-17.
-- This repo (RoboRally02162): branch `feat/vercel-ts-engine`, draft PR
-  patr7257/RoboRally02162#2. CI `unit-tests` = skipping (no Java changed; the
-  engine is a separate TypeScript package with its own Vitest suite). Deploy
-  tracking issue: patr7257/RoboRally02162#1.
-- Website (patrickrobelweb): branch `feat/robot-rally-racer`, draft PR
-  patr7257/patrickrobelweb#77 (Phase 1 backend + arcade cabinet, untouched this
-  session).
-- Neither PR is merged. Production is untouched.
+- 2026-07-21. Branch: `main` (the TS/Vercel port, PR #2, is MERGED; feature branch deleted).
+- Live: Robot Rally Racer plays at `patrickrobel.dk/arcade` (patrickrobelweb PR #77 merged; the
+  built React `client/` bundle is synced into the site and iframed).
+- CI: `.github/workflows/ci.yml` runs the Java host + gateway JUnit suites via Nix on PRs. The TS
+  `engine/` has its own Vitest suite (100 tests). No deploy pipeline (the arcade bundle is synced
+  manually with `pnpm sync:roborally` in patrickrobelweb; pushing here does NOT auto-deploy).
+- **Cleanup umbrella issue: #18** (entry point). Feature backlog: EPIC #16 + #3-#15. Deploy
+  issue #1 is effectively done (live) and can be closed.
 
 ## 2. TLDR of session outcome
-
-DONE and verified: the ENTIRE pure rules engine plus the host-authoritative
-orchestrator core are ported to TypeScript and green. 100 Vitest tests pass,
-`tsc --noEmit` clean, `pnpm build` produces a 57.6kb ESM bundle.
-
-New standalone package `engine/` in this repo (own package.json, strict tsconfig,
-Vitest, esbuild). Ported effect by effect, TDD, mirroring each JUnit suite as the
-oracle:
-
-- Rules engine: movement (push chains, walls, edge falls), AGAIN, checkpoints,
-  green/blue conveyors (curves/collisions/walls), antenna priority, pits, reboot/
-  respawn, board + robot lasers, and the full card deck + SPAM/TROJAN/WORM damage
-  system with reboot penalties.
-- Host orchestrator (`engine/src/host/`): a serializable `GameSnapshot` schema +
-  lossless mapper, and `createGame` / `submitProgram` / `allSubmitted` /
-  `runActivation` (returns the next snapshot plus per-update animation `frames`
-  for SSE). Plus `boardLoader.ts`, which parses the real `webclient/board.json`
-  into a snapshot; a full two-robot round runs correctly on the actual 13x10
-  Starter-Course.
-
-NOT done (blocked on the live stack, deliberately deferred): the cross-repo
-multiplayer wiring. That is the only thing left before a playable round.
+- This was a research + prep pass (no code changed here). Established the current reality and
+  filed the cleanup umbrella #18 so the next session can plan + implement straight away.
+- Reality: the serverless TS/Vercel port is LIVE and canonical (decision recorded in
+  patrickrobelweb #88: keep it on Vercel, Upstash Redis + SSE, host-authoritative browser tab).
+  The original Java three-tier stack (`gateway/` + `host/` + MySQL) is the graded DTU artifact
+  but is no longer the playable path and is homeless. Two rules engines coexist: TS `engine/`
+  (canonical) and Java `host/` (reference oracle only).
+- Compared against the sibling JavaFX Catan (CatanBoardGame): Catan kept the REAL app and put it
+  in the browser via JPro because its UI is JavaFX; RoboRally's client was always React, so no
+  JPro is needed and the serverless rewrite is the right path. Opposite choices, both correct.
 
 ## 3. Prioritized next steps
-
-1. Bring up the local stack, then wire + verify the multiplayer loop together.
-   Run the website locally (command in section 4) so the Upstash-backed API and
-   SSE are live and testable in a browser.
-2. Backend (patrickrobelweb, branch feat/robot-rally-racer): add a `program`
-   player intent carrying the 5 chosen cards for the round, alongside the existing
-   seat/intent routes under `website/src/app/api/robot-rally/games`. Keep the
-   host-browser-authoritative model: players POST their program; the host tab
-   reads intents, resolves, and PUTs the next state.
-3. Webclient (this repo, `webclient/`): load the engine ESM bundle (built to
-   `engine/dist/roborally-engine.js`) via a `<script type="module">`, replace the
-   lobby-only board render with: a programming UI (show the player's 9-card hand
-   from the snapshot deck, pick 5), and a host activation loop that on all-locked
-   calls `runActivation`, PUTs the next snapshot, and animates the returned
-   `frames`. Reconcile the current webclient state blob (players[{idx,name,color,
-   robot:{x,y,dir}}]) with the engine `GameSnapshot` (use the snapshot as the
-   authoritative blob; adapt the render).
-4. Map the snapshot board to the webclient render (or grow the render to read the
-   snapshot board directly). Add between-round respawn UX (dead robots pick a
-   respawn direction, then `applyRespawnPhase`; note the engine has the logic, the
-   UI does not yet collect the direction).
-5. Sync the built bundle into the website (`pnpm sync:roborally`) and verify a full
-   two-tab round end to end on `http://localhost:3210/arcade/robot-rally-racer`.
-6. Phase 5, go live: only once a full round is playable, mark both PRs ready and
-   merge to production, verify on patrickrobel.dk/arcade, update the portfolio.
+1. Do the cleanup in #18: remove dead Java-era React lobby scenes + `REACT_APP_*` + the
+   abandoned `webclient/` PoC (subsumes #12); fix the `sync-roborally.mjs` `ROBORALLY_CLIENT_SUBDIR`
+   default drift; archive + mark the Java stack non-canonical in the README; reconcile #1/#17.
+2. Then attack the biggest UX risk from #16: the host-tab single point of failure (game stalls if
+   the host leaves) via host handoff (#4) + host reconnect (#3).
+3. Then the deferred gameplay UI the engine already supports: respawn direction (#5), reaction
+   cards (#6), damage-card play (#8), timer (#9), post-game/rematch (#10), board selection (#15),
+   program anti-cheat (#14), tests (#13).
 
 ## 4. Verbatim resume commands (PowerShell)
+Sync + open this repo on main:
+```
+cd "C:\Users\pr\repos\3-Studie\RoboRally02162"; git checkout main; git pull
+```
+Run the TS engine tests + typecheck + build (run from `engine/`, there is no root package.json):
+```
+cd "C:\Users\pr\repos\3-Studie\RoboRally02162\engine"; pnpm install; pnpm test; pnpm typecheck; pnpm build
+```
+Run the site locally to play it (brings up the Upstash-backed API + SSE), then open two tabs:
+```
+cd "C:\Users\pr\repos\1-Personal\patrickrobelweb\website"; pnpm sync:roborally; pnpm build; $env:PORT=3210; pnpm start
+```
+```
+Start-Process "http://localhost:3210/arcade/games/robot-rally-racer/index.html"
+```
 
-Sync latest and open this repo's branch:
-
-    cd "C:\Users\pr\repos\3-Studie\RoboRally02162"; git checkout feat/vercel-ts-engine; git pull
-
-Install (first time) and run the full engine test suite + typecheck + build:
-
-    cd "C:\Users\pr\repos\3-Studie\RoboRally02162\engine"; pnpm install; pnpm test; pnpm typecheck; pnpm build
-
-Run the website locally on port 3210 (brings up the Upstash-backed API + SSE):
-
-    cd "C:\Users\pr\repos\1-Personal\patrickrobelweb\website"; pnpm sync:roborally; pnpm build; $env:PORT=3210; pnpm start
-
-Open the game to test two tabs (create in one, join in the other):
-
-    Start-Process "http://localhost:3210/arcade/robot-rally-racer"
-
-## 5. Gotchas discovered this session
-
-- The engine lives in `engine/` and is completely separate from the Java `host/`
-  and `gateway/` (kept as the reference oracle). Run engine commands from
-  `engine/`, not the repo root. There is no root package.json.
-- Faithful Java quirk: a board with ZERO checkpoints auto-wins after register 1
-  (nextCheckpoint starts at 1, and hasWon(0) = 1 > 0). Real boards always have a
-  checkpoint, so tests that drive multi-register programs must use a board with a
-  checkpoint the robot does not reach (see engine/test/host/hostGame.test.ts).
-- The deck deal and random damage draw use Math.random; the ported assertions are
-  range/OR tolerant exactly like the JUnit ones, so there are no flakes. Do not
-  "fix" them into exact-equality checks.
-- The card deck / damage system is fully ported now. Programs are loaded onto
-  robots directly by the orchestrator (loadProgram) after client-side selection;
-  the deck still handles SPAM/TROJAN/WORM play and reboot penalties.
-- Dynamic robot lasers are never persisted in the snapshot (added and removed
-  within one activation), matching the Java SnapshotMapper.
-- `pnpm approve-builds` prompts interactively for esbuild; it is not required,
-  esbuild's binary already runs (`pnpm build` works).
-- This repo has an `upstream` remote with 150+ branches, so always pin
-  `gh pr ... -R patr7257/RoboRally02162 --head patr7257:<branch>`.
-- Website Vercel deploys need commit author patr7257 (patr7257@gmail.com); discard
-  `website/next-env.d.ts` churn before commit/push.
-- The co-dev gate hook needs the HARNESS session id in `.claude/.codev-ack`
-  (gitignored here). This session recorded `skip`.
+## 5. Gotchas discovered / still relevant
+- Deployed bundle is the React `client/` build (CRA), NOT `webclient/` (an abandoned PoC). But
+  `sync-roborally.mjs` defaults `ROBORALLY_CLIENT_SUBDIR` to `webclient`, so the live bundle was
+  synced with an override. Fix this in #18 so a plain `pnpm sync:roborally` reproduces the live app.
+- Host-authoritative in the BROWSER: the lobby creator's tab runs the engine. If that tab leaves,
+  state survives in Redis but nobody advances the game (patrickrobelweb #88 known limitation).
+- `client/src/utils/ws.ts` keeps the old WebSocket-era name/surface but transports over SSE +
+  `fetch` to same-origin `/api/robot-rally/*`. Some methods are deliberate no-ops (respawn
+  direction, reactions) because the UI does not collect them yet, the engine already can.
+- TS `engine/` is standalone (own package.json, esbuild, Vitest); run engine commands from
+  `engine/`. It is the canonical rules; Java `host/` is the reference oracle.
+- Java quirk faithfully ported: a board with ZERO checkpoints auto-wins after register 1. Deck
+  deal / damage draw use Math.random; assertions are range/OR tolerant, do not tighten them.
+- This repo has an `upstream` remote with 150+ branches; pin `gh pr ... -R patr7257/RoboRally02162`.
+- Vercel deploys (patrickrobelweb) need commit author patr7257 (patr7257@gmail.com); discard
+  `website/next-env.d.ts` churn before commit.
+- The co-dev gate hook needs this session's harness id in `.claude/.codev-ack` (gitignored).
 
 ## 6. Open decisions waiting on Patrick
-
-- Client path for the multiplayer UI: grow the vanilla `webclient/` into the full
-  programming UI, or port the richer React `client/` (swap ws.ts for SSE+fetch)?
-  Recommendation so far: grow webclient for playability first.
-- Whether to expose an `activating` status + stream frames one-by-one over SSE, or
-  PUT the final snapshot and let clients animate from the frames array attached to
-  an event. Recommendation: stream frames as SSE events for smooth animation.
+- Java stack: archive + mark non-canonical (recommended), or still pursue #17 (Dokploy) for a
+  server-authoritative option? (Only worth it if the host-tab SPOF must be eliminated.)
+- After cleanup, which #16 feature to implement first: host handoff/reconnect (robustness) or the
+  visible gameplay gaps (damage cards / reactions / post-game)?
 
 ## 7. Environment state
-
-- No dev servers running. No Docker, no git worktrees created.
-- Both repos clean; this repo's feature branch pushed. Draft PRs open (#2 here,
-  #77 website). Nothing merged. Production untouched.
-- Engine `node_modules/` and `dist/` are gitignored; committed files are source,
-  tests, config, and pnpm-lock.
+- Both repos clean on `main`. No dev servers, no Docker, no worktrees. The stale merged branch
+  `feat/vercel-ts-engine` was deleted locally.
+- Production: Robot Rally Racer is live at patrickrobel.dk/arcade (Vercel). Nothing here
+  auto-deploys on push.
 
 ## Next-session prompt (paste to continue)
-
-Open C:\Users\pr\repos\3-Studie\RoboRally02162, read HANDOVER.md, and continue from
-next step 1: bring up the local stack and wire the Phase 3 multiplayer loop. The
-entire TypeScript rules engine and the host-authoritative orchestrator are done and
-green in the engine/ package (createGame, submitProgram, allSubmitted, runActivation
-returning next snapshot + animation frames; parseBoardDefinition loads the real
-board.json). What remains is the cross-repo glue: add a `program` player intent on
-the patrickrobelweb backend (branch feat/robot-rally-racer, PR #77), and rewrite
-webclient/app.js to load the engine ESM bundle, show a 5-card programming UI from
-the snapshot deck, run runActivation on the host tab when all players lock in, PUT
-the next snapshot, and animate the frames for players over SSE. Verify a full
-two-tab round locally before touching production. Do not merge either PR until a
-full round is playable end to end.
+Open C:\Users\pr\repos\3-Studie\RoboRally02162, read HANDOVER.md, and start from issue #18: plan
+and execute the cleanup (dead Java-era React lobby code + webclient PoC removal, sync-script
+default fix, archive/mark the Java stack, reconcile issues #1/#17), then pick the first #16
+feature (recommend host handoff #4 + reconnect #3 to kill the host-tab single point of failure).
+The serverless TS/Vercel port is already live and canonical; the Java stack is a graded reference.
