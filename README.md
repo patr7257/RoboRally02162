@@ -1,125 +1,149 @@
+# RoboRally
 
-# Running the project locally
+This repository holds two implementations of the same game, built at different times for
+different purposes.
 
-## Requirements
+## TypeScript engine + React client (canonical, live)
+
+`engine/` (a standalone TypeScript package: pnpm, Vitest, esbuild) and `client/` (a Create React
+App frontend) are the game people actually play. It runs at `patrickrobel.dk/arcade`, hosted
+serverless on Vercel: Upstash Redis holds game state, Server Sent Events push updates to the
+other tabs, and the lobby creator's browser tab runs the engine (host authoritative). The
+serverless backend (the `/api/robot-rally/*` routes and the Vercel deployment itself) lives in
+the sibling `patrickrobelweb` repository; this repo only ships the engine and the client bundle
+that gets synced into it.
+
+`client/src/utils/ws.ts` keeps the old WebSocket-era name and surface for historical reasons, but
+it transports over SSE and `fetch` to a same-origin backend, not a real WebSocket.
+
+### Running it locally
+
+Install and build the engine first, then the client:
+
+```bash
+cd engine
+pnpm install
+pnpm build
+pnpm test
+pnpm typecheck
+```
+
+```bash
+cd client
+npm install
+npm start
+```
+
+`npm start` and `npm run build` both run a `prestart`/`prebuild` step that copies the built
+engine bundle into `client/src/engine/` so Create React App can bundle it (its ModuleScopePlugin
+forbids importing from outside `src/`). To actually play a full game end to end (lobby, Redis
+state, SSE), run the site from the sibling `patrickrobelweb` repository, which serves the built
+`client/build` bundle behind the real API routes.
+
+## Java three-tier stack (archived, DTU-graded artifact)
+
+`gateway/` and `host/` are the original three-tier Java implementation (Spring Boot gateway,
+Spring Boot host, MySQL) built for the DTU 02162 course. It is kept in the repository as the
+graded academic artifact and as a reference oracle: the TypeScript engine in `engine/` was
+ported from, and is checked against, this Java implementation's game rules. It is **not** the
+playable path anymore and receives no new features.
+
+If you need to run it anyway (for grading, or to compare rules behaviour), see the
+archived notes and requirements below.
+
+### Requirements
 * Java: JDK 23
 * Maven: 3.9.9
-* Node.js + npm: for the client
+* Node.js + npm (only needed for the old, now-superseded `client/` wiring against the gateway)
 
+### Running gateway + host locally
 
-## Install dependencies
+#### Without Nix
+Install JDK 23 and Maven on your system.
 
-### Client
-Navigate to `client`and run:
+#### With Nix
+From each module folder (`gateway` and `host`), run:
 ```bash
-npm install
-```
-
-This installs all required dependencies for the client.
-
-
-### Host and Gateway
-
-You need JDK 23 and Maven to run both the Host and the Gateway.
-
-#### Without nix
-Install JDK 23 and Maven on your system, then verify:
-
-#### With nix
-From each module folder (gateway and host), run:
-```
 nix-shell -p openjdk23 maven
 ```
 
-## Running the project
-
-Be in the root on the project.
-
-Step 1: Start the Gateway
+Step 1: start the Gateway
 ```bash
 cd gateway
 mvn spring-boot:run
 ```
 
-Step 2: Start the Host
+Step 2: start the Host
 ```bash
 cd host
 mvn spring-boot:run
 ```
 
-Step 3: Start the Client
-```bash
-cd client
-npm start
-```
-* If prompted to run on a different port, type y.
-* If it fails, make sure you ran npm install first.
+The CI workflow (`.github/workflows/ci.yml`) still runs the Java `host` + `gateway` JUnit suites
+on pull requests; this is the only thing CI checks in this repository.
 
-Multiple clients
-To open multiple clients, open a new terminal and repeat Step 3.
+### Deploying the Java stack
 
-# Deploy program
+The following is preserved from the original deployment notes, for a Linux server hosting the
+gateway/host/MySQL stack directly (as opposed to the serverless client above).
 
-## Requirements
-The following are requirements for setting up the service on a server and hosting it. Most of these utilities can be installed using a package manager. 
-
+Requirements:
 - Linux machine
 - Java version 23
-- maven version 3.9.9
-- npm & npx for the react app
+- Maven version 3.9.9
+- npm and npx for the React app
 - pm2
 - Node.js
 - nginx
 - sudo permission
 - potentially cron for automatic deployment or restarts
-- a license to use HTTPS, can be self signed.
-- mysql database
+- a license to use HTTPS, can be self signed
+- MySQL database
 
+The `scripts` folder contains bash scripts for deploying, stopping, checking status, and
+restarting the service. Make them executable first:
 
-## Installation
-The **scripts** folder contains bash scripts for deploying, stopping, checking status and restarting the entire service. Before they can be run, update the file permissions with 
-
+```bash
 chmod +x fileNameHere
+```
 
-so that they are executeable.
+Allow and deny the following ports:
+```
+ufw allow 80/tcp
+ufw allow 443/tcp
+ufw deny 8080/tcp
+ufw deny 2948/tcp
+```
 
-The following ports need to be allowed and denied for the application to work:
+Clone the repository into `/opt/roborally/app` (create the directory first if it does not
+exist):
+```bash
+mkdir /opt/roborally/app
+```
 
-    ufw allow 80/tcp
-    ufw allow 443/tcp
-    ufw deny 8080/tcp
-    ufw deny 2948/tcp
+The `scripts` folder also contains an nginx config needed for communication between the gateway
+and host. Move it to:
+```
+/etc/nginx/sites-available/se2-f.compute.dtu.dk
+```
 
+Then create a symbolic link:
+```bash
+sudo ln -s /etc/nginx/sites-available/se2-f.compute.dtu.dk /etc/nginx/sites-enabled/
+```
 
-Clone the repository should be in the /opt/roborally/app directory. If it does not exist, create it with 
+Remove the default nginx page:
+```bash
+sudo rm /etc/nginx/sites-enabled/default
+```
 
-    mkdir /opt/roborally/app
-
-The scripts folder also contains a nginx config that is needed for allowing communication between the organs of the total service. This config should be moved to the 
-
-    /etc/nginx/sites-available/se2-f.compute.dtu.dk 
-
-directory. After moving, create a symbolic link via 
-
-    sudo ln -s /etc/nginx/sites-available/se2-f.compute.dtu.dk /etc/nginx/sites-enabled/
-
-Lastly remove the default page
-
-    sudo rm /etc/nginx/sites-enabled/default
-
-If another URL rather than __se2-f.compute.dtu.dk__ changes should be made in the following files:
-
-
-- Gateway
-    - SecurityConfig.java
-    - CorsConfig.java
-
+If a URL other than `se2-f.compute.dtu.dk` is used, update it in:
+- Gateway: `SecurityConfig.java`, `CorsConfig.java`
 - The nginx config
+- `./env.production`
 
-- ./env.production
-
-
-The mysql database should be created with the name RoboRallyDatabase, and have a mysql user with the name RoboRallyUser, and the password RoboRallyDatabaseUser. When the gateway launches, it will use these credentials to create necessary tables in the database.
-
+The MySQL database should be created with the name `RoboRallyDatabase`, with a MySQL user named
+`RoboRallyUser` and password `RoboRallyDatabaseUser`. The gateway creates the necessary tables on
+launch using these credentials.
 
 Lastly, restart nginx and run the deploy script.
