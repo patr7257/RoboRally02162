@@ -23,7 +23,17 @@ import {
   robotFromSnapshot,
   deckToSnapshot,
   deckFromSnapshot,
+  opToCardSnapshot,
 } from "../../src/host/snapshot.js";
+import {
+  AgainOp,
+  MoveOp,
+  ReactionOp,
+  RotateLeftOp,
+  RotateRightOp,
+  SpamOp,
+  UTurnOp,
+} from "../../src/program/programOp.js";
 
 function richBoard(): Board {
   const w = 4;
@@ -72,6 +82,50 @@ describe("snapshot round-trip", () => {
     expect(restored).toEqual(snap);
     expect(snap.alive).toBe(false);
     expect(snap.respawnDirection).toBe(Direction.S);
+  });
+
+  it("a robot without activation state keeps the optional fields absent", () => {
+    const snap = robotToSnapshot(new Robot(1, 0, 0, Direction.N));
+    expect("registers" in snap).toBe(false);
+    expect("lastExecuted" in snap).toBe(false);
+    expect("movedOnActivation" in snap).toBe(false);
+    expect(robotToSnapshot(robotFromSnapshot(snap))).toEqual(snap);
+  });
+
+  it("a robot round-trips its mid-activation state", () => {
+    const r = new Robot(2, 1, 1, Direction.E);
+    r.loadProgram([ProgramCard.move1(), ProgramCard.left()]);
+    r.pollNextOp();
+    r.pollNextPc();
+    r.setLastExecutedOp(new MoveOp(1));
+    r.setMovedOnActivation(true);
+
+    const snap = robotToSnapshot(r, true);
+    expect(snap.registers).toEqual([{ action: "ROTATELEFT", steps: 0 }]);
+    expect(snap.lastExecuted).toEqual({ action: "MOVE", steps: 1 });
+    expect(snap.movedOnActivation).toBe(true);
+
+    const restored = robotFromSnapshot(snap);
+    expect(robotToSnapshot(restored, true)).toEqual(snap);
+    expect(restored.peekNextPc()?.toString()).toBe("ROTATELEFT");
+  });
+
+  it("opToCardSnapshot covers the concrete ops and rejects the others", () => {
+    expect(opToCardSnapshot(new MoveOp(-1))).toEqual({ action: "MOVE", steps: -1 });
+    expect(opToCardSnapshot(new RotateRightOp())).toEqual({
+      action: "ROTATERIGHT",
+      steps: 0,
+    });
+    expect(opToCardSnapshot(new RotateLeftOp())).toEqual({
+      action: "ROTATELEFT",
+      steps: 0,
+    });
+    expect(opToCardSnapshot(new UTurnOp())).toEqual({ action: "UTURN", steps: 0 });
+    expect(() => opToCardSnapshot(new SpamOp())).toThrowError(/concrete program op/);
+    expect(() => opToCardSnapshot(new AgainOp())).toThrowError(/concrete program op/);
+    expect(() => opToCardSnapshot(new ReactionOp("SANDBOX"))).toThrowError(
+      /concrete program op/,
+    );
   });
 
   it("deck survives round-trip preserving piles", () => {
