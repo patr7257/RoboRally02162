@@ -6,6 +6,14 @@ import { DamageDecks } from "../model/damageDecks.js";
 import { Direction } from "../model/direction.js";
 import { Rotation } from "../model/rotation.js";
 import { Action, ProgramCard } from "../program/programCard.js";
+import {
+  MoveOp,
+  RotateLeftOp,
+  RotateRightOp,
+  UTurnOp,
+} from "../program/programOp.js";
+import type { ProgramOP, ReactionKind } from "../program/programOp.js";
+import type { ReactionChoice } from "../program/reaction.js";
 import type { TileEffect } from "../effects/tileEffect.js";
 import { Walls } from "../effects/walls.js";
 import { Checkpoint } from "../effects/checkpoint.js";
@@ -28,11 +36,46 @@ import { BoardLaser } from "../effects/boardLaser.js";
  * within a single activation), matching the Java SnapshotMapper.
  */
 
-export type GameStatus = "lobby" | "programming" | "activating" | "finished";
+export type GameStatus =
+  | "lobby"
+  | "programming"
+  | "activating"
+  | "awaiting-reaction"
+  | "awaiting-respawn"
+  | "finished";
 
 export interface CardSnapshot {
   action: Action;
   steps: number;
+}
+
+export type { ReactionKind, ReactionChoice };
+
+/**
+ * A reaction the host is waiting on. The prompt id is deterministic so a client
+ * can never resolve a stale prompt: the same pause always yields the same id.
+ */
+export interface PendingReaction {
+  /** `r<round>-g<register>-t<turnIndex>-<robotId>`. */
+  promptId: string;
+  robotId: number;
+  /** 1..5 */
+  register: number;
+  kind: ReactionKind;
+  options: ReactionChoice[];
+  defaultChoice: ReactionChoice;
+}
+
+/**
+ * Where an interrupted activation stands. turnOrder is frozen at register start
+ * (antenna priority) and turnIndex points at the PAUSED robot: its card is
+ * already consumed, so resuming continues with the rest of that robot's turn
+ * and then turnIndex + 1.
+ */
+export interface ActivationCursor {
+  register: number;
+  turnOrder: number[];
+  turnIndex: number;
 }
 
 export type EffectSnapshot =
@@ -66,6 +109,13 @@ export interface RobotSnapshot {
   nextCheckpoint: number;
   alive: boolean;
   respawnDirection: Direction | null;
+  /**
+   * Mid-activation state, written only while an activation is paused so a
+   * resume can rebuild the robot exactly instead of re-executing anything.
+   */
+  registers?: CardSnapshot[];
+  lastExecuted?: CardSnapshot | null;
+  movedOnActivation?: boolean;
 }
 
 export interface DeckSnapshot {
@@ -97,6 +147,9 @@ export interface GameSnapshot {
   damageDecks: DamageDecksSnapshot;
   players: PlayerSnapshot[];
   winner: number | null;
+  /** Present while status is "awaiting-reaction". */
+  activation?: ActivationCursor | null;
+  pendingReaction?: PendingReaction | null;
 }
 
 // --- cards ---
@@ -107,6 +160,20 @@ export function cardToSnapshot(card: ProgramCard): CardSnapshot {
 
 export function cardFromSnapshot(snap: CardSnapshot): ProgramCard {
   return new ProgramCard(snap.action, snap.steps);
+}
+
+/**
+ * Serializes a concrete op back to its card. Only the ops a robot can have as
+ * lastExecutedOp are supported: damage, AGAIN and reaction ops never end up
+ * there (a reaction is always replaced by the concrete op that was chosen).
+ */
+export function opToCardSnapshot(op: ProgramOP): CardSnapshot {
+  if (op instanceof MoveOp) return { action: Action.MOVE, steps: op.steps };
+  if (op instanceof RotateRightOp)
+    return { action: Action.ROTATERIGHT, steps: 0 };
+  if (op instanceof RotateLeftOp) return { action: Action.ROTATELEFT, steps: 0 };
+  if (op instanceof UTurnOp) return { action: Action.UTURN, steps: 0 };
+  throw new Error("Not a concrete program op: " + op.constructor.name);
 }
 
 // --- effects ---
@@ -199,8 +266,16 @@ export function boardFromSnapshot(snap: BoardSnapshot): Board {
 
 // --- robots ---
 
-export function robotToSnapshot(robot: Robot): RobotSnapshot {
-  return {
+/**
+ * With includeActivationState the mid-activation fields are written too, which
+ * is what a paused activation needs; without it the snapshot keeps exactly the
+ * pre-pause shape (the optional fields stay absent).
+ */
+export function robotToSnapshot(
+  robot: Robot,
+  includeActivationState = false,
+): RobotSnapshot {
+  const snap: RobotSnapshot = {
     id: robot.getId(),
     x: robot.getX(),
     y: robot.getY(),
@@ -209,6 +284,13 @@ export function robotToSnapshot(robot: Robot): RobotSnapshot {
     alive: robot.isAlive(),
     respawnDirection: robot.getRespawnDirection(),
   };
+  if (includeActivationState) {
+    snap.registers = robot.getRemainingProgram().map(cardToSnapshot);
+    const last = robot.getLastExecutedOp();
+    snap.lastExecuted = last === null ? null : opToCardSnapshot(last);
+    snap.movedOnActivation = robot.movedOnActivation();
+  }
+  return snap;
 }
 
 export function robotFromSnapshot(snap: RobotSnapshot): Robot {
@@ -216,6 +298,15 @@ export function robotFromSnapshot(snap: RobotSnapshot): Robot {
   if (!snap.alive) robot.setDead();
   if (snap.respawnDirection !== null)
     robot.setRespawnDirection(snap.respawnDirection);
+  if (snap.registers !== undefined) {
+    robot.loadProgram(snap.registers.map(cardFromSnapshot));
+  }
+  if (snap.lastExecuted != null) {
+    robot.setLastExecutedOp(cardFromSnapshot(snap.lastExecuted).toOp());
+  }
+  if (snap.movedOnActivation !== undefined) {
+    robot.setMovedOnActivation(snap.movedOnActivation);
+  }
   return robot;
 }
 

@@ -44,3 +44,51 @@ jobs:
           name: JUnit
           reporter: java-junit
           path: "**/target/surefire-reports/*.xml"
+
+  ts-tests:
+    runs-on: ubuntu-24.04
+    if: github.event.pull_request.draft == false
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+          cache-dependency-path: |
+            engine/pnpm-lock.yaml
+            client/package-lock.json
+
+      - name: Install engine dependencies
+        working-directory: engine
+        run: pnpm install
+
+      - name: Typecheck engine
+        working-directory: engine
+        run: pnpm typecheck
+
+      - name: Test engine
+        working-directory: engine
+        run: pnpm test
+
+      - name: Build engine
+        working-directory: engine
+        run: pnpm build
+
+      - name: Install client dependencies
+        working-directory: client
+        run: npm ci
+
+      - name: Test client
+        working-directory: client
+        run: npm test -- --watchAll=false
+        env:
+          CI: true
+
+      - name: Build client
+        working-directory: client
+        run: npm run build

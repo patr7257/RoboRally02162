@@ -53,12 +53,22 @@ export {
   submitProgram,
   allSubmitted,
   runActivation,
+  resumeActivation,
+  applyRespawns,
 } from "./host/hostGame.js";
 export type {
   HostPlayerConfig,
   Frame,
+  FrameLabel,
   ActivationResult,
 } from "./host/hostGame.js";
+export {
+  REACTION_SPECS,
+  choiceToOp,
+  normalizeChoice,
+} from "./program/reaction.js";
+export type { ReactionSpec, ReactionChoice } from "./program/reaction.js";
+export type { ReactionKind } from "./program/programOp.js";
 export {
   boardToSnapshot,
   boardFromSnapshot,
@@ -72,10 +82,13 @@ export {
   effectFromSnapshot,
   damageDecksToSnapshot,
   damageDecksFromSnapshot,
+  opToCardSnapshot,
 } from "./host/snapshot.js";
 export type {
   GameSnapshot,
   GameStatus,
+  PendingReaction,
+  ActivationCursor,
   BoardSnapshot,
   TileSnapshot,
   RobotSnapshot,

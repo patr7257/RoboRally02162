@@ -48,6 +48,19 @@ export class Robot {
     return this.pcRegisters.shift() ?? null;
   }
 
+  /** The card about to be played, without consuming it. */
+  peekNextPc(): ProgramCard | null {
+    return this.pcRegisters.length > 0 ? this.pcRegisters[0] : null;
+  }
+
+  /**
+   * The cards still queued for this robot. loadProgram with this list restores
+   * the robot exactly, since every card maps to exactly one op.
+   */
+  getRemainingProgram(): ProgramCard[] {
+    return [...this.pcRegisters];
+  }
+
   hasPendingOps(): boolean {
     return this.registers.length > 0;
   }
