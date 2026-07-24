@@ -3,13 +3,14 @@ import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { Direction } from "../../src/model/direction.js";
 import { ProgramCard } from "../../src/program/programCard.js";
-import { boardFromSnapshot, cardToSnapshot } from "../../src/host/snapshot.js";
+import { boardFromSnapshot } from "../../src/host/snapshot.js";
 import { parseBoardDefinition } from "../../src/host/boardLoader.js";
 import {
   createGame,
   submitProgram,
   runActivation,
 } from "../../src/host/hostGame.js";
+import { prog, withHand, withProgram } from "../util/hostTestUtils.js";
 
 function loadStarterCourse() {
   const path = fileURLToPath(
@@ -18,8 +19,6 @@ function loadStarterCourse() {
   const def = JSON.parse(readFileSync(path, "utf8"));
   return parseBoardDefinition(def);
 }
-
-const prog = (...cards: ProgramCard[]) => cards.map(cardToSnapshot);
 
 describe("boardLoader on the real Starter-Course", () => {
   it("parses dimensions, starting tiles and effects", () => {
@@ -78,14 +77,19 @@ describe("boardLoader on the real Starter-Course", () => {
       },
     ]);
 
-    // Robot 1 turns around (W -> E) and drives two tiles east onto the board.
-    snap = submitProgram(
-      snap,
-      1,
-      prog(ProgramCard.uturn(), ProgramCard.move1(), ProgramCard.move1()),
-    );
+    // Robot 1 turns around (W -> E), drives two tiles east onto the board and
+    // then spends the last two registers turning back to east.
+    const picked = [
+      ProgramCard.uturn(),
+      ProgramCard.move1(),
+      ProgramCard.move1(),
+      ProgramCard.left(),
+      ProgramCard.right(),
+    ];
+    snap = withHand(snap, 1, picked);
+    snap = submitProgram(snap, 1, prog(...picked));
     // Robot 2 holds position this round.
-    snap = submitProgram(snap, 2, prog());
+    snap = withProgram(snap, 2, []);
 
     const { snapshot: next, frames } = runActivation(snap);
 

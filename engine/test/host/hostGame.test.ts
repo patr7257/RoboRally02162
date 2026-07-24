@@ -1,7 +1,7 @@
 import { describe, it, expect } from "vitest";
 import { Direction } from "../../src/model/direction.js";
 import { ProgramCard } from "../../src/program/programCard.js";
-import { boardToSnapshot, cardToSnapshot } from "../../src/host/snapshot.js";
+import { boardToSnapshot } from "../../src/host/snapshot.js";
 import {
   createGame,
   submitProgram,
@@ -13,8 +13,7 @@ import {
   initBoardWithCheckPoints,
   initBoardWithGreenConveyors,
 } from "../util/boardTestUtils.js";
-
-const prog = (...cards: ProgramCard[]) => cards.map(cardToSnapshot);
+import { prog, withHand, withProgram } from "../util/hostTestUtils.js";
 
 describe("HostGame orchestrator", () => {
   it("createGame deals hands and starts in programming", () => {
@@ -29,6 +28,8 @@ describe("HostGame orchestrator", () => {
     expect(snap.decks["1"].hand).toHaveLength(9);
     expect(snap.players[0].locked).toBe(false);
     expect(snap.winner).toBeNull();
+    expect(snap.activation).toBeNull();
+    expect(snap.pendingReaction).toBeNull();
   });
 
   it("submitProgram locks a player and allSubmitted flips", () => {
@@ -38,7 +39,24 @@ describe("HostGame orchestrator", () => {
     ]);
     expect(allSubmitted(snap)).toBe(false);
 
-    snap = submitProgram(snap, 1, prog(ProgramCard.move1()));
+    snap = withHand(snap, 1, [
+      ProgramCard.move1(),
+      ProgramCard.left(),
+      ProgramCard.left(),
+      ProgramCard.left(),
+      ProgramCard.left(),
+    ]);
+    snap = submitProgram(
+      snap,
+      1,
+      prog(
+        ProgramCard.move1(),
+        ProgramCard.left(),
+        ProgramCard.left(),
+        ProgramCard.left(),
+        ProgramCard.left(),
+      ),
+    );
     expect(snap.players[0].locked).toBe(true);
     expect(allSubmitted(snap)).toBe(true);
   });
@@ -50,17 +68,15 @@ describe("HostGame orchestrator", () => {
     let snap = createGame(board, [
       { robotId: 1, name: "Ada", color: "#f00", x: 0, y: 0, facing: Direction.E },
     ]);
-    snap = submitProgram(
-      snap,
-      1,
-      prog(
-        ProgramCard.move1(),
-        ProgramCard.move1(),
-        ProgramCard.move1(),
-        ProgramCard.move1(),
-        ProgramCard.right(),
-      ),
-    );
+    const picked = [
+      ProgramCard.move1(),
+      ProgramCard.move1(),
+      ProgramCard.move1(),
+      ProgramCard.move1(),
+      ProgramCard.right(),
+    ];
+    snap = withHand(snap, 1, picked);
+    snap = submitProgram(snap, 1, prog(...picked));
 
     const { snapshot: next, frames } = runActivation(snap);
 
@@ -74,6 +90,12 @@ describe("HostGame orchestrator", () => {
     expect(next.status).toBe("programming");
     expect(next.players[0].locked).toBe(false);
     expect(next.players[0].program).toBeNull();
+    expect(next.activation).toBeNull();
+    expect(next.pendingReaction).toBeNull();
+    // Mid-activation fields are absent once the round is over.
+    expect(robot.registers).toBeUndefined();
+    expect(robot.lastExecuted).toBeUndefined();
+    expect(robot.movedOnActivation).toBeUndefined();
   });
 
   it("runActivation resolves a push between two robots", () => {
@@ -82,8 +104,8 @@ describe("HostGame orchestrator", () => {
       { robotId: 1, name: "Ada", color: "#f00", x: 0, y: 0, facing: Direction.E },
       { robotId: 2, name: "Bo", color: "#0f0", x: 1, y: 0, facing: Direction.E },
     ]);
-    snap = submitProgram(snap, 1, prog(ProgramCard.move1()));
-    snap = submitProgram(snap, 2, prog());
+    snap = withProgram(snap, 1, [ProgramCard.move1()]);
+    snap = withProgram(snap, 2, []);
 
     const { snapshot: next } = runActivation(snap);
     const r1 = next.robots.find((r) => r.id === 1)!;
@@ -97,7 +119,7 @@ describe("HostGame orchestrator", () => {
     let snap = createGame(board, [
       { robotId: 1, name: "Ada", color: "#f00", x: 1, y: 0, facing: Direction.E },
     ]);
-    snap = submitProgram(snap, 1, prog());
+    snap = withProgram(snap, 1, []);
 
     const { snapshot: next } = runActivation(snap);
     const robot = next.robots.find((r) => r.id === 1)!;
@@ -113,24 +135,21 @@ describe("HostGame orchestrator", () => {
     ]);
 
     // Round 1: reach checkpoint 1 at (1,1).
-    snap = submitProgram(snap, 1, prog(ProgramCard.move1()));
+    snap = withProgram(snap, 1, [ProgramCard.move1()]);
     let result = runActivation(snap);
     snap = result.snapshot;
     expect(snap.robots[0].nextCheckpoint).toBe(2);
     expect(snap.winner).toBeNull();
     expect(snap.status).toBe("programming");
+    expect(snap.round).toBe(2);
 
     // Round 2: reach checkpoint 2 at (2,2) to win.
-    snap = submitProgram(
-      snap,
-      1,
-      prog(
-        ProgramCard.right(),
-        ProgramCard.move1(),
-        ProgramCard.left(),
-        ProgramCard.move1(),
-      ),
-    );
+    snap = withProgram(snap, 1, [
+      ProgramCard.right(),
+      ProgramCard.move1(),
+      ProgramCard.left(),
+      ProgramCard.move1(),
+    ]);
     result = runActivation(snap);
     snap = result.snapshot;
 
@@ -138,5 +157,17 @@ describe("HostGame orchestrator", () => {
     expect(snap.robots[0].y).toBe(2);
     expect(snap.winner).toBe(1);
     expect(snap.status).toBe("finished");
+    // The round only advances on the way back into programming.
+    expect(snap.round).toBe(2);
+  });
+
+  it("runActivation refuses to restart a paused activation", () => {
+    const board = boardToSnapshot(initBoardWithCheckPoints(5, 5));
+    const snap = createGame(board, [
+      { robotId: 1, name: "Ada", color: "#f00", x: 0, y: 0, facing: Direction.E },
+    ]);
+    expect(() =>
+      runActivation({ ...snap, status: "awaiting-respawn" }),
+    ).toThrowError(/cannot restart a paused activation/);
   });
 });

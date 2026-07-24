@@ -13,10 +13,17 @@ import {
   AgainOp,
   MoveOp,
   ProgramOP,
+  ReactionOp,
   SpamOp,
   TrojanHorseOp,
   WormOp,
 } from "../program/programOp.js";
+import type { ReactionKind } from "../program/programOp.js";
+import {
+  REACTION_SPECS,
+  choiceToOp,
+  type ReactionChoice,
+} from "../program/reaction.js";
 import { Checkpoint } from "../effects/checkpoint.js";
 import { RebootToken } from "../effects/rebootToken.js";
 import { RobotLaser } from "../effects/robotLaser.js";
@@ -110,10 +117,72 @@ export class Game {
     this.notifyGameUpdate();
   }
 
+  /**
+   * Runs one whole register. Reactions are resolved with their default choice,
+   * which is what the Java scheduler does when nobody answers in time; a host
+   * that wants to prompt a player drives beginRegister / takeTurn /
+   * resolveReaction / endRegister itself.
+   */
   executeRegister(_registerIndex: number): void {
-    this.runPhase(Phase.ACTIVATION, () => this.executeOneRegister());
+    const order = this.beginRegister();
+    for (const robotId of order) {
+      const kind = this.takeTurn(robotId);
+      if (kind !== null) {
+        this.resolveReaction(robotId, REACTION_SPECS[kind].defaultChoice);
+      }
+    }
+    this.endRegister();
+  }
+
+  // --- stepwise activation (host-driven, pausable) ---
+
+  /**
+   * Starts a register: clears the per-activation conveyor flags and freezes the
+   * turn order (antenna priority) for the whole register.
+   */
+  beginRegister(): number[] {
+    for (const r of this.robots) r.setMovedOnActivation(false);
+    return this.api.getRobotsByPriority().map((r) => r.getId());
+  }
+
+  /**
+   * Plays one robot's turn. Returns null when the turn completed, or the
+   * reaction kind when the effective op turned out to be an interactive card
+   * (either the register head or a card flipped while resolving damage). In
+   * that case the card and every deck mutation are already committed and the
+   * rest of the turn is deferred to resolveReaction, so the pause is cleanly
+   * serializable.
+   */
+  takeTurn(robotID: number): ReactionKind | null {
+    const robot = this.robotMap.get(robotID);
+    if (!robot) return null;
+    const kind = this.executeOneRobotTurn(robot);
+    if (kind !== null) return kind;
+    this.applyTileEffects(Phase.ACTIVATE_PITS);
+    return null;
+  }
+
+  /** Replaces a paused reaction with the chosen op and finishes the turn. */
+  resolveReaction(robotID: number, choice: ReactionChoice): void {
+    const robot = this.robotMap.get(robotID);
+    if (!robot) return;
+    this.applyResolvedOp(robot, choiceToOp(choice));
+    this.applyTileEffects(Phase.ACTIVATE_PITS);
+  }
+
+  /** Board effects after every robot has moved, plus the win check. */
+  endRegister(): void {
+    for (const sub of PHASES) {
+      if (sub !== Phase.ACTIVATE_ANTENNA) {
+        this.applyTileEffects(sub);
+      }
+    }
     this.evaluateWinConditions();
     this.notifyGameUpdate();
+  }
+
+  getDeadRobots(): Robot[] {
+    return this.robots.filter((r) => !r.isAlive());
   }
 
   runPhase(phase: Phase, body: () => void): void {
@@ -128,17 +197,15 @@ export class Game {
     }
   }
 
-  private executeOneRegister(): void {
-    for (const r of this.api.getRobotsByPriority()) {
-      this.executeOneRobotTurn(r);
-      this.applyTileEffects(Phase.ACTIVATE_PITS);
-    }
-  }
-
-  executeOneRobotTurn(robot: Robot): void {
+  /**
+   * Plays the robot's next card. Returns the reaction kind when the effective
+   * op is an interactive card, in which case nothing has been applied to the
+   * robot yet (see takeTurn); null otherwise.
+   */
+  executeOneRobotTurn(robot: Robot): ReactionKind | null {
     let op = robot.pollNextOp();
     robot.pollNextPc();
-    if (op === null) return;
+    if (op === null) return null;
     const deck = this.deckMap.get(robot.getId())!;
 
     let resolvingDamage = true;
@@ -159,11 +226,25 @@ export class Game {
         deck.removeFromHand(ProgramCard.worm());
         this.damageDecks.putBack(ProgramCard.worm());
         this.notifyGameUpdate();
-        return;
+        return null;
       } else {
         resolvingDamage = false;
       }
     }
+
+    if (op instanceof ReactionOp) {
+      // Pause point: the card is consumed and the deck is settled, so the turn
+      // tail can resume from a snapshot without replaying anything.
+      return op.kind;
+    }
+
+    this.applyResolvedOp(robot, op);
+    return null;
+  }
+
+  /** The tail of a robot turn: AGAIN substitution, movement, pits, notify. */
+  private applyResolvedOp(robot: Robot, resolved: ProgramOP): void {
+    let op = resolved;
 
     if (op instanceof AgainOp) {
       const lastOp = robot.getLastExecutedOp();
