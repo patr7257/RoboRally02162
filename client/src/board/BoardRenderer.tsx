@@ -1,6 +1,6 @@
 import React, { useRef, useState, useEffect } from "react";
-import { GameData, Direction, Tile, Robot } from "../types/boardTypes";
-import { calculateBoardSize, getRobotAtPosition, getRobotImage } from "../utils/boardUtils";
+import { GameData } from "../types/boardTypes";
+import { calculateBoardSize, getRobotImage } from "../utils/boardUtils";
 import RobotLaser from "../ui/effects/RobotLaser";
 import { BoardTile } from "./BoardTile";
 import "../styles/gameview.css";

@@ -13,7 +13,7 @@ import {
 
 function loadStarterCourse() {
   const path = fileURLToPath(
-    new URL("../../../webclient/board.json", import.meta.url),
+    new URL("../../../client/public/board.json", import.meta.url),
   );
   const def = JSON.parse(readFileSync(path, "utf8"));
   return parseBoardDefinition(def);
