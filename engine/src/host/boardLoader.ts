@@ -6,10 +6,19 @@ import type { BoardSnapshot, EffectSnapshot, TileSnapshot } from "./snapshot.js"
  * Loads the JSON board-definition format used by client/public/board.json and
  * the gateway board-templates into a BoardSnapshot the engine can consume.
  *
- * The definition places effects by absolute "x,y" key on a grid whose width is
- * startingBoardWidth + boardWidth (the starting area sits in the leftmost
- * columns) and whose height is boardHeight. Effect `kind` strings are
- * case-insensitive and mapped to the engine's clean EffectSnapshot kinds.
+ * The definition places effects by absolute "x,y" key on a grid whose
+ * dimensions depend on the starting area's orientation
+ * (startingBoardDirection):
+ *
+ * - "e" / "w": the starting area is a vertical column block, so the grid is
+ *   startingBoardWidth + boardWidth wide and boardHeight tall.
+ * - "n" / "s": the starting area is a horizontal row band, so the grid is
+ *   boardWidth wide and boardHeight + startingBoardHeight tall.
+ *
+ * In every orientation the "x,y" keys in `effects` are already absolute
+ * coordinates on that full grid (no further offset is applied when
+ * placing effects). Effect `kind` strings are case-insensitive and mapped
+ * to the engine's clean EffectSnapshot kinds.
  */
 
 export interface BoardDefinition {
@@ -98,8 +107,22 @@ function toEffectSnapshot(raw: Record<string, unknown>): EffectSnapshot | null {
 }
 
 export function parseBoardDefinition(def: BoardDefinition): LoadedBoard {
-  const width = (def.startingBoardWidth ?? 0) + (def.boardWidth ?? 0);
-  const height = def.boardHeight ?? 0;
+  const startDirection = asDirection(def.startingBoardDirection ?? "N");
+  const boardWidth = def.boardWidth ?? 0;
+  const boardHeight = def.boardHeight ?? 0;
+  const startingBoardWidth = def.startingBoardWidth ?? 0;
+  const startingBoardHeight = def.startingBoardHeight ?? 0;
+
+  // The starting area is a horizontal band (top for N, bottom for S) or a
+  // vertical band (left for W, right for E); which one determines whether
+  // the starting dimension adds to the width or the height.
+  const horizontalBand =
+    startDirection === Direction.N || startDirection === Direction.S;
+  const width = horizontalBand ? boardWidth : startingBoardWidth + boardWidth;
+  const height = horizontalBand
+    ? boardHeight + startingBoardHeight
+    : boardHeight;
+
   if (width <= 0 || height <= 0) {
     throw new Error("Board definition has no dimensions");
   }
@@ -139,6 +162,6 @@ export function parseBoardDefinition(def: BoardDefinition): LoadedBoard {
     displayName: def.displayName ?? "board",
     board: { width, height, tiles },
     startingTiles,
-    startDirection: asDirection(def.startingBoardDirection ?? "N"),
+    startDirection,
   };
 }
