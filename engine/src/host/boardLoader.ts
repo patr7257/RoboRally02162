@@ -3,8 +3,8 @@ import { Rotation } from "../model/rotation.js";
 import type { BoardSnapshot, EffectSnapshot, TileSnapshot } from "./snapshot.js";
 
 /**
- * Loads the JSON board-definition format used by webclient/board.json and the
- * gateway board-templates into a BoardSnapshot the engine can consume.
+ * Loads the JSON board-definition format used by client/public/board.json and
+ * the gateway board-templates into a BoardSnapshot the engine can consume.
  *
  * The definition places effects by absolute "x,y" key on a grid whose width is
  * startingBoardWidth + boardWidth (the starting area sits in the leftmost

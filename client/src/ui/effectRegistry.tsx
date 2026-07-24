@@ -1,7 +1,6 @@
 import React from "react";
 import type { TileEffect } from "../types/boardTypes";
 
-type K = TileEffect["kind"];
 const registry = new Map<string, (effect: TileEffect) => React.ReactNode>();
 
 /**

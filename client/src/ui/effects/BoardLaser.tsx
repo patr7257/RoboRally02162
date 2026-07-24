@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef } from "react";
+import React, { useCallback, useEffect, useState, useRef } from "react";
 import { registerEffect } from "../effectRegistry";
 import { Direction } from "../../types/boardTypes";
 import { subscribe } from "../../utils/ws";
@@ -17,6 +17,7 @@ type BoardLaserEffect = {
  */
 function BoardLaser({ effect }: { effect: BoardLaserEffect }) {
   const [isAnimating, setIsAnimating] = useState(false);
+  const isAnimatingRef = useRef(false);
   const animationTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const lastAnimationTimeRef = useRef(0);
   const { direction, power, x, y, board } = effect;
@@ -55,6 +56,28 @@ function BoardLaser({ effect }: { effect: BoardLaserEffect }) {
   const positions = getLaserPositions();
   const positionStyle = getPositionStyle();
 
+  const triggerAnimation = useCallback(() => {
+    const now = Date.now();
+
+    if (isAnimatingRef.current) return;
+
+    if (now - lastAnimationTimeRef.current < 1000) return;
+
+    lastAnimationTimeRef.current = now;
+
+    if (animationTimeoutRef.current) {
+      clearTimeout(animationTimeoutRef.current);
+    }
+
+    isAnimatingRef.current = true;
+    setIsAnimating(true);
+
+    animationTimeoutRef.current = setTimeout(() => {
+      isAnimatingRef.current = false;
+      setIsAnimating(false);
+    }, 600);
+  }, []);
+
   useEffect(() => {
     const handleMessage = (messageStr: string) => {
       try {
@@ -83,27 +106,7 @@ function BoardLaser({ effect }: { effect: BoardLaserEffect }) {
         clearTimeout(animationTimeoutRef.current);
       }
     };
-  }, [effect.x, effect.y]);
-
-  const triggerAnimation = () => {
-    const now = Date.now();
-
-    if (isAnimating) return;
-
-    if (now - lastAnimationTimeRef.current < 1000) return;
-
-    lastAnimationTimeRef.current = now;
-
-    if (animationTimeoutRef.current) {
-      clearTimeout(animationTimeoutRef.current);
-    }
-
-    setIsAnimating(true);
-
-    animationTimeoutRef.current = setTimeout(() => {
-      setIsAnimating(false);
-    }, 600);
-  };
+  }, [effect.x, effect.y, triggerAnimation]);
 
   const firingClass = isAnimating ? "laser-firing" : "";
 

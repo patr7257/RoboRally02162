@@ -1,5 +1,5 @@
-import React, { useState, useEffect, useRef, useMemo } from "react";
-import { Menu, X, Home } from "lucide-react";
+import React, { useState, useEffect, useCallback, useRef, useMemo } from "react";
+import { Home } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { subscribe, sendMessage, closeSocket, getRoster, getMyRobotId } from "../utils/ws";
 import { MoveType, GameData, HandData, ROBOT_COLORS, DiscardData } from "../types/boardTypes";
@@ -31,7 +31,6 @@ interface ReadinessData {
  */
 export default function Board() {
   const navigate = useNavigate();
-  const [userID] = useState<string>(sessionStorage.getItem("userID") || "");
   const [lobbyId] = useState<string>(sessionStorage.getItem("id") || "");
   const [gameData, setGameData] = useState<GameData | null>(null);
   const [handData, setHandData] = useState<HandData | null>(null);
@@ -52,7 +51,6 @@ export default function Board() {
     hasSubmitted;
   const [robotID, setRobotID] = useState<string>(getMyRobotId());
 
-  const API_BASE_URL = process.env.REACT_APP_API_BASE_URL;
   const [robotMap, setRobotMap] = useState<{ [username: string]: string }>({});
   const [mapDisplayName, setMapDisplayName] = useState<string>("");
   const [needsRespawn, setNeedsRespawn] = useState<boolean>(false);
@@ -89,7 +87,7 @@ export default function Board() {
 
   const localSubmitLatchRef = useRef(false);
 
-  const isDemoMode = sessionStorage.getItem("mode") == "demo";
+  const isDemoMode = sessionStorage.getItem("mode") === "demo";
 
   const canForceStartRound = useMemo(() => {
     if (!isDemoMode || gameState !== 'programming' || !hasSubmitted || !readiness) {
@@ -117,6 +115,26 @@ export default function Board() {
     });
     return map;
   }, [robotMap]);
+
+  /**
+   * @author William Pii Jæger
+   */
+  const stopReadinessPolling = useCallback(() => {
+    if (readinessIntervalRef.current) {
+      clearInterval(readinessIntervalRef.current);
+      readinessIntervalRef.current = null;
+    }
+  }, []);
+
+  /**
+   * @author William Pii Jæger
+   */
+  const startReadinessPolling = useCallback(() => {
+    stopReadinessPolling();
+    readinessIntervalRef.current = setInterval(() => {
+      sendMessage({ lobbyID: lobbyId, payload: { type: "getReadiness" } });
+    }, 1000);
+  }, [lobbyId, stopReadinessPolling]);
 
   // Map banner + starting-area shading come from the bundled board definition.
   useEffect(() => {
@@ -203,7 +221,7 @@ export default function Board() {
 
             startReadinessPolling();
 
-            if (firstProgramming == 0) {
+            if (firstProgramming === 0) {
               firstProgramming++;
               break;
             }
@@ -317,7 +335,7 @@ export default function Board() {
       stopReadinessPolling();
       if (unsubscribe) unsubscribe();
     };
-  }, [lobbyId, robotID]);
+  }, [lobbyId, robotID, startReadinessPolling, stopReadinessPolling]);
 
   // Roster arrives with the authoritative snapshot; refresh once it loads.
   useEffect(() => {
@@ -344,26 +362,6 @@ export default function Board() {
 
     return () => clearTimeout(timer);
   }, [reactionPopup]);
-
-  /**
-   * @author William Pii Jæger
-   */
-  const startReadinessPolling = () => {
-    stopReadinessPolling();
-    readinessIntervalRef.current = setInterval(() => {
-      sendMessage({ lobbyID: lobbyId, payload: { type: "getReadiness" } });
-    }, 1000);
-  };
-
-  /**
-   * @author William Pii Jæger
-   */
-  const stopReadinessPolling = () => {
-    if (readinessIntervalRef.current) {
-      clearInterval(readinessIntervalRef.current);
-      readinessIntervalRef.current = null;
-    }
-  };
 
   /**
    * @author Weihao Mo
@@ -427,7 +425,20 @@ export default function Board() {
   /**
    * @author William Pii Jæger
    */
-  const handleSubmitMove = (moves: MoveType[]) => {
+  const handleStartProgramming = useCallback(() => {
+    sendMessage({
+      lobbyID: lobbyId,
+      payload: {
+        type: "startProgramming",
+        windowMs: 60000
+      }
+    });
+  }, [lobbyId]);
+
+  /**
+   * @author William Pii Jæger
+   */
+  const handleSubmitMove = useCallback((moves: MoveType[]) => {
     if (gameState === "waiting") {
       handleStartProgramming();
     }
@@ -455,21 +466,7 @@ export default function Board() {
     } else {
       submit();
     }
-  };
-
-
-  /**
-   * @author William Pii Jæger
-   */
-  const handleStartProgramming = () => {
-    sendMessage({
-      lobbyID: lobbyId,
-      payload: {
-        type: "startProgramming",
-        windowMs: 60000
-      }
-    });
-  };
+  }, [gameState, hasSubmitted, firstSubmissionDelayed, lobbyId, handleStartProgramming]);
 
   useEffect(() => {
     if (gameState !== 'programming') return;
@@ -490,7 +487,7 @@ export default function Board() {
         }
       }
     }
-  }, [timeRemaining, gameState, hasSubmitted, selectedMoves]);
+  }, [timeRemaining, gameState, hasSubmitted, selectedMoves, isDemoMode, handleSubmitMove]);
 
   /**
    * @author William Pii Jæger

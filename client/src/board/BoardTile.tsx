@@ -1,6 +1,6 @@
 import React from "react";
 import { Robot, TileEffect } from "../types/boardTypes";
-import { getFacingArrow, getRobotColor, getRobotImage } from "../utils/boardUtils";
+import { getRobotImage } from "../utils/boardUtils";
 import { renderEffect } from "../ui/effectRegistry";
 
 
