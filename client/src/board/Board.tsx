@@ -52,7 +52,6 @@ export default function Board() {
     hasSubmitted;
   const [robotID, setRobotID] = useState<string>(getMyRobotId());
 
-  const API_BASE_URL = process.env.REACT_APP_API_BASE_URL;
   const [robotMap, setRobotMap] = useState<{ [username: string]: string }>({});
   const [mapDisplayName, setMapDisplayName] = useState<string>("");
   const [needsRespawn, setNeedsRespawn] = useState<boolean>(false);
