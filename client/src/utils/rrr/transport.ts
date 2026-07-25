@@ -147,8 +147,19 @@ export function serverNow(): number {
   return Date.now() - clockSkewMs;
 }
 
+/** The updatedAt sample the current skew was computed from. Skew must only be
+ *  resampled when the server actually wrote (updatedAt changed): updatedAt is
+ *  frozen between writes, so resampling on every read would grow the "skew" at
+ *  the speed of real time and pin serverNow() to the last write forever. */
+let skewSampleAt: number | null = null;
+
 function noteServerClock(state: Envelope | null | undefined): void {
-  if (state && typeof state.updatedAt === "number") {
+  if (
+    state &&
+    typeof state.updatedAt === "number" &&
+    state.updatedAt !== skewSampleAt
+  ) {
+    skewSampleAt = state.updatedAt;
     clockSkewMs = Date.now() - state.updatedAt;
   }
 }
@@ -284,5 +295,6 @@ export function stopTransport(): void {
   pollTimer = null;
   version = 0;
   clockSkewMs = 0;
+  skewSampleAt = null;
   onUnauthorized = null;
 }
