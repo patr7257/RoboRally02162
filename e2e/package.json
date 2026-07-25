@@ -1,0 +1,14 @@
+{
+  "name": "roborally-e2e",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Committed Playwright two-tab end-to-end suite for Robot Rally Racer (issue #13e). Not part of CI: needs the sibling patrickrobelweb site running locally on port 3210 with a real Upstash Redis backend. Manual pre-release gate only.",
+  "scripts": {
+    "test": "playwright test",
+    "test:headed": "playwright test --headed",
+    "report": "playwright show-report"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.62.0"
+  }
+}

@@ -131,6 +131,10 @@ export const BoardRenderer: React.FC<BoardRendererProps> = ({ gameData, starting
             <React.Fragment key={robot.id}>
               <div
                 className={`robot-absolute${isRebooting ? " robot-rebooting" : ""}`}
+                data-robot-id={robot.id}
+                data-x={robot.x}
+                data-y={robot.y}
+                data-alive={String(!isRebooting)}
                 style={{
                   position: 'absolute',
                   left: `${robot.x * tileSize}px`,
