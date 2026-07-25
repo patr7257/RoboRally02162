@@ -25,6 +25,8 @@ import {
   runActivation,
   resumeActivation,
   applyRespawns,
+  parseBoardDefinition,
+  createGame,
 } from "../../engine/roborally-engine";
 import type {
   ActivationResult,
@@ -34,6 +36,7 @@ import type {
   ReactionChoice,
 } from "../../engine/roborally-engine";
 import { moveTypesToCards } from "../engineAdapter";
+import { buildPlayerConfigs } from "../gameSetup";
 import {
   BASE,
   hostFetch,
@@ -41,6 +44,7 @@ import {
   putState,
   sendHeartbeat,
   serverNow,
+  wireRound,
 } from "./transport";
 import type { Envelope, HostPrivate, Identity, Rejection } from "./transport";
 import { getEnv, setEnv, getAnimating, setAnimating } from "./store";
@@ -128,6 +132,9 @@ function hostPrivateFor(snap: GameSnapshot): HostPrivate | undefined {
   return { round: snap.round, hostProgram, submittedThisRound };
 }
 
+/** `round` here is already a wire round (see transport.ts's wireRound); every
+ *  caller is responsible for converting the engine snapshot's own round before
+ *  calling in (issue #10). */
 async function fetchIntents(gameId: string, round: number): Promise<any[]> {
   const r = await hostFetch(`${BASE}/games/${gameId}/intents?round=${round}`);
   if (!r.ok || !r.data) return [];
@@ -184,7 +191,7 @@ async function publishSegment(
     ...env,
     status: snap.winner != null ? "finished" : "active",
     phase: snap.status,
-    round: snap.round,
+    round: wireRound(env, snap.round),
     current: 0,
     snap,
     frames: result.frames,
@@ -253,7 +260,7 @@ async function tickProgramming(
     return;
   }
 
-  const r = await hostFetch(`${BASE}/games/${id.gameId}/intents?round=${round}`);
+  const r = await hostFetch(`${BASE}/games/${id.gameId}/intents?round=${wireRound(env, round)}`);
   if (!r.ok || !r.data) return;
 
   const seats: Record<string, unknown> = r.data.seats || {};
@@ -384,7 +391,7 @@ async function tickReaction(
       choice = hostReactionChoice.choice;
     }
   } else {
-    const intents = await fetchIntents(gameId, snap.round);
+    const intents = await fetchIntents(gameId, wireRound(env, snap.round));
     const hit = intents.find(
       (it) =>
         it.type === "reaction" &&
@@ -421,7 +428,7 @@ async function tickRespawn(
     directions[myRobotId] = hostRespawnDirection;
   }
   if (dead.some((r) => r.id !== myRobotId)) {
-    const intents = await fetchIntents(gameId, snap.round);
+    const intents = await fetchIntents(gameId, wireRound(env, snap.round));
     intents
       .filter((it) => it.type === "respawn" && it.direction)
       .forEach((it) => {
@@ -442,6 +449,61 @@ async function tickRespawn(
     setAnimating(false);
     console.error("[rrr] respawn failed", e);
   }
+}
+
+// ---- rematch (issue #10) ------------------------------------------------------
+
+/**
+ * Builds a fresh game on the same board and roster and PUTs it over the
+ * finished match. Host-only, and only once the match has actually finished:
+ * the backend never deletes per-round intent keys and allows a PUT to move
+ * status from "finished" back to "active", so reusing engine round numbers
+ * would replay the last match's stale program/reaction/respawn intents.
+ * roundBase is set to the last wire round the finished match published, so
+ * every round the new match plays gets a wire round past anything the old
+ * match ever used, and activationId is left UNCHANGED (frames: []) so no tab
+ * replays an activation.
+ */
+export async function requestRematch(): Promise<void> {
+  const id = getIdentity();
+  if (!id || id.role !== "host") return;
+  const env = getEnv();
+  if (!env || env.status !== "finished") return;
+
+  const boardUrl = env.board
+    ? `${process.env.PUBLIC_URL}/boards/${env.board}.json`
+    : `${process.env.PUBLIC_URL}/board.json`;
+  let boardRes = await fetch(boardUrl);
+  if (!boardRes.ok) boardRes = await fetch(`${process.env.PUBLIC_URL}/board.json`);
+  if (!boardRes.ok) return;
+  const def = await boardRes.json();
+  const loaded = parseBoardDefinition(def);
+  const configs = buildPlayerConfigs(loaded, env.players);
+  const snap = createGame(loaded.board, configs);
+
+  const next: Envelope = {
+    ...env,
+    status: "active",
+    phase: "programming",
+    snap,
+    frames: [],
+    readiness: {},
+    activationId: env.activationId ?? 0,
+    matchId: (env.matchId ?? 1) + 1,
+    roundBase: env.round,
+    round: env.round + snap.round,
+    deadlineAt: env.timerMs ? serverNow() + env.timerMs : undefined,
+    hostPrivate: undefined,
+    rejections: undefined,
+  };
+
+  hostProgram = null;
+  submittedThisRound = false;
+  lastReadiness = {};
+  clearPromptStashes();
+
+  const ok = await putState(next, onConflict ?? undefined);
+  if (ok) setEnv(next);
 }
 
 // ---- lifecycle ---------------------------------------------------------------

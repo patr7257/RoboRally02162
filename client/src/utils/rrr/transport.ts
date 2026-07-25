@@ -39,6 +39,12 @@ export interface Envelope {
   name: string;
   status: "lobby" | "active" | "paused" | "finished";
   phase: string;
+  /** Wire round: roundBase + the engine snapshot's own round (issue #10). The
+   *  engine always starts a fresh game at round 1, but the backend never
+   *  deletes per-round intent keys and allows a PUT to move status from
+   *  "finished" back to "active", so a rematch that reused engine round
+   *  numbers would replay the last match's intents. roundBase (below) shifts
+   *  every rematch's rounds past every round the previous match ever used. */
   round: number;
   current: number;
   players: { idx: number; name: string; color?: string }[];
@@ -47,6 +53,19 @@ export interface Envelope {
   frames?: Frame[];
   activationId?: number;
   readiness?: Record<number, boolean>;
+  /** Wire-round offset added to the engine's own round for every round number
+   *  that crosses the network (intent GET/POST). Absent means 0: a game that
+   *  has never been rematched behaves exactly as it did before this field
+   *  existed. Set once per rematch to the last wire round the finished match
+   *  published, so the new match's rounds never collide with the old one's
+   *  (issue #10). */
+  roundBase?: number;
+  /** Which play-through of this game (lobby -> finished cycle) this envelope
+   *  belongs to. Absent means 1, the game's original match. Bumped by one on
+   *  every rematch so every tab can tell "a new match started" apart from
+   *  "the same match kept going" and reset its per-match dedupe state
+   *  (issue #10). */
+  matchId?: number;
   /** Host-only, redacted from GET /view. */
   hostPrivate?: HostPrivate;
   /** When the host stops waiting for a reaction / respawn choice, or (issue #9)
@@ -60,6 +79,14 @@ export interface Envelope {
   /** Server write timestamp, echoed inside the state blob. Read-only here; used
    *  to keep this tab's clock skew against the server (issue #4). */
   updatedAt?: number;
+}
+
+/** The wire round for a given engine round: every place that sends or polls a
+ *  round number over the network (host loop intent polling, player intent
+ *  posts) must use this instead of the engine snapshot's own round, so a
+ *  rematch's rounds never collide with the finished match's (issue #10). */
+export function wireRound(env: Envelope, round: number): number {
+  return (env.roundBase ?? 0) + round;
 }
 
 export interface Identity {
