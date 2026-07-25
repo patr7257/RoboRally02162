@@ -11,6 +11,11 @@ let animating = false;
 let lastActivationId = -1;
 let lastRoundEntered = 0;
 let finishedEmitted = false;
+/** The matchId of the last envelope reconcile processed, or null before the
+ *  first envelope. Used to detect a rematch (issue #10) so every per-match
+ *  dedupe key can be reset instead of misreading stale state from the
+ *  previous match. */
+let lastMatchId: number | null = null;
 
 export function getEnv(): Envelope | null {
   return env;
@@ -54,6 +59,17 @@ export function setFinishedEmitted(v: boolean): void {
   finishedEmitted = v;
 }
 
+/** Records the matchId of the envelope reconcile is about to process and
+ *  reports whether it differs from the previous one. Always false for the
+ *  very first envelope a tab ever sees (nothing to compare against yet, and
+ *  every dedupe key is already at its startup default). */
+export function noteMatchId(matchId: number | undefined): boolean {
+  const current = matchId ?? 1;
+  const changed = lastMatchId !== null && current !== lastMatchId;
+  lastMatchId = current;
+  return changed;
+}
+
 /** Resets exactly the slice closeSocket used to reset (busy/animating are
  *  left alone, matching the old behavior). */
 export function reset(): void {
@@ -61,4 +77,5 @@ export function reset(): void {
   lastActivationId = -1;
   lastRoundEntered = 0;
   finishedEmitted = false;
+  lastMatchId = null;
 }

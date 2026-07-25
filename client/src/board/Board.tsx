@@ -1,9 +1,9 @@
 import React, { useState, useEffect, useCallback, useRef, useMemo } from "react";
 import { Home } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import { subscribe, sendMessage, closeSocket, getRoster, getMyRobotId, getBoardId } from "../utils/ws";
+import { subscribe, sendMessage, closeSocket, getRoster, getMyRobotId, getMyRole, getBoardId } from "../utils/ws";
 import { MoveType, GameData, HandData, ROBOT_COLORS, DiscardData } from "../types/boardTypes";
-import { WinnerBanner } from "./WinnerBanner";
+import { PostGamePanel } from "./WinnerBanner";
 import { BoardRenderer } from "./BoardRenderer";
 import { MoveSelector } from "./MoveSelector";
 import ReactionPopUp from "./actionSelector";
@@ -87,6 +87,8 @@ export default function Board() {
     }
   }, [moveHistory]);
   const [winner, setWinner] = useState<number | null>(null);
+  // Only the acting host tab can PUT the rematch state (issue #10).
+  const isHost = getMyRole() === "host";
 
   const [showExitConfirmation, setShowExitConfirmation] = useState<boolean>(false);
 
@@ -243,6 +245,9 @@ export default function Board() {
             setFirstSubmissionDelayed(false);
             setGameState('programming');
             setHasSubmitted(false);
+            // A rematch (issue #10) re-enters programming on a finished game;
+            // every tab leaves the post-game panel without a reload.
+            setWinner(null);
 
             startReadinessPolling();
 
@@ -436,6 +441,20 @@ export default function Board() {
     });
   };
 
+  /**
+   * Post-game actions (issue #10). "Play again" is host-only (only the
+   * acting host tab can PUT the rematch state); "Back to menu" is available
+   * to everyone and just leaves the game like the exit-confirmation path.
+   */
+  const handlePlayAgain = () => {
+    sendMessage({ lobbyID: lobbyId, payload: { type: "rematch" } });
+  };
+
+  const handleBackToMenu = () => {
+    closeSocket(1000);
+    navigate("/");
+  };
+
 
   /**
    * @author Kajsa Alice Ulrika Berlstedt
@@ -590,7 +609,13 @@ export default function Board() {
   return (
     <div className="board-Master">
       {winner != null && (
-        <WinnerBanner winnerId={winner} robotIdToUsername={robotIdToUsername} />
+        <PostGamePanel
+          winnerId={winner}
+          robotIdToUsername={robotIdToUsername}
+          isHost={isHost}
+          onPlayAgain={handlePlayAgain}
+          onBackToMenu={handleBackToMenu}
+        />
       )}
 
       {errorBanner && (
