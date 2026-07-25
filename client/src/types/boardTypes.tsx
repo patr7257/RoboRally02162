@@ -51,6 +51,9 @@ export interface Robot {
     y: number;
     facing: Direction;
     nextCheckpoint: number;
+    /** False while the robot is awaiting respawn between rounds. Undefined on
+     * older snapshots means alive (renders normally). */
+    alive?: boolean;
 }
 
 export interface Board {

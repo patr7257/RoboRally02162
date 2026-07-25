@@ -146,11 +146,11 @@ describe("snapshotToGameData", () => {
     });
     const data = snapshotToGameData(snap);
     expect(data.robots).toEqual([
-      { id: 1, x: 2, y: 3, facing: "E", nextCheckpoint: 4 },
+      { id: 1, x: 2, y: 3, facing: "E", nextCheckpoint: 4, alive: true },
     ]);
   });
 
-  it("filters out !alive robots (current behavior: dead robots disappear)", () => {
+  it("keeps !alive robots in the render list with alive: false (awaiting-respawn robots stay visible)", () => {
     const snap = makeSnapshot({
       robots: [
         makeRobot({ id: 1, alive: true }),
@@ -158,7 +158,11 @@ describe("snapshotToGameData", () => {
       ],
     });
     const data = snapshotToGameData(snap);
-    expect(data.robots.map((r) => r.id)).toEqual([1]);
+    expect(data.robots.map((r) => r.id)).toEqual([1, 2]);
+    expect(data.robots.find((r) => r.id === 2)).toMatchObject({
+      id: 2,
+      alive: false,
+    });
   });
 });
 
@@ -212,7 +216,7 @@ describe("frameToGameData", () => {
     const data = frameToGameData(snap, frame);
     expect(data.board).toEqual(snapshotToGameData(snap).board);
     expect(data.robots).toEqual([
-      { id: 1, x: 1, y: 1, facing: "S", nextCheckpoint: 2 },
+      { id: 1, x: 1, y: 1, facing: "S", nextCheckpoint: 2, alive: true },
     ]);
   });
 
@@ -236,7 +240,7 @@ describe("frameToGameData", () => {
     expect(data.robots[0]).toMatchObject({ id: 42, nextCheckpoint: 1 });
   });
 
-  it("filters out !alive robots from the frame (current behavior)", () => {
+  it("keeps !alive robots from the frame with alive: false (awaiting-respawn robots stay visible)", () => {
     const snap = makeSnapshot({
       robots: [makeRobot({ id: 1 }), makeRobot({ id: 2 })],
     });
@@ -247,6 +251,21 @@ describe("frameToGameData", () => {
       ],
     };
     const data = frameToGameData(snap, frame);
-    expect(data.robots.map((r) => r.id)).toEqual([1]);
+    expect(data.robots.map((r) => r.id)).toEqual([1, 2]);
+    expect(data.robots.find((r) => r.id === 2)).toMatchObject({
+      id: 2,
+      alive: false,
+    });
+  });
+
+  it("carries alive through from the frame robot, not the snapshot", () => {
+    const snap = makeSnapshot({
+      robots: [makeRobot({ id: 1, alive: true })],
+    });
+    const frame: Frame = {
+      robots: [{ id: 1, x: 0, y: 0, facing: "N", alive: false }],
+    };
+    const data = frameToGameData(snap, frame);
+    expect(data.robots[0]).toMatchObject({ id: 1, alive: false });
   });
 });
