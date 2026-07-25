@@ -125,54 +125,59 @@ export const BoardRenderer: React.FC<BoardRendererProps> = ({ gameData, starting
           ))
         )}
 
-        {gameData.robots.map((robot) => (
-          <React.Fragment key={robot.id}>
-            <div
-              className="robot-absolute"
-              style={{
-                position: 'absolute',
-                left: `${robot.x * tileSize}px`,
-                top: `${robot.y * tileSize}px`,
-                width: `${tileSize}px`,
-                height: `${tileSize}px`,
-                backgroundImage: `url(${getRobotImage(robot.id)})`,
-                backgroundSize: "cover",
-                backgroundPosition: "center",
-                transform: `rotate(${getSmoothRotation(robot.id, robot.facing)}deg)`,
-                transition: "left 0.3s ease, top 0.3s ease, transform 0.3s ease",
-                transformOrigin: "center center",
-                pointerEvents: 'none',
-                zIndex: 1000,
-                boxSizing: 'border-box',
-              }}
-            />
-            <div
-              className="robot-laser-container"
-              style={{
-                position: 'absolute',
-                left: `${robot.x * tileSize}px`,
-                top: `${robot.y * tileSize}px`,
-                width: `${tileSize}px`,
-                height: `${tileSize}px`,
-                pointerEvents: 'none',
-                zIndex: 999,
-              }}
-            >
-              <RobotLaser
-                effect={{
-                  kind: "robot_laser",
-                  direction: robot.facing,
-                  robotId: robot.id,
-                  id: `robot-laser-${robot.id}`,
-                  x: robot.x,
-                  y: robot.y,
-                  board: gameData.board,
-                  robots: gameData.robots,
+        {gameData.robots.map((robot) => {
+          const isRebooting = robot.alive === false;
+          return (
+            <React.Fragment key={robot.id}>
+              <div
+                className={`robot-absolute${isRebooting ? " robot-rebooting" : ""}`}
+                style={{
+                  position: 'absolute',
+                  left: `${robot.x * tileSize}px`,
+                  top: `${robot.y * tileSize}px`,
+                  width: `${tileSize}px`,
+                  height: `${tileSize}px`,
+                  backgroundImage: `url(${getRobotImage(robot.id)})`,
+                  backgroundSize: "cover",
+                  backgroundPosition: "center",
+                  transform: `rotate(${getSmoothRotation(robot.id, robot.facing)}deg)`,
+                  transition: "left 0.3s ease, top 0.3s ease, transform 0.3s ease",
+                  transformOrigin: "center center",
+                  pointerEvents: 'none',
+                  zIndex: 1000,
+                  boxSizing: 'border-box',
                 }}
               />
-            </div>
-          </React.Fragment>
-        ))}
+              {!isRebooting && (
+                <div
+                  className="robot-laser-container"
+                  style={{
+                    position: 'absolute',
+                    left: `${robot.x * tileSize}px`,
+                    top: `${robot.y * tileSize}px`,
+                    width: `${tileSize}px`,
+                    height: `${tileSize}px`,
+                    pointerEvents: 'none',
+                    zIndex: 999,
+                  }}
+                >
+                  <RobotLaser
+                    effect={{
+                      kind: "robot_laser",
+                      direction: robot.facing,
+                      robotId: robot.id,
+                      id: `robot-laser-${robot.id}`,
+                      x: robot.x,
+                      y: robot.y,
+                      board: gameData.board,
+                      robots: gameData.robots,
+                    }}
+                  />
+                </div>
+              )}
+            </React.Fragment>
+          );
+        })}
       </div>
     </div>
   );

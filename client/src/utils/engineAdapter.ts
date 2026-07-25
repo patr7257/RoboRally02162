@@ -122,39 +122,41 @@ function boardToClient(snap: GameSnapshot): Board {
 }
 
 /**
- * Full authoritative render state from a snapshot. Dead (rebooting) robots are
- * omitted so they visually disappear until respawn.
+ * Full authoritative render state from a snapshot. Dead (awaiting-respawn)
+ * robots are kept in the render list with alive: false so the client can draw
+ * them at their last position with a rebooting visual treatment, instead of
+ * making them vanish until respawn.
  */
 export function snapshotToGameData(snap: GameSnapshot): GameData {
-  const robots: Robot[] = snap.robots
-    .filter((r) => r.alive)
-    .map((r) => ({
-      id: r.id,
-      x: r.x,
-      y: r.y,
-      facing: r.facing,
-      nextCheckpoint: r.nextCheckpoint,
-    }));
+  const robots: Robot[] = snap.robots.map((r) => ({
+    id: r.id,
+    x: r.x,
+    y: r.y,
+    facing: r.facing,
+    nextCheckpoint: r.nextCheckpoint,
+    alive: r.alive,
+  }));
   return { board: boardToClient(snap), robots };
 }
 
 /**
  * Render state for one activation animation frame: same board, robot positions
- * taken from the frame (nextCheckpoint carried over from the snapshot).
+ * taken from the frame (nextCheckpoint carried over from the snapshot). Dead
+ * robots are kept (alive: false) rather than filtered, matching
+ * snapshotToGameData.
  */
 export function frameToGameData(snap: GameSnapshot, frame: Frame): GameData {
   const checkpointById = new Map(
     snap.robots.map((r) => [r.id, r.nextCheckpoint]),
   );
-  const robots: Robot[] = frame.robots
-    .filter((r) => r.alive)
-    .map((r) => ({
-      id: r.id,
-      x: r.x,
-      y: r.y,
-      facing: r.facing,
-      nextCheckpoint: checkpointById.get(r.id) ?? 1,
-    }));
+  const robots: Robot[] = frame.robots.map((r) => ({
+    id: r.id,
+    x: r.x,
+    y: r.y,
+    facing: r.facing,
+    nextCheckpoint: checkpointById.get(r.id) ?? 1,
+    alive: r.alive,
+  }));
   return { board: boardToClient(snap), robots };
 }
 

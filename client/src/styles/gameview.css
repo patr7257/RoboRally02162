@@ -675,3 +675,18 @@
     font-size: 1rem;
   }
 }
+
+/* Robot awaiting respawn between rounds: dimmed and gently pulsing in place. */
+.robot-rebooting {
+  opacity: 0.35;
+  animation: robot-reboot-pulse 1.4s ease-in-out infinite;
+}
+
+@keyframes robot-reboot-pulse {
+  0%, 100% {
+    opacity: 0.35;
+  }
+  50% {
+    opacity: 0.15;
+  }
+}
