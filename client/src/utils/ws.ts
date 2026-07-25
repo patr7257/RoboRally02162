@@ -53,8 +53,10 @@ import {
   emit,
   emitState,
   emitReadiness,
+  emitLastMoves,
   animateActivation,
   enterRoundIfNeeded,
+  syncPrompts,
   reset as resetEmit,
 } from "./rrr/emit";
 import {
@@ -62,8 +64,12 @@ import {
   startHostLoop,
   setSubmittedThisRound,
   setHostProgram,
+  setLastReadiness,
+  setHostReactionChoice,
+  setHostRespawnDirection,
   reset as resetHostLoop,
 } from "./rrr/hostLoop";
+import type { Direction, ReactionChoice } from "../engine/roborally-engine";
 
 export { BASE };
 export type { Envelope };
@@ -71,10 +77,29 @@ export type { Envelope };
 // ---- module state (facade-local only) --------------------------------------
 
 let started = false;
+/** One-shot per page load: the first envelope a reloaded host tab sees. */
+let hostRestored = false;
 
 // ---- inbound reconcile ------------------------------------------------------
 
+/**
+ * A reloaded host tab adopts the published activation id and readiness from the
+ * very first envelope it processes, so it neither replays the frames of an
+ * activation the other tabs already animated nor reports an empty readiness map
+ * (issue #3). lastRoundEntered / finishedEmitted are deliberately left alone: a
+ * fresh tab still wants programmingStarted, its hand, and the winner banner.
+ */
+function restoreHostIfNeeded(env: Envelope): void {
+  if (hostRestored) return;
+  hostRestored = true;
+  if (getIdentity()?.role !== "host") return;
+  setLastActivationId(env.activationId ?? -1);
+  setLastReadiness({ ...(env.readiness ?? {}) });
+}
+
 async function reconcile(next: Envelope): Promise<void> {
+  restoreHostIfNeeded(next);
+
   const isActivation =
     next.activationId != null &&
     next.activationId !== getLastActivationId() &&
@@ -99,6 +124,7 @@ async function reconcile(next: Envelope): Promise<void> {
     } else {
       enterRoundIfNeeded(next.snap);
     }
+    syncPrompts(next);
   }
 }
 
@@ -180,7 +206,8 @@ export function sendMessage(data: string | object): boolean {
       emitReadiness();
       return true;
     case "getLastMoves":
-      return true; // per-move log not synthesized in this slice
+      emitLastMoves();
+      return true;
     case "startProgramming":
       emit({ type: "programmingStarted" });
       return true;
@@ -199,10 +226,28 @@ export function sendMessage(data: string | object): boolean {
     case "forceStartRound":
       if (id?.role === "host") void hostTick(true);
       return true;
-    case "setRespawnDirection":
-    case "submitReaction":
-      // Deferred to a later slice (engine has the logic; UI collection pending).
+    case "submitReaction": {
+      const choice = obj.payload.choice as ReactionChoice;
+      const promptId = snap?.pendingReaction?.promptId;
+      if (id?.role === "host") {
+        setHostReactionChoice(promptId, choice);
+        void hostTick();
+      } else if (snap) {
+        void submitReactionIntent(promptId, choice, snap.round);
+      }
       return true;
+    }
+    case "setRespawnDirection": {
+      // Board sends the backend single-character form ("N"|"S"|"E"|"W").
+      const direction = obj.payload.direction as Direction;
+      if (id?.role === "host") {
+        setHostRespawnDirection(direction);
+        void hostTick();
+      } else if (snap) {
+        void submitRespawnIntent(direction, snap.round);
+      }
+      return true;
+    }
     default:
       return true;
   }
@@ -229,12 +274,58 @@ async function submitProgramIntent(cards: MoveType[]): Promise<void> {
   }
 }
 
+/** A player's answer to a reaction prompt. A 409 means the backend already has
+ *  an answer for this prompt, which is as good as ours. */
+async function submitReactionIntent(
+  promptId: string | undefined,
+  choice: ReactionChoice,
+  round: number,
+): Promise<void> {
+  const id = getIdentity();
+  if (!id || !promptId) return;
+  const r = await postIntent({
+    playerIdx: id.seatIdx,
+    playerToken: id.playerToken,
+    round,
+    type: "reaction",
+    promptId,
+    choice,
+  });
+  if (!r.ok && r.status !== 409) {
+    emit({ type: "error", payload: { message: "Failed to submit reaction" } });
+  }
+}
+
+/** A player's respawn facing. Deduped per player per round by the backend, so a
+ *  409 means the direction was already recorded. */
+async function submitRespawnIntent(
+  direction: Direction,
+  round: number,
+): Promise<void> {
+  const id = getIdentity();
+  if (!id) return;
+  const r = await postIntent({
+    playerIdx: id.seatIdx,
+    playerToken: id.playerToken,
+    round,
+    type: "respawn",
+    direction,
+  });
+  if (!r.ok && r.status !== 409) {
+    emit({
+      type: "error",
+      payload: { message: "Failed to submit respawn direction" },
+    });
+  }
+}
+
 export function closeSocket(_reason: number): void {
   stopTransport();
   resetHostLoop();
   resetEmit();
   resetStore();
   started = false;
+  hostRestored = false;
 }
 
 export function getQueueSize(): number {

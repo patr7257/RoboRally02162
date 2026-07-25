@@ -10,9 +10,28 @@
 //   rrr_pw, rrr_seatIdx, rrr_name.
 
 import type { GameSnapshot, Frame } from "../../engine/roborally-engine";
+import { MoveType } from "../../types/boardTypes";
 
 export const BASE = "/api/robot-rally";
 const FALLBACK_POLL_MS = 3000;
+
+/** The host tab's own unsubmitted programming state, persisted so a reloaded
+ *  host tab can resume the round it was in the middle of (issue #3). The
+ *  backend redacts this key from the player-facing GET /view, so it never
+ *  leaks a program to opponents. */
+export interface HostPrivate {
+  round: number;
+  hostProgram: MoveType[] | null;
+  submittedThisRound: boolean;
+}
+
+/** Why a player's submitted program was thrown away, keyed by seat index. The
+ *  round is the round of the snapshot the rejection is published with, so the
+ *  owning tab can surface it once and ignore it afterwards (issue #14). */
+export interface Rejection {
+  round: number;
+  reason: string;
+}
 
 /** The state blob stored in Redis. Envelope fields are validated by the backend;
  *  everything under `snap` / `frames` is opaque host data. */
@@ -28,6 +47,11 @@ export interface Envelope {
   frames?: Frame[];
   activationId?: number;
   readiness?: Record<number, boolean>;
+  /** Host-only, redacted from GET /view. */
+  hostPrivate?: HostPrivate;
+  /** When the host stops waiting for a reaction / respawn choice. */
+  deadlineAt?: number | null;
+  rejections?: Record<number, Rejection>;
   // server-managed: gameId, version, createdAt, updatedAt
 }
 
