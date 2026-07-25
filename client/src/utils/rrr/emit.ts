@@ -11,7 +11,7 @@ import {
   handForRobot,
   discardForRobot,
 } from "../engineAdapter";
-import { getIdentity, readIdentity } from "./transport";
+import { getIdentity, readIdentity, serverNow } from "./transport";
 import type { Envelope, Identity } from "./transport";
 import { getEnv, setAnimating, getLastRoundEntered, setLastRoundEntered } from "./store";
 import {
@@ -22,7 +22,9 @@ import {
 } from "./hostLoop";
 
 const FRAME_MS = 320; // slightly above BoardRenderer's 0.3s CSS transition
-const FAKE_MS_REMAINING = 999000; // no server programming timer; disables auto-submit
+/** What a game created without a programming timer reports: far enough out that
+ *  Board's 2s auto-submit never fires and the countdown reads as "plenty". */
+const FAKE_MS_REMAINING = 999000;
 
 let listeners: Set<(message: string) => void> = new Set();
 /** The prompt this tab has already opened a modal for, so SSE pings and
@@ -110,10 +112,12 @@ export function emitReadiness(): void {
   } else if (id) {
     playerSubmitted[id.robotId] = getSubmittedThisRound();
   }
-  emit({
-    type: "readiness",
-    payload: { playerSubmitted, msRemaining: FAKE_MS_REMAINING },
-  });
+  // With a programming timer the authoritative deadline drives Board's existing
+  // countdown and its 2s auto-submit; without one nothing changes (issue #9).
+  const msRemaining = env?.deadlineAt
+    ? Math.max(0, env.deadlineAt - serverNow())
+    : FAKE_MS_REMAINING;
+  emit({ type: "readiness", payload: { playerSubmitted, msRemaining } });
 }
 
 /** The current round's move log, for an explicit getLastMoves request. */

@@ -78,6 +78,8 @@ export default function Board() {
 
   const [boardId, setBoardId] = useState<string | null>(null);
   const [errorBanner, setErrorBanner] = useState<{ message: string; key: number } | null>(null);
+  // Host handoff status (issue #4): stale host, election outcome, own demotion.
+  const [hostBanner, setHostBanner] = useState<string | null>(null);
 
   useEffect(() => {
     if (moveHistoryRef.current) {
@@ -305,6 +307,22 @@ export default function Board() {
               message: actualData.payload?.message || "An error occurred",
               key: Date.now(),
             });
+            break;
+
+          case "hostStale":
+            setHostBanner("Host connection lost, electing a new host...");
+            break;
+
+          case "hostRecovered":
+            setHostBanner(null);
+            break;
+
+          case "hostDemoted":
+            setHostBanner("You are no longer the host");
+            break;
+
+          case "hostChanged":
+            setHostBanner("You are now the host");
             break;
 
           case "needRespawnDirection":
@@ -582,6 +600,19 @@ export default function Board() {
             className="error-banner-close"
             onClick={() => setErrorBanner(null)}
             aria-label="Dismiss error"
+          >
+            ×
+          </button>
+        </div>
+      )}
+
+      {hostBanner && (
+        <div className="error-banner host-banner" role="status">
+          <span className="error-banner-message">{hostBanner}</span>
+          <button
+            className="error-banner-close"
+            onClick={() => setHostBanner(null)}
+            aria-label="Dismiss host notice"
           >
             ×
           </button>

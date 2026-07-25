@@ -26,6 +26,7 @@
     "sync-engine": "node scripts/sync-engine.mjs",
     "prestart": "node scripts/sync-engine.mjs",
     "prebuild": "node scripts/sync-engine.mjs",
+    "pretest": "node scripts/sync-engine.mjs",
     "start": "react-scripts start",
     "build": "react-scripts build",
     "test": "react-scripts test",
