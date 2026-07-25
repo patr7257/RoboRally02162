@@ -11,6 +11,12 @@
 //
 // The host answers its own prompts through module stashes instead of posting an
 // intent to itself (hostReactionChoice / hostRespawnDirection).
+//
+// While the game is active the loop also sends a liveness heartbeat every 5s so
+// player tabs can tell a dead host from a quiet one (issue #4), and it enforces
+// the optional programming deadline when the game was created with a timer
+// (issue #9). The acting host is whatever seat this tab holds, not seat 0: after
+// a takeover the host seat is the seat of whoever won the election.
 
 import { MoveType } from "../../types/boardTypes";
 import {
@@ -28,13 +34,23 @@ import type {
   ReactionChoice,
 } from "../../engine/roborally-engine";
 import { moveTypesToCards } from "../engineAdapter";
-import { BASE, jsonFetch, hostHeaders, getIdentity, putState } from "./transport";
-import type { Envelope, HostPrivate, Rejection } from "./transport";
+import {
+  BASE,
+  hostFetch,
+  getIdentity,
+  putState,
+  sendHeartbeat,
+  serverNow,
+} from "./transport";
+import type { Envelope, HostPrivate, Identity, Rejection } from "./transport";
 import { getEnv, setEnv, getAnimating, setAnimating } from "./store";
 
 const HOST_LOOP_MS = 1500;
 /** How long the host waits for a reaction / respawn answer before defaulting. */
 const PROMPT_MS = 10000;
+/** How often the acting host proves it is still alive. Player tabs treat a beat
+ *  older than 12s as a dead host, so this leaves room for two missed beats. */
+const BEAT_MS = 5000;
 
 let hostTimer: ReturnType<typeof setInterval> | null = null;
 let hostProgram: MoveType[] | null = null;
@@ -45,6 +61,13 @@ let onConflict: ((fresh: Envelope) => void) | null = null;
 let hostReactionChoice: { promptId: string; choice: ReactionChoice } | null = null;
 /** The host's answer to its own respawn prompt. */
 let hostRespawnDirection: Direction | null = null;
+/** Local time of the last heartbeat sent by this tab. */
+let lastBeatSentAt = 0;
+/** Set once this tab won a host election: from then on a seat that exists in the
+ *  envelope roster but holds no seat claim (the departed original host, who
+ *  never posted a seat) is auto-programmed with [] rather than stalling the
+ *  round forever (issue #4). */
+let autoProgramGhosts = false;
 
 export function getHostProgram(): MoveType[] | null {
   return hostProgram;
@@ -85,6 +108,17 @@ export function clearPromptStashes(): void {
   hostRespawnDirection = null;
 }
 
+export function setAutoProgramGhosts(v: boolean): void {
+  autoProgramGhosts = v;
+}
+
+/** Sends a heartbeat now and restarts the 5s beat window. Called by the takeover
+ *  path so a freshly promoted host is visibly alive immediately. */
+export function beatNow(): void {
+  lastBeatSentAt = Date.now();
+  sendHeartbeat();
+}
+
 // ---- helpers ----------------------------------------------------------------
 
 /** The hostPrivate payload to ride along with an outgoing PUT: present only
@@ -95,15 +129,42 @@ function hostPrivateFor(snap: GameSnapshot): HostPrivate | undefined {
 }
 
 async function fetchIntents(gameId: string, round: number): Promise<any[]> {
-  const r = await jsonFetch(`${BASE}/games/${gameId}/intents?round=${round}`, {
-    headers: hostHeaders(),
-  });
+  const r = await hostFetch(`${BASE}/games/${gameId}/intents?round=${round}`);
   if (!r.ok || !r.data) return [];
   return (r.data.intents as any[]) || [];
 }
 
 function deadlinePassed(env: Envelope): boolean {
-  return env.deadlineAt != null && Date.now() > env.deadlineAt;
+  return env.deadlineAt != null && serverNow() > env.deadlineAt;
+}
+
+/** The programming timer has run out for this envelope. Only ever true when the
+ *  game was created with a timer, so a timer-less game keeps waiting for every
+ *  seat exactly as it always did (issue #9). */
+function programmingTimerExpired(env: Envelope): boolean {
+  return !!env.timerMs && env.deadlineAt != null && serverNow() >= env.deadlineAt;
+}
+
+/** The deadline to publish alongside a snapshot: a paused snapshot gets the 10s
+ *  prompt window (which takes precedence), a fresh programming phase gets the
+ *  optional programming timer, and anything else clears the deadline. */
+function deadlineFor(env: Envelope, snap: GameSnapshot): number | null {
+  if (snap.status === "awaiting-reaction" || snap.status === "awaiting-respawn") {
+    return serverNow() + PROMPT_MS;
+  }
+  if (snap.status === "programming" && snap.winner == null && env.timerMs) {
+    return serverNow() + env.timerMs;
+  }
+  return null;
+}
+
+/** Sends the liveness beat at most once per BEAT_MS. Fire-and-forget: it never
+ *  bumps the revision and never awaits, so it cannot slow a tick down. */
+function maybeBeat(): void {
+  const now = Date.now();
+  if (now - lastBeatSentAt < BEAT_MS) return;
+  lastBeatSentAt = now;
+  sendHeartbeat();
 }
 
 /**
@@ -119,8 +180,6 @@ async function publishSegment(
   const env = getEnv();
   if (!env) return;
   const snap = result.snapshot;
-  const awaiting =
-    snap.status === "awaiting-reaction" || snap.status === "awaiting-respawn";
   const next: Envelope = {
     ...env,
     status: snap.winner != null ? "finished" : "active",
@@ -131,7 +190,7 @@ async function publishSegment(
     frames: result.frames,
     activationId: (env.activationId ?? 0) + 1,
     readiness: {},
-    deadlineAt: awaiting ? Date.now() + PROMPT_MS : null,
+    deadlineAt: deadlineFor(env, snap),
     hostPrivate: undefined,
     rejections:
       rejections && Object.keys(rejections).length > 0 ? rejections : undefined,
@@ -150,13 +209,17 @@ async function publishSegment(
 
 export async function hostTick(force = false): Promise<void> {
   const id = getIdentity();
-  if (!id || id.role !== "host" || getAnimating()) return;
+  if (!id || id.role !== "host") return;
   const env = getEnv();
+  // Prove liveness before any other guard: an activation animation can outlast
+  // the staleness window, and a host mid-animation is very much alive.
+  if (env?.status === "active") maybeBeat();
+  if (getAnimating()) return;
   if (!env?.snap || env.status !== "active") return;
 
   switch (env.snap.status) {
     case "programming":
-      await tickProgramming(env, id.gameId, force);
+      await tickProgramming(env, id, force);
       return;
     case "awaiting-reaction":
       await tickReaction(env, id.gameId, id.robotId);
@@ -171,40 +234,81 @@ export async function hostTick(force = false): Promise<void> {
 
 async function tickProgramming(
   env: Envelope,
-  gameId: string,
+  id: Identity,
   force: boolean,
 ): Promise<void> {
   const snap = env.snap!;
   const round = snap.round;
-  const r = await jsonFetch(`${BASE}/games/${gameId}/intents?round=${round}`, {
-    headers: hostHeaders(),
-  });
+
+  // Timer fallback: round 1 is published by the lobby, and a takeover clears the
+  // deadline, so stamp it here when the envelope has a timer but no deadline yet.
+  if (env.timerMs && env.deadlineAt == null) {
+    const stamped: Envelope = {
+      ...env,
+      deadlineAt: serverNow() + env.timerMs,
+      hostPrivate: hostPrivateFor(snap),
+    };
+    const ok = await putState(stamped, onConflict ?? undefined);
+    if (ok) setEnv(stamped);
+    return;
+  }
+
+  const r = await hostFetch(`${BASE}/games/${id.gameId}/intents?round=${round}`);
   if (!r.ok || !r.data) return;
 
   const seats: Record<string, unknown> = r.data.seats || {};
   const intents: any[] = r.data.intents || [];
 
-  const occupied = [0, ...Object.keys(seats).map(Number)];
+  // The acting host holds whatever seat this tab claimed, which is seat 0 only
+  // for the game's original creator.
+  const hostSeatIdx = id.seatIdx;
+  const occupied = Array.from(
+    new Set([hostSeatIdx, ...Object.keys(seats).map(Number)]),
+  ).sort((a, b) => a - b);
+  // Roster entries with neither a seat claim nor the host role: robots whose tab
+  // is gone for good and can never submit anything again.
+  const ghosts = (env.players || [])
+    .map((p) => p.idx)
+    .filter((idx) => !occupied.includes(idx));
+
   const programByIdx: Record<number, MoveType[]> = {};
-  if (hostProgram) programByIdx[0] = hostProgram;
   intents
     .filter((it) => it.type === "program" && Array.isArray(it.registers))
     .forEach((it) => {
       programByIdx[it.playerIdx] = it.registers as MoveType[];
     });
+  // The acting host's own pick lives in this tab, not in an intent, and wins for
+  // its seat: a tab promoted mid-round may have both.
+  if (hostProgram) programByIdx[hostSeatIdx] = hostProgram;
 
-  // Publish readiness to all tabs when it changes.
+  // Publish readiness to all tabs when it changes. Ghosts are left out: they can
+  // never become ready, so counting them would freeze the "n/m ready" display.
   const readiness: Record<number, boolean> = {};
   occupied.forEach((idx) => {
-    readiness[idx] = !!programByIdx[idx];
+    readiness[idx] = programByIdx[idx] != null;
   });
   lastReadiness = readiness;
   const changed = JSON.stringify(env.readiness || {}) !== JSON.stringify(readiness);
 
-  const allReady = occupied.every((idx) => !!programByIdx[idx]);
+  // An expired programming timer auto-programs every seat that has not picked;
+  // an empty pick is legal and the engine completes it to 5 from the deck.
+  const timedOut = programmingTimerExpired(env);
+  if (timedOut) {
+    occupied.forEach((idx) => {
+      if (programByIdx[idx] == null) programByIdx[idx] = [];
+    });
+  }
+  const includeGhosts = timedOut || autoProgramGhosts;
+  if (includeGhosts) {
+    ghosts.forEach((idx) => {
+      if (programByIdx[idx] == null) programByIdx[idx] = [];
+    });
+  }
+
+  const allReady = occupied.every((idx) => programByIdx[idx] != null);
 
   if (allReady && (force || occupied.length >= 1)) {
-    await activate(occupied, programByIdx);
+    await activate(includeGhosts ? [...occupied, ...ghosts] : occupied, programByIdx);
     return;
   }
   if (changed) {
@@ -233,7 +337,8 @@ async function activate(
     const rejections: Record<number, Rejection> = {};
     for (const idx of occupied) {
       const prog = programByIdx[idx];
-      if (!prog) continue;
+      // An auto-programmed [] is a real (empty) pick, not a missing one.
+      if (prog == null) continue;
       const robotId = idx + 1;
       try {
         snap = submitProgram(snap, robotId, moveTypesToCards(prog));
@@ -347,7 +452,9 @@ async function tickRespawn(
 export function startHostLoop(onConflictCb: (fresh: Envelope) => void): void {
   const id = getIdentity();
   if (!id || id.role !== "host") return;
+  stopHostLoop(); // idempotent: a takeover may restart the loop in place
   onConflict = onConflictCb;
+  lastBeatSentAt = 0; // beat on the very first tick
   hostTimer = setInterval(() => void hostTick(), HOST_LOOP_MS);
 }
 
@@ -361,5 +468,7 @@ export function reset(): void {
   hostProgram = null;
   submittedThisRound = false;
   lastReadiness = {};
+  lastBeatSentAt = 0;
+  autoProgramGhosts = false;
   clearPromptStashes();
 }
