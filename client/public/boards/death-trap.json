@@ -1,0 +1,142 @@
+{
+  "displayName": "Death-Trap",
+  "imageUrl": "/boardtemplates/death-trap.png",
+  "gameLength": "Long",
+  "difficulty": "Expert",
+  "minPlayers": 2,
+  "maxPlayers": 6,
+  "boardWidth": 10,
+  "boardHeight": 10,
+  "startingBoardWidth": 3,
+  "startingBoardHeight": 10,
+  "startingBoardDirection": "e",
+  "effects": {
+    "_comment_antenna": "___________________________ ANTENNA ___________________________",
+    "12,5": [{"kind": "antenna", "id": "antenna_12_5", "direction": "W"}],
+
+    "_comment_starting": "___________________________ STARTING TILES ___________________________",
+    "11,1": [{"kind": "startingtile", "id": "start_11_1", "playerId": 1}],
+    "12,3": [{"kind": "startingtile", "id": "start_12_3", "playerId": 2}],
+    "11,4": [{"kind": "startingtile", "id": "start_11_4", "playerId": 3}],
+    "11,5": [{"kind": "startingtile", "id": "start_11_5", "playerId": 4}],
+    "12,6": [{"kind": "startingtile", "id": "start_12_6", "playerId": 5}],
+    "11,8": [{"kind": "startingtile", "id": "start_11_8", "playerId": 6}],
+
+    "_comment_checkpoint": "___________________________ CHECKPOINTS ___________________________",
+    "1,7": [{"kind": "checkpoint", "id": "checkpoint_1_7", "number": 1}],
+    "4,4": [{"kind": "checkpoint", "id": "checkpoint_4_4", "number": 2}],
+    "7,8": [{"kind": "checkpoint", "id": "checkpoint_7_8", "number": 3}],
+    "8,2": [{"kind": "checkpoint", "id": "checkpoint_8_2", "number": 4}],
+    "0,1": [{"kind": "checkpoint", "id": "checkpoint_0_1", "number": 5}],
+
+    "_comment_reboot": "___________________________ REBOOT TOKEN ___________________________",
+    "12,9": [{"kind": "reboot_token", "id": "reboot_12_9", "direction": "W"}],
+
+    "_comment_walls": "___________________________ WALLS ___________________________",
+    "11,2": [{"kind": "walldto", "id": "wall_11_2", "walls": ["N"]}],
+    "10,4": [{"kind": "walldto", "id": "wall_10_4", "walls": ["W"]}],
+    "10,5": [{"kind": "walldto", "id": "wall_10_5", "walls": ["W"]}],
+    "11,7": [{"kind": "walldto", "id": "wall_11_7", "walls": ["S"]}],
+    "8,8": [{"kind": "walldto", "id": "wall_8_8", "walls": ["S"]}],
+    "6,8": [{"kind": "walldto", "id": "wall_6_8", "walls": ["N"]}],
+    "7,7": [{"kind": "walldto", "id": "wall_7_7", "walls": ["E"]}],
+    "8,1": [{"kind": "walldto", "id": "wall_8_1", "walls": ["E"]}],
+    "7,2": [{"kind": "walldto", "id": "wall_7_2", "walls": ["N"]}],
+    "6,4": [{"kind": "walldto", "id": "wall_6_4", "walls": ["N"]}],
+    "5,5": [{"kind": "walldto", "id": "wall_5_5", "walls": ["S"]}],
+    "4,3": [{"kind": "walldto", "id": "wall_4_3", "walls": ["S"]}],
+    "4,5": [{"kind": "walldto", "id": "wall_4_5", "walls": ["N"]}],
+    "3,1": [{"kind": "walldto", "id": "wall_3_1", "walls": ["S"]}],
+    "2,2": [{"kind": "walldto", "id": "wall_2_2", "walls": ["W"]}],
+    "2,7": [{"kind": "walldto", "id": "wall_2_7", "walls": ["S"]}],
+    "1,8": [{"kind": "walldto", "id": "wall_1_8", "walls": ["W"]}],
+    "1,6": [{"kind": "walldto", "id": "wall_1_6", "walls": ["E"]}],
+    "1,1": [{"kind": "walldto", "id": "wall_1_1", "walls": ["N"]}],
+
+    "_comment_pits": "___________________________ PITS ___________________________",
+    "_comment_pit_1_2": "Pit at 1,2",
+    "_comment_pit_3_2": "Pit at 3,2",
+    "_comment_pit_7_1": "Pit at 7,1",
+    "_comment_pit_7_3": "Pit at 7,3",
+    "_comment_pit_3_4": "Pit at 3,4",
+    "_comment_pit_6_5": "Pit at 6,5",
+    "_comment_pit_2_6": "Pit at 2,6",
+    "_comment_pit_2_8": "Pit at 2,8",
+    "_comment_pit_6_7": "Pit at 6,7",
+    "_comment_pit_8_7": "Pit at 8,7",
+
+    "1,2": [{ "kind": "PITS" }],
+    "3,2": [{ "kind": "PITS" }],
+    "7,1": [{ "kind": "PITS" }],
+    "7,3": [{ "kind": "PITS" }],
+    "3,4": [{ "kind": "PITS" }],
+    "6,5": [{ "kind": "PITS" }],
+    "2,6": [{ "kind": "PITS" }],
+    "2,8": [{ "kind": "PITS" }],
+    "6,7": [{ "kind": "PITS" }],
+    "8,7": [{ "kind": "PITS" }],
+
+    "_comment_lasers": "___________________________ BOARD LASERS (with walls) ___________________________",
+    "5,2": [
+      {"kind": "walldto", "id": "wall_5_2", "walls": ["E"]},
+      {"kind": "board_laser", "id": "laser_5_2", "direction": "W", "power": 2}
+    ],
+    "9,6": [
+      {"kind": "walldto", "id": "wall_9_6", "walls": ["E"]},
+      {"kind": "board_laser", "id": "laser_9_6", "direction": "W", "power": 1}
+    ],
+    "3,5": [
+      {"kind": "walldto", "id": "wall_3_5", "walls": ["S"]},
+      {"kind": "board_laser", "id": "laser_3_5", "direction": "N", "power": 2}
+    ],
+    "6,0": [
+      {"kind": "walldto", "id": "wall_6_0", "walls": ["N"]},
+      {"kind": "board_laser", "id": "laser_6_0", "direction": "S", "power": 1}
+    ],
+    "8,3": [
+      {"kind": "walldto", "id": "wall_8_3", "walls": ["W"]},
+      {"kind": "board_laser", "id": "laser_8_3", "direction": "E", "power": 1}
+    ],
+
+    "_comment_green_conveyors": "___________________________ GREEN CONVEYORS ___________________________",
+    "_comment_green_scattered": "Single scattered green conveyors",
+    "10,9": [{"kind": "GREEN_CONVEYOR", "id": "green_conveyor_10_9", "direction": "W", "rotation": "NONE"}],
+    "10,0": [{"kind": "GREEN_CONVEYOR", "id": "green_conveyor_10_0", "direction": "W", "rotation": "NONE"}],
+    
+    "_comment_green_belt1": "Belt 1: North line with turns",
+    "8,5": [{"kind": "GREEN_CONVEYOR", "id": "green_conveyor_8_5", "direction": "N", "rotation": "NONE"}],
+    "8,4": [{"kind": "GREEN_CONVEYOR", "id": "green_conveyor_8_4", "direction": "E", "rotation": "RIGHT"}],
+    "9,4": [{"kind": "GREEN_CONVEYOR", "id": "green_conveyor_9_4", "direction": "N", "rotation": "LEFT"}],
+    "9,3": [{"kind": "GREEN_CONVEYOR", "id": "green_conveyor_9_3", "direction": "N", "rotation": "NONE"}],
+    "9,2": [{"kind": "GREEN_CONVEYOR", "id": "green_conveyor_9_2", "direction": "N", "rotation": "NONE"}],
+    "9,1": [{"kind": "GREEN_CONVEYOR", "id": "green_conveyor_9_1", "direction": "N", "rotation": "NONE"}],
+    
+    "_comment_green_belt2": "Belt 2: West line with turns",
+    "5,1": [{"kind": "GREEN_CONVEYOR", "id": "green_conveyor_5_1", "direction": "W", "rotation": "NONE"}],
+    "4,1": [{"kind": "GREEN_CONVEYOR", "id": "green_conveyor_4_1", "direction": "N", "rotation": "RIGHT"}],
+    "4,0": [{"kind": "GREEN_CONVEYOR", "id": "green_conveyor_4_0", "direction": "W", "rotation": "LEFT"}],
+    "3,0": [{"kind": "GREEN_CONVEYOR", "id": "green_conveyor_3_0", "direction": "W", "rotation": "NONE"}],
+    "2,0": [{"kind": "GREEN_CONVEYOR", "id": "green_conveyor_2_0", "direction": "W", "rotation": "NONE"}],
+    "1,0": [{"kind": "GREEN_CONVEYOR", "id": "green_conveyor_1_0", "direction": "W", "rotation": "NONE"}],
+    
+    "_comment_green_belt3": "Belt 3: South line with turns",
+    "1,4": [{"kind": "GREEN_CONVEYOR", "id": "green_conveyor_1_4", "direction": "S", "rotation": "NONE"}],
+    "1,5": [{"kind": "GREEN_CONVEYOR", "id": "green_conveyor_1_5", "direction": "W", "rotation": "RIGHT"}],
+    "0,5": [{"kind": "GREEN_CONVEYOR", "id": "green_conveyor_0_5", "direction": "S", "rotation": "LEFT"}],
+    "0,6": [{"kind": "GREEN_CONVEYOR", "id": "green_conveyor_0_6", "direction": "S", "rotation": "NONE"}],
+    "0,7": [{"kind": "GREEN_CONVEYOR", "id": "green_conveyor_0_7", "direction": "S", "rotation": "NONE"}],
+    "0,8": [{"kind": "GREEN_CONVEYOR", "id": "green_conveyor_0_8", "direction": "S", "rotation": "NONE"}],
+    
+    "_comment_green_belt4": "Belt 4: East line with turns",
+    "4,8": [{"kind": "GREEN_CONVEYOR", "id": "green_conveyor_4_8", "direction": "E", "rotation": "NONE"}],
+    "5,8": [{"kind": "GREEN_CONVEYOR", "id": "green_conveyor_5_8", "direction": "S", "rotation": "RIGHT"}],
+    "5,9": [{"kind": "GREEN_CONVEYOR", "id": "green_conveyor_5_9", "direction": "E", "rotation": "LEFT"}],
+    "6,9": [{"kind": "GREEN_CONVEYOR", "id": "green_conveyor_6_9", "direction": "E", "rotation": "NONE"}],
+    "7,9": [{"kind": "GREEN_CONVEYOR", "id": "green_conveyor_7_9", "direction": "E", "rotation": "NONE"}],
+    "8,9": [{"kind": "GREEN_CONVEYOR", "id": "green_conveyor_8_9", "direction": "E", "rotation": "NONE"}],
+
+    "_comment_gears": "___________________________ GEARS ___________________________",
+    
+    "_comment_blue_conveyors": "___________________________ BLUE CONVEYORS ___________________________"
+  }
+}

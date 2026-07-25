@@ -1,9 +1,10 @@
 import React, { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { parseBoardDefinition, createGame } from "../engine/roborally-engine";
-import type { HostPlayerConfig } from "../engine/roborally-engine";
 import { BASE, Envelope } from "../utils/ws";
 import { ROBOT_COLORS } from "../types/constants";
+import { BOARD_CATALOG, DEFAULT_BOARD_ID } from "./boardCatalog";
+import { buildPlayerConfigs } from "../utils/gameSetup";
 import "../styles/lobby.css";
 
 /**
@@ -82,6 +83,7 @@ export default function CreateJoin() {
   const [gameName, setGameName] = useState<string>("");
   const [password, setPassword] = useState<string>("");
   const [joinCode, setJoinCode] = useState<string>("");
+  const [selectedBoardId, setSelectedBoardId] = useState<string>(DEFAULT_BOARD_ID);
 
   // Lobby state.
   const [gameId, setGameId] = useState<string>("");
@@ -114,7 +116,7 @@ export default function CreateJoin() {
       round: 0,
       current: 0,
       players: [{ idx: 0, name, color: ROBOT_COLORS[0] }],
-      board: "Starter-Course",
+      board: selectedBoardId,
     };
     const r = await jsonFetch(`${BASE}/games`, {
       method: "POST",
@@ -164,7 +166,13 @@ export default function CreateJoin() {
       setError("Game not found.");
       return null;
     }
-    if (r.status === 409) return claimAnySeat(code, pwd, playerName, idx + 1);
+    if (r.status === 409) {
+      if (r.data?.error === "already started") {
+        setError("This game has already started.");
+        return null;
+      }
+      return claimAnySeat(code, pwd, playerName, idx + 1);
+    }
     setError("Could not join game.");
     return null;
   };
@@ -260,25 +268,20 @@ export default function CreateJoin() {
     setBusy(true);
     const hostHeaders = { "x-rrr-host-token": sessionStorage.getItem("rrr_hostToken") || "" };
     try {
-      const def = await (await fetch(`${process.env.PUBLIC_URL}/board.json`)).json();
-      const loaded = parseBoardDefinition(def);
       const s = await jsonFetch(`${BASE}/games/${gameId}/state`, { headers: hostHeaders });
       if (!s.ok || !s.data?.state) throw new Error("state");
       const state: Envelope = s.data.state;
       const version: number = s.data.version;
 
-      const configs: HostPlayerConfig[] = state.players.map((p) => {
-        const robotId = p.idx + 1;
-        const tile = loaded.startingTiles[robotId] || { x: 0, y: p.idx };
-        return {
-          robotId,
-          name: p.name,
-          color: ROBOT_COLORS[p.idx % ROBOT_COLORS.length],
-          x: tile.x,
-          y: tile.y,
-          facing: loaded.startDirection,
-        };
-      });
+      const boardUrl = state.board
+        ? `${process.env.PUBLIC_URL}/boards/${state.board}.json`
+        : `${process.env.PUBLIC_URL}/board.json`;
+      let boardRes = await fetch(boardUrl);
+      if (!boardRes.ok) boardRes = await fetch(`${process.env.PUBLIC_URL}/board.json`);
+      const def = await boardRes.json();
+      const loaded = parseBoardDefinition(def);
+
+      const configs = buildPlayerConfigs(loaded, state.players);
 
       const snap = createGame(loaded.board, configs);
       const next: Envelope = {
@@ -364,6 +367,24 @@ export default function CreateJoin() {
           Password
           <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} maxLength={32} />
         </label>
+        <div className="board-picker-label">Board</div>
+        <div className="board-picker">
+          {BOARD_CATALOG.map((b) => (
+            <button
+              type="button"
+              key={b.id}
+              className={`board-card${selectedBoardId === b.id ? " selected" : ""}`}
+              onClick={() => setSelectedBoardId(b.id)}
+              aria-pressed={selectedBoardId === b.id}
+            >
+              <img src={b.preview} alt={b.displayName} className="board-card-preview" />
+              <span className="board-card-name">{b.displayName}</span>
+              <span className="board-card-meta">
+                {b.difficulty} &middot; {b.gameLength} &middot; {b.minPlayers}-{b.maxPlayers}p
+              </span>
+            </button>
+          ))}
+        </div>
         <button className="metal-button" onClick={onCreate} disabled={busy}>
           Create
         </button>
