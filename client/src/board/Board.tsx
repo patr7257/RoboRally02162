@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback, useRef, useMemo } from "react";
 import { Home } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import { subscribe, sendMessage, closeSocket, getRoster, getMyRobotId } from "../utils/ws";
+import { subscribe, sendMessage, closeSocket, getRoster, getMyRobotId, getBoardId } from "../utils/ws";
 import { MoveType, GameData, HandData, ROBOT_COLORS, DiscardData } from "../types/boardTypes";
 import { WinnerBanner } from "./WinnerBanner";
 import { BoardRenderer } from "./BoardRenderer";
@@ -76,6 +76,9 @@ export default function Board() {
     deadline?: number;
   } | null>(null);
 
+  const [boardId, setBoardId] = useState<string | null>(null);
+  const [errorBanner, setErrorBanner] = useState<{ message: string; key: number } | null>(null);
+
   useEffect(() => {
     if (moveHistoryRef.current) {
       moveHistoryRef.current.scrollTop = moveHistoryRef.current.scrollHeight;
@@ -137,28 +140,47 @@ export default function Board() {
   }, [lobbyId, stopReadinessPolling]);
 
   // Map banner + starting-area shading come from the bundled board definition.
+  // Prefer the board actually selected for this game (boards/<id>.json); fall
+  // back to the legacy single board.json when the id is not yet known or the
+  // per-board file does not exist.
   useEffect(() => {
     let cancelled = false;
-    fetch(`${process.env.PUBLIC_URL}/board.json`)
-      .then((r) => (r.ok ? r.json() : null))
-      .then((def) => {
-        if (cancelled || !def) return;
-        setMapDisplayName(def.displayName || "Robot Rally");
-        if (def.startingBoardDirection) {
-          setStartingAreaInfo({
-            direction: String(def.startingBoardDirection).toUpperCase(),
-            width: def.startingBoardWidth || 0,
-            height: def.startingBoardHeight || 0,
-          });
-        }
-      })
-      .catch(() => {
-        /* board.json is optional cosmetic metadata */
-      });
+
+    const applyDef = (def: any) => {
+      if (cancelled || !def) return;
+      setMapDisplayName(def.displayName || "Robot Rally");
+      if (def.startingBoardDirection) {
+        setStartingAreaInfo({
+          direction: String(def.startingBoardDirection).toUpperCase(),
+          width: def.startingBoardWidth || 0,
+          height: def.startingBoardHeight || 0,
+        });
+      }
+    };
+
+    const fetchFallback = () =>
+      fetch(`${process.env.PUBLIC_URL}/board.json`)
+        .then((r) => (r.ok ? r.json() : null))
+        .then(applyDef)
+        .catch(() => {
+          /* board.json is optional cosmetic metadata */
+        });
+
+    if (boardId) {
+      fetch(`${process.env.PUBLIC_URL}/boards/${boardId}.json`)
+        .then((r) => (r.ok ? r.json() : Promise.reject(new Error("board json not found"))))
+        .then(applyDef)
+        .catch(() => {
+          if (!cancelled) fetchFallback();
+        });
+    } else {
+      fetchFallback();
+    }
+
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [boardId]);
 
   /**
   * @author Asger Allin Jensen
@@ -190,6 +212,7 @@ export default function Board() {
           //check if readiness polling is running
           case "stateSnapshot":
             setGameData(actualData.payload || actualData);
+            setBoardId(getBoardId());
             break;
 
           case "hand":
@@ -277,12 +300,15 @@ export default function Board() {
             break;
 
           case "error":
-            console.error("Server error:", data.payload);
-            alert(`Error: ${data.payload.message}`);
+            console.error("Server error:", actualData.payload);
+            setErrorBanner({
+              message: actualData.payload?.message || "An error occurred",
+              key: Date.now(),
+            });
             break;
 
           case "needRespawnDirection":
-            const deadRobotId = actualData.payload?.robotId;
+            const deadRobotId = actualData.payload?.robotId ?? actualData.payload?.deadRobotId;
             const currentRobotId = parseInt(robotID);
 
             if (deadRobotId === currentRobotId) {
@@ -296,24 +322,8 @@ export default function Board() {
             break;
 
           case "lastMoves":
-
-            const raw = actualData.payload?.lastMoves;
-
-            if (typeof raw === "string") {
-              const trimmed = raw.slice(1, -1);
-
-              const parsed = trimmed
-                .split(", ")
-                .map((entry: string) => {
-                  const [robotId, move] = entry.split("=");
-                  return {
-                    robotId: Number(robotId),
-                    move: move,
-                  };
-                });
-
-              setMoveHistory(parsed);
-            }
+            const moves = actualData.payload?.moves;
+            if (Array.isArray(moves)) setMoveHistory(moves);
             break;
 
           default:
@@ -362,6 +372,13 @@ export default function Board() {
 
     return () => clearTimeout(timer);
   }, [reactionPopup]);
+
+  // Non-blocking error banner: auto-dismiss after 8s.
+  useEffect(() => {
+    if (!errorBanner) return;
+    const timer = setTimeout(() => setErrorBanner(null), 8000);
+    return () => clearTimeout(timer);
+  }, [errorBanner]);
 
   /**
    * @author Weihao Mo
@@ -556,6 +573,19 @@ export default function Board() {
     <div className="board-Master">
       {winner != null && (
         <WinnerBanner winnerId={winner} robotIdToUsername={robotIdToUsername} />
+      )}
+
+      {errorBanner && (
+        <div className="error-banner" role="alert">
+          <span className="error-banner-message">{errorBanner.message}</span>
+          <button
+            className="error-banner-close"
+            onClick={() => setErrorBanner(null)}
+            aria-label="Dismiss error"
+          >
+            ×
+          </button>
+        </div>
       )}
 
       <RespawnDirectionModal

@@ -345,6 +345,11 @@ export function getMyRobotId(): string {
   return ident ? String(ident.robotId) : "";
 }
 
+/** Selected board id for the active game, or null before it is known. */
+export function getBoardId(): string | null {
+  return getEnv()?.board ?? null;
+}
+
 /** Kept so routes that mounted it to keep the connection alive still compile. */
 export const WebSocketManager = () => {
   useLocation();
