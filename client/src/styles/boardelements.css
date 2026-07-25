@@ -185,6 +185,13 @@
   max-width: 80vw;
 }
 
+/* Host-handoff notice: same shape as the error banner, amber instead of red,
+   and offset so both can be on screen at once. */
+.host-banner {
+  top: 72px;
+  background-color: #8a5a00;
+}
+
 .error-banner-close {
   position: absolute;
   top: 6px;

@@ -17,6 +17,7 @@
 //   rrr/store.ts      - shared session state (env, busy, animating, ...)
 //   rrr/emit.ts       - listeners + message synthesis + activation playback
 //   rrr/hostLoop.ts   - host-only activation loop
+//   rrr/takeover.ts   - host staleness, takeover election, demotion (#4)
 //
 // Identity is read from sessionStorage (written by the create/join lobby):
 //   rrr_gameId, rrr_role ("host"|"player"), rrr_hostToken, rrr_playerToken,
@@ -34,6 +35,7 @@ import {
   postIntent,
   startTransport,
   stopTransport,
+  setUnauthorizedHandler,
 } from "./rrr/transport";
 import type { Envelope } from "./rrr/transport";
 import {
@@ -69,6 +71,12 @@ import {
   setHostRespawnDirection,
   reset as resetHostLoop,
 } from "./rrr/hostLoop";
+import {
+  initTakeover,
+  noteHostBeat,
+  handleUnauthorized,
+  reset as resetTakeover,
+} from "./rrr/takeover";
 import type { Direction, ReactionChoice } from "../engine/roborally-engine";
 
 export { BASE };
@@ -133,7 +141,10 @@ async function onRev(): Promise<void> {
   setBusy(true);
   try {
     const next = await fetchState();
-    if (next) await reconcile(next);
+    // The host beat rides along even on an unchanged read, which is exactly the
+    // case a dead host produces: fold it in before anything can bail out (#4).
+    noteHostBeat(next.hostBeatAt);
+    if (next.env) await reconcile(next.env);
   } finally {
     setBusy(false);
   }
@@ -146,6 +157,8 @@ function ensureStarted(): void {
   const ok = startTransport(onRev);
   if (!ok) return;
   started = true;
+  initTakeover({ reconcile });
+  setUnauthorizedHandler(handleUnauthorized);
   if (getIdentity()?.role === "host") {
     startHostLoop(reconcile);
   }
@@ -321,6 +334,7 @@ async function submitRespawnIntent(
 
 export function closeSocket(_reason: number): void {
   stopTransport();
+  resetTakeover();
   resetHostLoop();
   resetEmit();
   resetStore();

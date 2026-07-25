@@ -24,6 +24,16 @@ const GAME_NAME_RE = /^.{1,40}$/;
 const CODE_RE = /^[A-Z0-9]{4,8}$/;
 const PW_RE = /^[\x20-\x7e]{4,32}$/;
 
+/** Optional programming-phase time limit (issue #9). Off is the default: the
+ *  round then waits for every seat, exactly as it did before the timer existed. */
+const TIMER_OPTIONS: { label: string; ms: number }[] = [
+  { label: "Off", ms: 0 },
+  { label: "30s", ms: 30000 },
+  { label: "60s", ms: 60000 },
+  { label: "90s", ms: 90000 },
+  { label: "120s", ms: 120000 },
+];
+
 function deviceId(): string {
   let d = localStorage.getItem("rrr_device");
   if (!d) {
@@ -84,6 +94,7 @@ export default function CreateJoin() {
   const [password, setPassword] = useState<string>("");
   const [joinCode, setJoinCode] = useState<string>("");
   const [selectedBoardId, setSelectedBoardId] = useState<string>(DEFAULT_BOARD_ID);
+  const [timerMs, setTimerMs] = useState<number>(0);
 
   // Lobby state.
   const [gameId, setGameId] = useState<string>("");
@@ -117,6 +128,9 @@ export default function CreateJoin() {
       current: 0,
       players: [{ idx: 0, name, color: ROBOT_COLORS[0] }],
       board: selectedBoardId,
+      // Left off the envelope entirely when the timer is Off, so the host loop
+      // sees no timer at all rather than a zero-length one.
+      ...(timerMs > 0 ? { timerMs } : {}),
     };
     const r = await jsonFetch(`${BASE}/games`, {
       method: "POST",
@@ -368,6 +382,16 @@ export default function CreateJoin() {
         <label>
           Password
           <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} maxLength={32} />
+        </label>
+        <label>
+          Programming timer
+          <select value={timerMs} onChange={(e) => setTimerMs(Number(e.target.value))}>
+            {TIMER_OPTIONS.map((o) => (
+              <option key={o.ms} value={o.ms}>
+                {o.label}
+              </option>
+            ))}
+          </select>
         </label>
         <div className="board-picker-label">Board</div>
         <div className="board-picker">

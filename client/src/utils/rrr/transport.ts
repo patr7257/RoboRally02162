@@ -49,10 +49,17 @@ export interface Envelope {
   readiness?: Record<number, boolean>;
   /** Host-only, redacted from GET /view. */
   hostPrivate?: HostPrivate;
-  /** When the host stops waiting for a reaction / respawn choice. */
+  /** When the host stops waiting for a reaction / respawn choice, or (issue #9)
+   *  when the programming phase auto-activates. Always server-clock based. */
   deadlineAt?: number | null;
   rejections?: Record<number, Rejection>;
+  /** Programming-phase time limit in ms, chosen at create time (issue #9).
+   *  Absent means no timer: programming waits for everyone, as it always did. */
+  timerMs?: number;
   // server-managed: gameId, version, createdAt, updatedAt
+  /** Server write timestamp, echoed inside the state blob. Read-only here; used
+   *  to keep this tab's clock skew against the server (issue #4). */
+  updatedAt?: number;
 }
 
 export interface Identity {
@@ -66,12 +73,26 @@ export interface Identity {
   name: string;
 }
 
+/** What one authoritative read produced: the new envelope (null when nothing
+ *  changed or the read failed) plus the host liveness beat, which the backend
+ *  reports on every GET /view, including the `unchanged: true` short response.
+ *  Player tabs need the beat even when the revision did not move: a dead host is
+ *  exactly the case where no new revision ever arrives (issue #4). */
+export interface FetchResult {
+  env: Envelope | null;
+  hostBeatAt: number | null;
+}
+
 // ---- module state ---------------------------------------------------------
 
 let id: Identity | null = null;
 let version = 0;
 let es: EventSource | null = null;
 let pollTimer: ReturnType<typeof setInterval> | null = null;
+/** Date.now() - server clock, from the last full state read. Deadlines are
+ *  written and compared on the server clock so every tab agrees (issue #4). */
+let clockSkewMs = 0;
+let onUnauthorized: (() => void) | null = null;
 
 // ---- identity ---------------------------------------------------------------
 
@@ -96,6 +117,13 @@ export function getIdentity(): Identity | null {
   return id;
 }
 
+/** Re-reads sessionStorage into the live identity. Used by the host handoff
+ *  paths (promotion and demotion rewrite rrr_role / rrr_hostToken). */
+export function refreshIdentity(): Identity | null {
+  id = readIdentity();
+  return id;
+}
+
 export function getVersion(): number {
   return version;
 }
@@ -109,6 +137,28 @@ export function hostHeaders(): Record<string, string> {
     "Content-Type": "application/json",
     "x-rrr-host-token": id?.hostToken || "",
   };
+}
+
+// ---- clock ------------------------------------------------------------------
+
+/** Best estimate of the server's current epoch ms. Falls back to the local
+ *  clock until the first authoritative read lands. */
+export function serverNow(): number {
+  return Date.now() - clockSkewMs;
+}
+
+function noteServerClock(state: Envelope | null | undefined): void {
+  if (state && typeof state.updatedAt === "number") {
+    clockSkewMs = Date.now() - state.updatedAt;
+  }
+}
+
+// ---- host-token fencing -----------------------------------------------------
+
+/** Registers the handler invoked when a host-authed call comes back 401, i.e.
+ *  another tab took the host role over and this tab's token was fenced off. */
+export function setUnauthorizedHandler(fn: (() => void) | null): void {
+  onUnauthorized = fn;
 }
 
 // ---- fetch helpers ----------------------------------------------------------
@@ -128,25 +178,42 @@ export async function jsonFetch(url: string, opts?: RequestInit) {
   }
 }
 
-/** Fetch the latest authoritative blob. Returns the new envelope, or null if
- *  unchanged / unavailable. */
-export async function fetchState(): Promise<Envelope | null> {
-  if (!id) return null;
+/** Any call carrying the host token. Injects the host headers and funnels a 401
+ *  into the demotion handler: a 401 means a takeover minted a new host token and
+ *  fenced this one off (issue #4). */
+export async function hostFetch(url: string, opts: RequestInit = {}) {
+  const r = await jsonFetch(url, {
+    ...opts,
+    headers: { ...hostHeaders(), ...(opts.headers || {}) },
+  });
+  if (r.status === 401 && onUnauthorized) onUnauthorized();
+  return r;
+}
+
+/** Fetch the latest authoritative blob. `env` is the new envelope, or null when
+ *  unchanged / unavailable; `hostBeatAt` is the host's last liveness beat as
+ *  reported to player tabs (null for the host's own read). */
+export async function fetchState(): Promise<FetchResult> {
+  if (!id) return { env: null, hostBeatAt: null };
   if (id.role === "host") {
-    const r = await jsonFetch(`${BASE}/games/${id.gameId}/state`, {
-      headers: hostHeaders(),
-    });
-    if (!r.ok || !r.data) return null;
+    const r = await hostFetch(`${BASE}/games/${id.gameId}/state`);
+    if (!r.ok || !r.data) return { env: null, hostBeatAt: null };
     version = r.data.version;
-    return r.data.state as Envelope;
+    const state = r.data.state as Envelope;
+    noteServerClock(state);
+    return { env: state, hostBeatAt: null };
   }
   const r = await jsonFetch(
     `${BASE}/games/${id.gameId}/view?pw=${encodeURIComponent(id.pw)}&v=${version}`,
   );
-  if (!r.ok || !r.data) return null;
-  if (r.data.unchanged) return null;
+  if (!r.ok || !r.data) return { env: null, hostBeatAt: null };
+  const hostBeatAt =
+    typeof r.data.hostBeatAt === "number" ? (r.data.hostBeatAt as number) : null;
+  if (r.data.unchanged) return { env: null, hostBeatAt };
   version = r.data.version;
-  return r.data.state as Envelope;
+  const state = r.data.state as Envelope;
+  noteServerClock(state);
+  return { env: state, hostBeatAt };
 }
 
 /** Host-only optimistic-concurrency write. Returns true on success. On a 409
@@ -158,9 +225,8 @@ export async function putState(
   onConflict?: (fresh: Envelope) => void,
 ): Promise<boolean> {
   if (!id) return false;
-  const r = await jsonFetch(`${BASE}/games/${id.gameId}/state`, {
+  const r = await hostFetch(`${BASE}/games/${id.gameId}/state`, {
     method: "PUT",
-    headers: hostHeaders(),
     body: JSON.stringify({ baseVersion: version, state: next }),
   });
   if (r.ok && r.data) {
@@ -169,9 +235,16 @@ export async function putState(
   }
   if (r.status === 409) {
     const fresh = await fetchState();
-    if (fresh && onConflict) onConflict(fresh);
+    if (fresh.env && onConflict) onConflict(fresh.env);
   }
   return false;
+}
+
+/** Fire-and-forget host liveness beat. Never bumps the revision, never blocks
+ *  the caller, and a 401 demotes this tab through the unauthorized handler. */
+export function sendHeartbeat(): void {
+  if (!id || id.role !== "host") return;
+  void hostFetch(`${BASE}/games/${id.gameId}/heartbeat`, { method: "POST" });
 }
 
 /** POST a player intent (e.g. a submitted program) for the current game. */
@@ -210,4 +283,6 @@ export function stopTransport(): void {
   if (pollTimer) clearInterval(pollTimer);
   pollTimer = null;
   version = 0;
+  clockSkewMs = 0;
+  onUnauthorized = null;
 }
