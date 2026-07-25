@@ -384,6 +384,73 @@ async function main() {
     `hostBeatAt=${beatAt}`,
   );
 
+  // ---- EXTENSION (issue #8): damage-card program intents ------------------
+  // SPAM / TROJAN_HORSE / WORM are register values the engine puts into a
+  // robot's program (see engine/src/model/damageDecks.ts and
+  // engine/src/program/programCard.ts's Action union). This confirms the
+  // backend's intent endpoint accepts them as ordinary register strings,
+  // including staying under the 40-char id limit the backend enforces on
+  // register values. Unlike checks 1-23 above (which the whole script
+  // already requires the server for, via the reachability probe at the very
+  // top), this section re-checks reachability itself and degrades to a
+  // SKIPPED log instead of aborting: it exercises no state the rest of the
+  // script depends on, so it is safe to treat as optional. This does not
+  // change the pass/fail semantics of the 23 checks above.
+  let extensionReachable = false;
+  try {
+    const ping = await fetch(`${API}/games`);
+    extensionReachable = ping.ok || ping.status === 503;
+  } catch {
+    extensionReachable = false;
+  }
+
+  if (!extensionReachable) {
+    console.log(
+      "[SKIPPED] 11. Damage-card program intents (SPAM/TROJAN_HORSE/WORM) - server not reachable",
+    );
+  } else {
+    const damageRegisters = ["SPAM", "TROJAN_HORSE", "WORM", "MOVE1", "MOVE1"];
+
+    for (const id of damageRegisters) {
+      assertOrExit(
+        `11a. register id "${id}" fits the 40-char limit`,
+        id.length <= 40,
+        `length=${id.length}`,
+      );
+    }
+
+    const damageIntent = await req("POST", `/games/${gameId}/intent`, {
+      playerIdx: 1,
+      playerToken,
+      round: 1,
+      type: "program",
+      registers: damageRegisters,
+    });
+    assertOrExit(
+      "11b. POST intent (program) with SPAM/TROJAN_HORSE/WORM registers -> 200",
+      damageIntent.ok,
+      JSON.stringify(damageIntent.data),
+    );
+
+    const intents1 = await req("GET", `/games/${gameId}/intents?round=1`, undefined, {
+      "x-rrr-host-token": hostToken,
+    });
+    const hasDamageIntent =
+      intents1.ok &&
+      Array.isArray(intents1.data?.intents) &&
+      intents1.data.intents.some(
+        (it) =>
+          it.type === "program" &&
+          it.playerIdx === 1 &&
+          shapesEqual(it.registers, damageRegisters),
+      );
+    assertOrExit(
+      "11c. GET intents?round=1 (host) reflects the damage-card registers unchanged",
+      hasDamageIntent,
+      JSON.stringify(intents1.data),
+    );
+  }
+
   console.log(`\nAll ${passCount} checks passed.`);
 }
 

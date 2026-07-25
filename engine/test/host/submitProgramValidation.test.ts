@@ -164,4 +164,67 @@ describe("submitProgram validation", () => {
     const snap = game();
     expect(() => submitProgram(snap, 7, [])).toThrowError(/No player for robot 7/);
   });
+
+  // Extension for issue #8: a damage card (SPAM/TROJAN_HORSE/WORM) sitting in
+  // hand is just another card from validateAndCompleteOrThrow's point of view
+  // (issue #14's anti-cheat only checks hand membership by card equality). It
+  // is not removed from the deck's hand at submit time; that only happens
+  // when the card is actually executed (Game.executeOneRobotTurn's
+  // deck.removeFromHand + damageDecks.putBack).
+  it("accepts a picked damage card from hand and leaves it in the deck hand until it is executed", () => {
+    let snap = game();
+    snap = withHand(snap, 1, [
+      ProgramCard.spam(),
+      ProgramCard.move1(),
+      ProgramCard.move1(),
+    ]);
+    snap = withDrawPile(snap, 1, [
+      ProgramCard.left(),
+      ProgramCard.right(),
+      ProgramCard.uturn(),
+    ]);
+
+    const next = submitProgram(
+      snap,
+      1,
+      prog(ProgramCard.spam(), ProgramCard.move1()),
+    );
+
+    expect(next.players[0].program).toEqual(
+      prog(
+        ProgramCard.spam(),
+        ProgramCard.move1(),
+        ProgramCard.left(),
+        ProgramCard.right(),
+        ProgramCard.uturn(),
+      ),
+    );
+    expect(next.players[0].locked).toBe(true);
+    // SPAM is only removed from the hand when it is executed, not at submit:
+    // the original hand is untouched by the picked cards, only grown by the
+    // 3 autocompleted draws (left/right/uturn), per Deck.
+    // validateAndCompleteOrThrow's javadoc ("autocompleted cards are added to
+    // the hand when drawn").
+    expect(next.decks["1"].hand).toEqual(
+      prog(
+        ProgramCard.spam(),
+        ProgramCard.move1(),
+        ProgramCard.move1(),
+        ProgramCard.left(),
+        ProgramCard.right(),
+        ProgramCard.uturn(),
+      ),
+    );
+    // Damage-card submission never touches the global pools either.
+    expect(next.damageDecks).toEqual(snap.damageDecks);
+  });
+
+  it("throws when a damage card is picked but not actually present in hand", () => {
+    let snap = game();
+    snap = withHand(snap, 1, [ProgramCard.move1(), ProgramCard.move1()]);
+
+    expect(() =>
+      submitProgram(snap, 1, prog(ProgramCard.trojanHorse())),
+    ).toThrowError(/Not enough TROJAN_HORSE in hand/);
+  });
 });
