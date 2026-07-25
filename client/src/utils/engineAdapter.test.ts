@@ -201,6 +201,41 @@ describe("handForRobot / discardForRobot", () => {
     expect(handForRobot(snap, 99)).toEqual([]);
     expect(discardForRobot(snap, 99)).toEqual([]);
   });
+
+  // Extension for issue #8: a full 9-card hand mixing all three damage cards
+  // with normal cards, and a discard pile carrying damage cards drawn into it
+  // by a reboot penalty / laser hit (engine/src/model/deck.ts addToDiscard),
+  // as opposed to a damage card returned to the global pool on play. Both
+  // panels the client renders (Hand and Discard Pile) must reflect these
+  // without losing or reordering any card.
+  it("preserves a full damage-heavy hand's order, including duplicate damage cards", () => {
+    const hand: MoveType[] = [
+      "MOVE1",
+      "SPAM",
+      "SPAM",
+      "TROJAN_HORSE",
+      "WORM",
+      "MOVE2",
+      "ROTATELEFT",
+      "ROTATERIGHT",
+      "UTURN",
+    ];
+    const snap = makeSnapshot({
+      decks: { "1": { drawPile: [], hand: moveTypesToCards(hand), discardPile: [] } },
+    });
+    expect(handForRobot(snap, 1)).toEqual(hand);
+  });
+
+  it("renders damage cards a robot took as a hit sitting in the discard pile", () => {
+    // Mirrors what Deck.addToDiscard leaves behind after a laser hit or a
+    // reboot penalty: damage cards mixed into the discard pile alongside
+    // normally-discarded cards, before the next reshuffle/draw picks them up.
+    const discard: MoveType[] = ["MOVE1", "SPAM", "SPAM", "WORM"];
+    const snap = makeSnapshot({
+      decks: { "1": { drawPile: [], hand: [], discardPile: moveTypesToCards(discard) } },
+    });
+    expect(discardForRobot(snap, 1)).toEqual(discard);
+  });
 });
 
 // ---- frameToGameData ---------------------------------------------------------

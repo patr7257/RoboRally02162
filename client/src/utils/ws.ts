@@ -36,6 +36,7 @@ import {
   startTransport,
   stopTransport,
   setUnauthorizedHandler,
+  wireRound,
 } from "./rrr/transport";
 import type { Envelope } from "./rrr/transport";
 import {
@@ -48,6 +49,8 @@ import {
   setLastActivationId,
   getFinishedEmitted,
   setFinishedEmitted,
+  setLastRoundEntered,
+  noteMatchId,
   reset as resetStore,
 } from "./rrr/store";
 import {
@@ -59,6 +62,7 @@ import {
   animateActivation,
   enterRoundIfNeeded,
   syncPrompts,
+  resetPromptDedupe,
   reset as resetEmit,
 } from "./rrr/emit";
 import {
@@ -69,6 +73,8 @@ import {
   setLastReadiness,
   setHostReactionChoice,
   setHostRespawnDirection,
+  clearPromptStashes,
+  requestRematch,
   reset as resetHostLoop,
 } from "./rrr/hostLoop";
 import {
@@ -107,6 +113,22 @@ function restoreHostIfNeeded(env: Envelope): void {
 
 async function reconcile(next: Envelope): Promise<void> {
   restoreHostIfNeeded(next);
+
+  // A rematch (issue #10) bumps matchId and hands out fresh round numbers, but
+  // every per-match dedupe key (finishedEmitted, lastRoundEntered,
+  // lastActivationId, the host's own program/prompt stashes, the prompt
+  // synthesis dedupe keys) still carries state from the match that just
+  // ended. Reset all of it so the new match's very first envelope is treated
+  // as a genuinely fresh round on every tab, not "already seen".
+  if (noteMatchId(next.matchId)) {
+    setFinishedEmitted(false);
+    setLastRoundEntered(0);
+    setLastActivationId(next.activationId ?? -1);
+    setSubmittedThisRound(false);
+    setHostProgram(null);
+    clearPromptStashes();
+    resetPromptDedupe();
+  }
 
   const isActivation =
     next.activationId != null &&
@@ -187,7 +209,8 @@ export function sendMessage(data: string | object): boolean {
   }
   const type = obj?.payload?.type;
   const id = getIdentity();
-  const snap = getEnv()?.snap;
+  const env = getEnv();
+  const snap = env?.snap;
 
   switch (type) {
     case "getBoard":
@@ -245,8 +268,8 @@ export function sendMessage(data: string | object): boolean {
       if (id?.role === "host") {
         setHostReactionChoice(promptId, choice);
         void hostTick();
-      } else if (snap) {
-        void submitReactionIntent(promptId, choice, snap.round);
+      } else if (snap && env) {
+        void submitReactionIntent(promptId, choice, wireRound(env, snap.round));
       }
       return true;
     }
@@ -256,11 +279,17 @@ export function sendMessage(data: string | object): boolean {
       if (id?.role === "host") {
         setHostRespawnDirection(direction);
         void hostTick();
-      } else if (snap) {
-        void submitRespawnIntent(direction, snap.round);
+      } else if (snap && env) {
+        void submitRespawnIntent(direction, wireRound(env, snap.round));
       }
       return true;
     }
+    case "rematch":
+      // Host-only, and only once the match has actually finished (issue #10);
+      // requestRematch re-checks both, this guard just avoids the call for
+      // every other tab.
+      if (id?.role === "host") void requestRematch();
+      return true;
     default:
       return true;
   }
@@ -273,7 +302,7 @@ async function submitProgramIntent(cards: MoveType[]): Promise<void> {
   const r = await postIntent({
     playerIdx: id.seatIdx,
     playerToken: id.playerToken,
-    round: env.snap.round,
+    round: wireRound(env, env.snap.round),
     type: "program",
     registers: cards,
   });
@@ -357,6 +386,14 @@ export function getRoster(): { name: string; robotId: number }[] {
 export function getMyRobotId(): string {
   const ident = getIdentity() ?? readIdentity();
   return ident ? String(ident.robotId) : "";
+}
+
+/** This tab's role: the acting host (runs the activation loop) or a player.
+ *  Used to gate the "Play again" button to the tab that can actually PUT the
+ *  rematch state (issue #10). Defaults to "player" before identity is known. */
+export function getMyRole(): "host" | "player" {
+  const ident = getIdentity() ?? readIdentity();
+  return ident?.role ?? "player";
 }
 
 /** Selected board id for the active game, or null before it is known. */

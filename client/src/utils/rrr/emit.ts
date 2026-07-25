@@ -218,12 +218,21 @@ export function syncPrompts(env: Envelope): void {
   }
 }
 
-/** Clears listener bookkeeping and the per-tab prompt / move-log state,
- *  matching what closeSocket did before. */
-export function reset(): void {
-  listeners.clear();
+/** Clears the per-tab prompt / activation dedupe keys without touching
+ *  listeners. Called on every rematch (issue #10): a new match's rounds can
+ *  reuse the previous match's round numbers on the wire's low bits (e.g. both
+ *  start a fresh "round 1" conceptually), so a prompt or rejection dedupe key
+ *  salted only by round could wrongly read as "already shown". */
+export function resetPromptDedupe(): void {
   lastPromptKey = null;
   rejectionRoundEmitted = -1;
   lastMoves = [];
   lastAnimatedStatus = null;
+}
+
+/** Clears listener bookkeeping and the per-tab prompt / move-log state,
+ *  matching what closeSocket did before. */
+export function reset(): void {
+  listeners.clear();
+  resetPromptDedupe();
 }
