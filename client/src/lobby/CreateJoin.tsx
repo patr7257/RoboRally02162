@@ -290,7 +290,9 @@ export default function CreateJoin() {
         phase: "programming",
         round: 1,
         current: 0,
-        board: loaded.displayName,
+        /* Keep the board ID (filename stem), not the display name: every tab
+           re-fetches boards/<id>.json for the banner and starting-area shading. */
+        board: state.board ?? loaded.displayName,
         snap,
         frames: [],
         activationId: 0,
