@@ -218,6 +218,7 @@ const MoveCard = ({
 }) => (
   <motion.div
     draggable={!locked}
+    data-testid="hand-card"
     onDragStart={(e) => {
       if (locked) {
         e.preventDefault();
@@ -266,6 +267,7 @@ const DropSlot = ({
   <motion.div
     onDragOver={(e) => e.preventDefault()}
     onDrop={onDrop}
+    data-testid={`register-slot-${index}`}
     className={`dropSlot ${isOver ? 'dragOver' : ''} ${move ? 'filled' : 'empty'} ${isDragging ? 'is-drag-source' : ''}`}
     whileHover={{ scale: 1.02 }}
   >
@@ -433,6 +435,7 @@ export const MoveSelector: React.FC<MoveSelectorProps> = ({
         <div className="register-buttons">
           <button
             className="make-move-button"
+            data-testid="lock-registers"
             onClick={() => onSubmitMove(selectedMoves.filter((m): m is MoveType => m !== null))}
             disabled={hasEmptySlots || hasSubmitted}
           >
